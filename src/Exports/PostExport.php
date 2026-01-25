@@ -2,15 +2,14 @@
 
 namespace Uiaciel\SuryaCms\Exports;
 
-use Uiaciel\SuryaCms\Models\Post;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Uiaciel\SuryaCms\Models\Post;
 
 class PostExport implements FromQuery, WithHeadings, WithMapping
 {
-
     use Exportable;
 
     public function query()

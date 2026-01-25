@@ -2,20 +2,23 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire;
 
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Request;
 use Livewire\Component;
 use Uiaciel\SuryaCms\Models\Visitor;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
 
 class VisitorStats extends Component
 {
-
     public $onlineVisitors = 0;
+
     public $todayVisitors = 0;
+
     public $yesterdayVisitors = 0;
+
     public $thisWeekVisitors = 0;
+
     public $thisMonthVisitors = 0;
+
     public $totalVisitors = 0;
 
     public function mount()
@@ -32,7 +35,7 @@ class VisitorStats extends Component
         // Cek apakah pengunjung sudah ada dalam 5 menit terakhir untuk menghindari duplikasi
         $latestVisitor = Visitor::where('ip_address', $ip)->where('created_at', '>', now()->subMinutes(5))->first();
 
-        if (!$latestVisitor) {
+        if (! $latestVisitor) {
             Visitor::create([
                 'ip_address' => $ip,
                 'user_agent' => $userAgent,

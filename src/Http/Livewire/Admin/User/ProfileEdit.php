@@ -6,21 +6,27 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
-
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class ProfileEdit extends Component
 {
-
     public $titlePage = 'Profile Edit';
+
     public $name;
+
     public $email;
+
     public $password;
+
     public $current_password;
+
     public $password_confirmation;
+
     public $passwordVisible = false;
+
     public $currentPasswordVisible = false;
+
     public $passwordConfirmationVisible = false;
 
     public function mount()
@@ -54,15 +60,17 @@ class ProfileEdit extends Component
 
     public function togglePasswordVisibility()
     {
-        $this->passwordVisible = !$this->passwordVisible;
+        $this->passwordVisible = ! $this->passwordVisible;
     }
+
     public function toggleCurrentPasswordVisibility()
     {
-        $this->currentPasswordVisible = !$this->currentPasswordVisible;
+        $this->currentPasswordVisible = ! $this->currentPasswordVisible;
     }
+
     public function togglePasswordConfirmationVisibility()
     {
-        $this->passwordConfirmationVisible = !$this->passwordConfirmationVisible;
+        $this->passwordConfirmationVisible = ! $this->passwordConfirmationVisible;
     }
 
     public function updateProfile()
@@ -70,7 +78,7 @@ class ProfileEdit extends Component
 
         $this->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
+            'email' => 'required|email|max:255|unique:users,email,'.Auth::id(),
         ]);
 
         $user = User::find(Auth::id());

@@ -2,13 +2,14 @@
 
 namespace Uiaciel\SuryaCms\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Contact;
+use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 
 /**
  * Frontend Controller
@@ -21,8 +22,7 @@ class FrontendController extends Controller
     /**
      * Render homepage for multilingual setup
      *
-     * @param Request $request
-     * @param string $lang Language code (id|en)
+     * @param  string  $lang  Language code (id|en)
      * @return \Illuminate\View\View
      */
     public function index(Request $request, $lang = 'id')
@@ -44,7 +44,7 @@ class FrontendController extends Controller
                 // Process shortcodes [[plugin]]
                 $page->html = $this->processShortcodes($page->html);
 
-                return view("frontend::homepage", [
+                return view('frontend::homepage', [
                     'html' => $page->html,
                     'css' => $page->css,
                     'title' => $page->title,
@@ -75,7 +75,7 @@ class FrontendController extends Controller
                 // Process shortcodes [[plugin]]
                 $page->html = $this->processShortcodes($page->html);
 
-                return view("frontend::homepage", [
+                return view('frontend::homepage', [
                     'html' => $page->html,
                     'css' => $page->css,
                     'title' => $page->title,
@@ -90,22 +90,46 @@ class FrontendController extends Controller
 
     /**
      * Show individual post/media page
+     * Supports both multilingual and single-language modes
      *
-     * @param string $slug Post slug
+     * @param  string  $slug  Post slug
+     * @param  string|null  $lang  Language code for multilingual mode
      * @return \Illuminate\View\View
      */
-    public function postshow($slug)
+    public function postshow($slug, $lang = null)
     {
-        $post = Post::where('slug', $slug)
-            ->where('status', 'Publish')
-            ->firstOrFail();
+        $setting = Setting::first();
+        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
 
+        $query = Post::where('slug', $slug)->where('status', 'Publish');
+
+        if ($isMultilingual && $lang) {
+            // Set locale for multilingual mode
+            session(['locale' => $lang]);
+            app()->setLocale($lang);
+
+            // Get language ID from language code
+            $languageId = $this->getLanguageIdFromCode($lang);
+            if ($languageId) {
+                $query->where('language_id', $languageId);
+            }
+        }
+
+        $post = $query->firstOrFail();
         $post->increment('view');
 
         $recentpost = Post::where('user_id', $post->user_id)
             ->where('id', '!=', $post->id)
-            ->where('status', 'Publish')
-            ->orderBy('created_at', 'desc')
+            ->where('status', 'Publish');
+
+        if ($isMultilingual && $lang) {
+            $languageId = $this->getLanguageIdFromCode($lang);
+            if ($languageId) {
+                $recentpost->where('language_id', $languageId);
+            }
+        }
+
+        $recentpost = $recentpost->orderBy('created_at', 'desc')
             ->take(6)
             ->get();
 
@@ -118,15 +142,32 @@ class FrontendController extends Controller
     /**
      * Show individual page by slug
      * Only shows published pages to prevent exposing draft content
+     * Supports both multilingual and single-language modes
      *
-     * @param string $slug Page slug
+     * @param  string  $slug  Page slug
+     * @param  string|null  $lang  Language code for multilingual mode
      * @return \Illuminate\View\View
      */
-    public function pageshow($slug)
+    public function pageshow($slug, $lang = null)
     {
-        $page = Page::where('slug', $slug)
-            ->where('status', 'Publish')
-            ->firstOrFail();
+        $setting = Setting::first();
+        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+
+        $query = Page::where('slug', $slug)->where('status', 'Publish');
+
+        if ($isMultilingual && $lang) {
+            // Set locale for multilingual mode
+            session(['locale' => $lang]);
+            app()->setLocale($lang);
+
+            // Get language ID from language code
+            $languageId = $this->getLanguageIdFromCode($lang);
+            if ($languageId) {
+                $query->where('language_id', $languageId);
+            }
+        }
+
+        $page = $query->firstOrFail();
 
         return view('frontend::page.show', [
             'page' => $page,
@@ -135,17 +176,34 @@ class FrontendController extends Controller
 
     /**
      * Show posts in a specific category
+     * Supports both multilingual and single-language modes
      *
-     * @param string $slug Category slug
+     * @param  string  $slug  Category slug
+     * @param  string|null  $lang  Language code for multilingual mode
      * @return \Illuminate\View\View
      */
-    public function category($slug)
+    public function category($slug, $lang = null)
     {
+        $setting = Setting::first();
+        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+
         $category = Category::where('slug', $slug)->firstOrFail();
 
-        $posts = Post::where('category_id', $category->id)
-            ->where('status', 'Publish')
-            ->orderBy('created_at', 'desc')
+        $query = Post::where('category_id', $category->id)->where('status', 'Publish');
+
+        if ($isMultilingual && $lang) {
+            // Set locale for multilingual mode
+            session(['locale' => $lang]);
+            app()->setLocale($lang);
+
+            // Get language ID from language code
+            $languageId = $this->getLanguageIdFromCode($lang);
+            if ($languageId) {
+                $query->where('language_id', $languageId);
+            }
+        }
+
+        $posts = $query->orderBy('created_at', 'desc')
             ->paginate(12);
 
         return view('frontend::page.category', [
@@ -185,7 +243,7 @@ class FrontendController extends Controller
                     'id' => $post->id,
                     'title' => $post->title,
                     'slug' => $post->slug,
-                    'link' => '/media/' . $post->slug,
+                    'link' => '/media/'.$post->slug,
                 ];
             });
 
@@ -205,7 +263,7 @@ class FrontendController extends Controller
                     'id' => $category->id,
                     'name' => $category->name,
                     'slug' => $category->slug,
-                    'link' => '/category/' . $category->slug,
+                    'link' => '/category/'.$category->slug,
                 ];
             });
 
@@ -226,7 +284,7 @@ class FrontendController extends Controller
                     'id' => $page->id,
                     'title' => $page->title,
                     'slug' => $page->slug,
-                    'link' => '/' . $page->slug,
+                    'link' => '/'.$page->slug,
                 ];
             });
 
@@ -246,7 +304,6 @@ class FrontendController extends Controller
     /**
      * Handle contact form submission
      *
-     * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function sendcontact(Request $request)
@@ -276,7 +333,7 @@ class FrontendController extends Controller
      * Process shortcodes [[plugin]] in HTML content
      * Renders view if exists, otherwise returns original shortcode
      *
-     * @param string $html HTML content with shortcodes
+     * @param  string  $html  HTML content with shortcodes
      * @return string Processed HTML
      */
     private function processShortcodes($html)
@@ -296,5 +353,18 @@ class FrontendController extends Controller
             return $matches[0];
         }, $html);
     }
-}
 
+    /**
+     * Get language ID from language code (id|en)
+     * Returns the corresponding language ID from the database
+     *
+     * @param  string  $code  Language code (id|en)
+     * @return int|null Language ID or null if not found
+     */
+    private function getLanguageIdFromCode($code)
+    {
+        $language = Language::where('code', $code)->where('status', 'Active')->first();
+
+        return $language ? $language->id : null;
+    }
+}

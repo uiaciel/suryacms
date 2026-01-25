@@ -2,31 +2,46 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Post;
 
-use Uiaciel\SuryaCms\Models\Post;
-use Uiaciel\SuryaCms\Models\Language;
-use Uiaciel\SuryaCms\Models\Category;
-use Livewire\Component;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
+use Uiaciel\SuryaCms\Models\Category;
+use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Post;
 
 class PostEdit extends Component
 {
     public $titlePage;
+
     public $postId;
+
     public $title;
+
     public $konten;
+
     public $datepublish;
+
     public $language_id;
+
     public $translation_id;
+
     public $category_id;
+
     public $tags;
+
     public $source_url;
+
     public $source_favicon;
+
     public $source_title;
+
     public $feature; // Akan menjadi boolean
+
     public $flash;   // Akan menjadi boolean
+
     public $status;
+
     public $languages;
+
     public $categories;
 
     public $setting;
@@ -39,7 +54,7 @@ class PostEdit extends Component
         $post = Post::find($this->postId);
 
         if ($post) {
-            $this->titlePage = "Edit Post";
+            $this->titlePage = 'Edit Post';
             $this->title = $post->title;
             $this->konten = $post->content;
             // Pastikan format tanggal sesuai dengan input date HTML (YYYY-MM-DD)
@@ -61,7 +76,7 @@ class PostEdit extends Component
 
             // Ambil setting dari database. Sesuaikan dengan cara Anda mendapatkan setting.
             // Contoh: $this->setting = \Uiaciel\SuryaCms\Models\Setting::first();
-            $this->setting = (object)['is_multilingual' => 'No']; // Dummy, ganti ini
+            $this->setting = (object) ['is_multilingual' => 'No']; // Dummy, ganti ini
         } else {
             abort(404, 'Post not found');
         }
@@ -127,7 +142,7 @@ class PostEdit extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Success',
-                'text' => 'Post updated Successfully!'
+                'text' => 'Post updated Successfully!',
             ]);
 
             return $this->redirect('/admin/posts', navigate: true);
@@ -136,8 +151,9 @@ class PostEdit extends Component
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Post not found!'
+                'text' => 'Post not found!',
             ]);
+
             return $this->redirect('/admin/posts', navigate: true);
         }
     }
@@ -183,15 +199,16 @@ class PostEdit extends Component
             $this->dispatch('swal', [
                 'icon' => 'info',
                 'title' => 'Saved!',
-                'text' => 'Post saved as draft!'
+                'text' => 'Post saved as draft!',
             ]);
         } else {
             session()->flash('error', 'Post not found.');
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Post not found!'
+                'text' => 'Post not found!',
             ]);
+
             return $this->redirect('/admin/posts', navigate: true);
         }
     }
@@ -207,7 +224,7 @@ class PostEdit extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Deleted!',
-                'text' => 'Post deleted Successfully!'
+                'text' => 'Post deleted Successfully!',
             ]);
 
             return $this->redirect('/admin/posts', navigate: true);
@@ -216,7 +233,7 @@ class PostEdit extends Component
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Post not found!'
+                'text' => 'Post not found!',
             ]);
         }
     }

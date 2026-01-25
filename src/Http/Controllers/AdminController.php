@@ -2,56 +2,81 @@
 
 namespace Uiaciel\SuryaCms\Http\Controllers;
 
-use Uiaciel\SuryaCms\Models\Gallery;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Routing\Controller;
-use ZipArchive;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Drivers\Gd\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Laravel\Facades\Image;
+use Uiaciel\SuryaCms\Models\Gallery;
+use ZipArchive;
 
 class AdminController extends Controller
 {
     public function tinymce(Request $request)
     {
-
-        $request->validate([
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:20024',
-        ]);
-
         try {
-            $manager = new ImageManager(new Driver());
+            // Validate the incoming file
+            $request->validate([
+                'file' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:20480',
+            ]);
 
+            if (! $request->hasFile('file')) {
+                return response()->json([
+                    'error' => 'No file uploaded',
+                ], 400);
+            }
+
+            $manager = new ImageManager(new Driver);
+
+            // Get original file name and create a slug for it
             $originName = $request->file('file')->getClientOriginalName();
-            $slugName = str_replace([' ', '_'], ['-', '-'], pathinfo($originName, PATHINFO_FILENAME)); // Lebih baik pakai strip_tags dan str_slug
+            // Sanitize the file name for URL-friendly slug
+            $slugName = \Illuminate\Support\Str::slug(pathinfo($originName, PATHINFO_FILENAME));
             $timestamp = now()->format('YmdHis');
             $fileName = "{$timestamp}_{$slugName}.webp";
 
-            $convertedImage = $manager->read($request->file('file'))->encode(new WebpEncoder(quality: 70));
+            // Read the image, encode it to WebP with 70% quality
+            $convertedImage = $manager->read($request->file('file')->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-            Storage::disk('public')->put('images/' . $fileName, $convertedImage->__toString());
+            // Store the WebP image in the public disk under 'images' directory
+            Storage::disk('public')->put('images/'.$fileName, $convertedImage->__toString());
 
-            $gallery = new Gallery();
+            // Create a new Gallery entry for the uploaded image
+            $gallery = new Gallery;
             $gallery->name = pathinfo($originName, PATHINFO_FILENAME);
-            $gallery->description = 'Uploaded to POST';
-            $gallery->image_path = 'images/' . $fileName;
+            $gallery->description = 'Uploaded via TinyMCE';
+            $gallery->image_path = 'images/'.$fileName;
             $gallery->category = 'POST';
             $gallery->status = 'Publish';
-            $gallery->is_tinymce_upload = true;
+            $gallery->is_tinymce_upload = true; // Mark as uploaded via TinyMCE
             $gallery->save();
 
-            return response()->json(['location' => Storage::url('images/' . $fileName)]);
+            // Return the URL of the stored image - MUST return location key for TinyMCE
+            return response()->json([
+                'location' => Storage::url('images/'.$fileName),
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed: '.implode(', ', array_merge(...array_values($e->errors()))),
+            ], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'File upload failed: ' . $e->getMessage()], 500);
+            \Log::error('TinyMCE upload error: '.$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'error' => 'File upload failed: '.$e->getMessage(),
+            ], 500);
         }
     }
 
     public function gallery()
     {
-        $titlePage = "Gallery";
+        $titlePage = 'Gallery';
         $categoryGallery = Gallery::distinct()->pluck('category');
         $galleries = Gallery::all();
 
@@ -77,8 +102,8 @@ class AdminController extends Controller
         $tmpPath = storage_path('Uiaciel\SuryaCms/temp');
         File::ensureDirectoryExists($tmpPath);
 
-        $fileName = uniqid('theme_') . '.zip';
-        $filePath = $tmpPath . '/' . $fileName;
+        $fileName = uniqid('theme_').'.zip';
+        $filePath = $tmpPath.'/'.$fileName;
 
         // Pindahkan ke folder temp
         $file->move($tmpPath, $fileName);
@@ -87,7 +112,7 @@ class AdminController extends Controller
         $extractPath = base_path('resources/views/frontend/');
 
         // Buka file zip
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($filePath) === true) {
             $zip->extractTo($extractPath);
             $zip->close();
@@ -120,7 +145,7 @@ class AdminController extends Controller
             $gallery->status = $request->status;
 
             if ($request->hasFile('image_path')) {
-                $manager = new ImageManager(new Driver());
+                $manager = new ImageManager(new Driver);
 
                 $timestamp = now()->format('YmdHis');
                 $slugTitle = str_replace(' ', '_', strtolower($request->name));
@@ -130,17 +155,17 @@ class AdminController extends Controller
                 $convertedImage = $manager->read($request->file('image_path')->getRealPath())->encode(new WebpEncoder(quality: 70));
 
                 // Save the WebP image to the storage
-                Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
 
                 // Set the image path for the gallery
-                $gallery->image_path = 'galleries/' . $fileName;
+                $gallery->image_path = 'galleries/'.$fileName;
             }
 
             $gallery->save();
 
             return redirect()->back()->with('message', 'Gallery created successfully.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to create gallery: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create gallery: '.$e->getMessage());
         }
     }
 
@@ -157,7 +182,7 @@ class AdminController extends Controller
         try {
             $gallery = Gallery::find($id);
 
-            if (!$gallery) {
+            if (! $gallery) {
                 return redirect()->back()->with('error', 'Gallery not found.');
             }
 
@@ -172,7 +197,7 @@ class AdminController extends Controller
                     Storage::disk('public')->delete($gallery->image_path);
                 }
 
-                $manager = new ImageManager(new Driver());
+                $manager = new ImageManager(new Driver);
 
                 $timestamp = now()->format('YmdHis');
                 $slugTitle = str_replace(' ', '_', strtolower($request->name));
@@ -182,17 +207,17 @@ class AdminController extends Controller
                 $convertedImage = $manager->read($request->file('image_path')->getRealPath())->encode(new WebpEncoder(quality: 70));
 
                 // Save the WebP image to the storage
-                Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
 
                 // Set the image path for the gallery
-                $gallery->image_path = 'galleries/' . $fileName;
+                $gallery->image_path = 'galleries/'.$fileName;
             }
 
             $gallery->save();
 
             return redirect()->back()->with('message', 'Gallery updated successfully.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to update gallery: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update gallery: '.$e->getMessage());
         }
     }
 }

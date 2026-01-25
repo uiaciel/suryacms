@@ -2,90 +2,141 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire;
 
-use Uiaciel\SuryaCms\Models\Page;
-use Uiaciel\SuryaCms\Models\Setting;
-use Uiaciel\SuryaCms\Models\Gallery;
-use Uiaciel\SuryaCms\Models\Menu;
-use Livewire\Component;
-use Illuminate\Support\Str;
-use Livewire\WithFileUploads;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\ImageManager;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
-use \Carbon\Carbon;
-use Uiaciel\SuryaCms\Imports\SettingImport;
-use Uiaciel\SuryaCms\Exports\SettingExport;
+use Intervention\Image\ImageManager;
+use Livewire\Component;
+use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\Artisan;
+use Uiaciel\SuryaCms\Imports\SettingImport;
+use Uiaciel\SuryaCms\Models\Gallery;
+use Uiaciel\SuryaCms\Models\Page;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class SettingWeb extends Component
 {
-
     use WithFileUploads;
 
     public $title = 'Settings';
+
     public $sitename;
+
     public $tagline;
+
     public $description;
+
     public $keywords;
+
     public $sitename_translation;
+
     public $tagline_translation;
+
     public $description_translation;
+
     public $keywords_translation;
+
     public $googlesiteverification;
+
     public $address;
+
     public $email;
+
     public $phone;
+
     public $whatsapp;
+
     public $facebook;
+
     public $twitter;
+
     public $instagram;
+
     public $linkedin;
+
     public $youtube;
+
     public $tiktok;
+
     public $url;
+
     public $logo;
+
     public $favicon;
+
     public $images;
+
     public $google_analytics;
+
     public $google_adsense;
+
     public $language;
+
     public $is_multilingual = 'No';
+
     public $code;
+
     public $color_primary;
+
     public $color_secondary;
+
     public $color_success;
+
     public $color_danger;
+
     public $color_warning;
+
     public $color_info;
+
     public $color_light;
+
     public $color_dark;
+
     public $site_maintenance;
+
     public $email_forwarder;
+
     public $date_format;
+
     public $active_theme;
+
     public string $homepage_type = 'index';
+
     public ?int $homepage_id = null;
+
     public $themes = [];
+
     public array $pages = [];
+
     public array $homepagePages = [];
+
     public $themeInfo = [];
 
     public $importFile;
+
     public $date;
 
     public $dateFormats = [];
+
     public $theme_zip;
 
     // Modal setup setting properties
     public bool $showSetupModal = false;
+
     public bool $settingExists = false;
+
     public string $setup_sitename = '';
+
     public string $setup_url = '';
+
     public string $setup_language = 'id';
+
     public string $setup_email = '';
+
     public string $setup_tagline = '';
 
     public function getAvailableThemes()
@@ -108,7 +159,7 @@ class SettingWeb extends Component
             $themeConfig = require $themeConfigPath;
             $this->themeInfo = $themeConfig; // Simpan info theme ke property
             if (isset($themeConfig['info']['theme_preview'])) {
-                $this->dispatch('updateThemePreview', asset("frontend/{$value}" . $themeConfig['info']['theme_preview']));
+                $this->dispatch('updateThemePreview', asset("frontend/{$value}".$themeConfig['info']['theme_preview']));
             } else {
                 $this->dispatch('updateThemePreview', null);
             }
@@ -130,7 +181,7 @@ class SettingWeb extends Component
         $setting = Setting::first();
 
         // Check if setting doesn't exist and show setup modal
-        if (!$setting) {
+        if (! $setting) {
             $this->showSetupModal = true;
             $this->settingExists = false;
             $this->setup_language = 'id';
@@ -138,6 +189,7 @@ class SettingWeb extends Component
             $this->setup_url = config('app.url');
             $this->setup_email = '';
             $this->setup_tagline = '';
+
             return;
         }
 
@@ -178,19 +230,19 @@ class SettingWeb extends Component
             $this->language = $setting->language;
             $this->is_multilingual = $setting->is_multilingual;
             $this->code = $setting->code;
-            $this->color_primary   = $setting->color_primary   ?? '#0d6efd';
+            $this->color_primary = $setting->color_primary ?? '#0d6efd';
             $this->color_secondary = $setting->color_secondary ?? '#6c757d';
-            $this->color_success   = $setting->color_success   ?? '#198754';
-            $this->color_danger    = $setting->color_danger    ?? '#dc3545';
-            $this->color_warning   = $setting->color_warning   ?? '#ffc107';
-            $this->color_info      = $setting->color_info      ?? '#0dcaf0';
-            $this->color_light     = $setting->color_light     ?? '#f8f9fa';
-            $this->color_dark      = $setting->color_dark      ?? '#212529';
+            $this->color_success = $setting->color_success ?? '#198754';
+            $this->color_danger = $setting->color_danger ?? '#dc3545';
+            $this->color_warning = $setting->color_warning ?? '#ffc107';
+            $this->color_info = $setting->color_info ?? '#0dcaf0';
+            $this->color_light = $setting->color_light ?? '#f8f9fa';
+            $this->color_dark = $setting->color_dark ?? '#212529';
             $this->site_maintenance = (bool) ($setting->site_maintenance ?? false);
             $this->email_forwarder = $setting->email_forwarder;
             $this->date_format = $setting->date_format ?? 'd/m/Y';
 
-            if (!array_key_exists($this->date_format, $this->dateFormats)) {
+            if (! array_key_exists($this->date_format, $this->dateFormats)) {
                 $this->date_format = array_key_first($this->dateFormats);
             }
 
@@ -228,18 +280,18 @@ class SettingWeb extends Component
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
             // Anda bisa menampilkan pesan error yang lebih spesifik di sini jika mau.
-            session()->flash('error', 'Failed to import settings. Please check your file. Error on row: ' . $failures[0]->row() . ' - ' . $failures[0]->errors()[0]);
+            session()->flash('error', 'Failed to import settings. Please check your file. Error on row: '.$failures[0]->row().' - '.$failures[0]->errors()[0]);
         } catch (\Exception $e) {
-            session()->flash('error', 'An unexpected error occurred during import: ' . $e->getMessage());
+            session()->flash('error', 'An unexpected error occurred during import: '.$e->getMessage());
         }
     }
 
     public function dataExport()
     {
         $sanitizedUrl = str_replace('/', '-', $this->url);
-        $fileName = 'backup-Setting-' . $sanitizedUrl . '-' . $this->date . '.xlsx';
+        $fileName = 'backup-Setting-'.$sanitizedUrl.'-'.$this->date.'.xlsx';
 
-        return Excel::download(new SettingImport, $fileName,  \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new SettingImport, $fileName, \Maatwebsite\Excel\Excel::XLSX);
     }
 
     public function exportTheme()
@@ -251,19 +303,19 @@ class SettingWeb extends Component
         $sanitizedUrl = str_replace('/', '-', $setting->url);
         $themeName = $setting->active_theme;
 
-        $publicThemePath = public_path('frontend/' . $themeName);
-        $resourcesThemePath = base_path('resources/views/frontend/' . $themeName);
+        $publicThemePath = public_path('frontend/'.$themeName);
+        $resourcesThemePath = base_path('resources/views/frontend/'.$themeName);
 
-        $zipFileName = 'backup-Theme-' . $themeName . '-' . $sanitizedUrl . '-' . $date . '.zip';
-        $zipFilePath = storage_path('app/public/' . $zipFileName);
+        $zipFileName = 'backup-Theme-'.$themeName.'-'.$sanitizedUrl.'-'.$date.'.zip';
+        $zipFilePath = storage_path('app/public/'.$zipFileName);
 
-        $zip = new \ZipArchive();
-        if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+        $zip = new \ZipArchive;
+        if ($zip->open($zipFilePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
             // Add public theme files
             if (File::isDirectory($publicThemePath)) {
                 $files = File::allFiles($publicThemePath);
                 foreach ($files as $file) {
-                    $relativePath = 'public/frontend/' . $themeName . '/' . $file->getRelativePathname();
+                    $relativePath = 'public/frontend/'.$themeName.'/'.$file->getRelativePathname();
                     $zip->addFile($file->getRealPath(), $relativePath);
                 }
             }
@@ -272,7 +324,7 @@ class SettingWeb extends Component
             if (File::isDirectory($resourcesThemePath)) {
                 $files = File::allFiles($resourcesThemePath);
                 foreach ($files as $file) {
-                    $relativePath = 'resources/views/frontend/' . $themeName . '/' . $file->getRelativePathname();
+                    $relativePath = 'resources/views/frontend/'.$themeName.'/'.$file->getRelativePathname();
                     $zip->addFile($file->getRealPath(), $relativePath);
                 }
             }
@@ -333,20 +385,20 @@ class SettingWeb extends Component
             'language' => 'nullable|string|max:10',
             'is_multilingual' => 'nullable|in:Yes,No',
             'code' => 'nullable|string',
-            'color_primary'   => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_primary' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
             'color_secondary' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
-            'color_success'   => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
-            'color_danger'    => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
-            'color_warning'   => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
-            'color_info'      => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
-            'color_light'     => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
-            'color_dark'      => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_success' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_danger' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_warning' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_info' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_light' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
+            'color_dark' => ['nullable', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
 
             'site_maintenance' => ['boolean'],
 
-            'email_forwarder'  => ['nullable', 'email'],
+            'email_forwarder' => ['nullable', 'email'],
 
-            'date_format' => 'in:' . implode(',', array_keys($this->dateFormats)),
+            'date_format' => 'in:'.implode(',', array_keys($this->dateFormats)),
 
         ]);
 
@@ -398,12 +450,12 @@ class SettingWeb extends Component
                 'logo.png',
                 ['disk' => 'public']
             );
-            $setting->logo = 'storage/' . $logoPath;
+            $setting->logo = 'storage/'.$logoPath;
 
-            $gallery = new Gallery();
+            $gallery = new Gallery;
             $gallery->name = pathinfo($this->logo->getClientOriginalName(), PATHINFO_FILENAME);
             $gallery->description = 'Logo';
-            $gallery->image_path = 'images/' . $setting->logo;
+            $gallery->image_path = 'images/'.$setting->logo;
             $gallery->category = 'Logo';
             $gallery->status = 'Publish';
             $gallery->is_tinymce_upload = true;
@@ -412,7 +464,7 @@ class SettingWeb extends Component
 
         // Handle favicon upload
         if ($this->favicon instanceof UploadedFile) {
-            $manager = new ImageManager(new Driver());
+            $manager = new ImageManager(new Driver);
             $image = $manager->read($this->favicon->getRealPath());
 
             // Resize image to 64x64 pixels
@@ -420,17 +472,17 @@ class SettingWeb extends Component
 
             // Define the path for the favicon
             $faviconFileName = 'favicon.png';
-            $faviconPath = 'favicons/' . $faviconFileName;
+            $faviconPath = 'favicons/'.$faviconFileName;
 
             // Save the processed image to storage
             \Illuminate\Support\Facades\Storage::disk('public')->put($faviconPath, $image->encode());
 
-            $setting->favicon = 'storage/' . $faviconPath; // Update the setting with the new path
+            $setting->favicon = 'storage/'.$faviconPath; // Update the setting with the new path
 
-            $gallery = new Gallery();
+            $gallery = new Gallery;
             $gallery->name = pathinfo($this->favicon->getClientOriginalName(), PATHINFO_FILENAME);
             $gallery->description = 'Favicon';
-            $gallery->image_path = 'images/' . $setting->favicon;
+            $gallery->image_path = 'images/'.$setting->favicon;
             $gallery->category = 'Favicon';
             $gallery->status = 'Publish';
             $gallery->is_tinymce_upload = true;
@@ -444,12 +496,12 @@ class SettingWeb extends Component
                 'images.png',
                 ['disk' => 'public']
             );
-            $setting->images = 'storage/' . $imagesPath;
+            $setting->images = 'storage/'.$imagesPath;
 
-            $gallery = new Gallery();
+            $gallery = new Gallery;
             $gallery->name = pathinfo($this->images->getClientOriginalName(), PATHINFO_FILENAME);
             $gallery->description = 'Images';
-            $gallery->image_path = 'images/' . $setting->images;
+            $gallery->image_path = 'images/'.$setting->images;
             $gallery->category = 'Images';
             $gallery->status = 'Publish';
             $gallery->is_tinymce_upload = true;
@@ -466,7 +518,7 @@ class SettingWeb extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Success',
-            'text' => 'Settings Updated Successfully!'
+            'text' => 'Settings Updated Successfully!',
         ]);
     }
 
@@ -485,24 +537,24 @@ class SettingWeb extends Component
         $zipFilePath = storage_path("app/public/{$zipFileName}");
 
         // Pastikan folder ada
-        if (!File::exists(storage_path('app/public'))) {
+        if (! File::exists(storage_path('app/public'))) {
             File::makeDirectory(storage_path('app/public'), 0775, true);
         }
 
         $tempZipPath = tempnam(sys_get_temp_dir(), 'theme_zip_');
-        $zip = new \ZipArchive();
+        $zip = new \ZipArchive;
 
         if ($zip->open($tempZipPath, \ZipArchive::OVERWRITE) === true) {
             if (File::isDirectory($publicThemePath)) {
                 foreach (File::allFiles($publicThemePath) as $file) {
-                    $relative = 'public/frontend/' . $themeName . '/' . $file->getRelativePathname();
+                    $relative = 'public/frontend/'.$themeName.'/'.$file->getRelativePathname();
                     $zip->addFile($file->getRealPath(), $relative);
                 }
             }
 
             if (File::isDirectory($resourcesThemePath)) {
                 foreach (File::allFiles($resourcesThemePath) as $file) {
-                    $relative = 'resources/views/frontend/' . $themeName . '/' . $file->getRelativePathname();
+                    $relative = 'resources/views/frontend/'.$themeName.'/'.$file->getRelativePathname();
                     $zip->addFile($file->getRealPath(), $relative);
                 }
             }
@@ -512,8 +564,9 @@ class SettingWeb extends Component
 
             File::move($tempZipPath, $zipFilePath);
 
-            if (!File::exists($zipFilePath)) {
+            if (! File::exists($zipFilePath)) {
                 session()->flash('error', 'Compressed theme file was not created successfully.');
+
                 return;
             }
 
@@ -530,11 +583,12 @@ class SettingWeb extends Component
         ]);
 
         // Simpan ke storage/app/public/
-        $fileName = Str::slug(pathinfo($this->themeZip->getClientOriginalName(), PATHINFO_FILENAME)) . '.zip';
+        $fileName = Str::slug(pathinfo($this->themeZip->getClientOriginalName(), PATHINFO_FILENAME)).'.zip';
         $path = $this->themeZip->storeAs('public', $fileName);
 
-        if (!$path) {
+        if (! $path) {
             $this->dispatch('alert', type: 'error', message: '❌ Gagal mengupload file tema.');
+
             return;
         }
 
@@ -542,13 +596,13 @@ class SettingWeb extends Component
             // Jalankan command theme:install
             Artisan::call('theme:install', [
                 'zipfile' => $fileName,
-                '--activate' => true
+                '--activate' => true,
             ]);
 
             $output = Artisan::output();
             $this->dispatch('alert', type: 'success', message: "🎉 Tema berhasil diinstal dan diaktifkan!\n\n{$output}");
         } catch (\Exception $e) {
-            $this->dispatch('alert', type: 'error', message: '❌ Terjadi kesalahan saat menginstall tema: ' . $e->getMessage());
+            $this->dispatch('alert', type: 'error', message: '❌ Terjadi kesalahan saat menginstall tema: '.$e->getMessage());
         }
     }
 
@@ -604,7 +658,7 @@ class SettingWeb extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Success',
-                'text' => 'Initial settings created successfully! Redirecting...'
+                'text' => 'Initial settings created successfully! Redirecting...',
             ]);
 
             // Redirect to reload the page
@@ -613,7 +667,7 @@ class SettingWeb extends Component
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Failed to create settings: ' . $e->getMessage()
+                'text' => 'Failed to create settings: '.$e->getMessage(),
             ]);
         }
     }

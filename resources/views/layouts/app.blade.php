@@ -244,7 +244,8 @@
     <div class="d-flex" id="wrapper">
         <div class="d-flex flex-column" id="sidebar-wrapper">
             <div class="sidebar-heading bg-primary text-white logo-text">
-                Simple Cms
+                Surya Cms
+
             </div>
             <div id="sidebar-menu" class="flex-grow-1">
                 <a href="/admin" wire:navigate class="sidebar-menu-item {{ Request::is('admin') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard">
@@ -343,6 +344,11 @@
 
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
+                             <li class="nav-item me-2">
+                                 <a href="{{$setting->url}}" target="_blank" class="nav-link">
+                                     Homepage
+                                 </a>
+                             </li>
 
                             <li class="nav-item me-2">
                                 <a id="darkModeToggle" type="button" class="nav-link">

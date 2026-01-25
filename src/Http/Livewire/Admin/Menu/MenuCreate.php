@@ -3,29 +3,42 @@
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Menu;
 
 use Livewire\Component;
-use Uiaciel\SuryaCms\Models\Menu;
-use Uiaciel\SuryaCms\Models\Setting;
+use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use Uiaciel\SuryaCms\Exports\MenuExport;
 use Uiaciel\SuryaCms\Imports\MenuImport;
 use Uiaciel\SuryaCms\Models\Language;
-use Livewire\WithFileUploads;
+use Uiaciel\SuryaCms\Models\Menu;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class MenuCreate extends Component
 {
     use WithFileUploads;
+
     public $titlePage = 'Menu Management';
+
     public $categoriesmenu = ['Primary', 'Secondary'];
+
     public $name;
+
     public $date;
+
     public $order;
+
     public $type;
+
     public $link;
+
     public $category;
+
     public $parent_id;
+
     public $menux;
+
     public $language;
+
     public $setting;
+
     public $importFile;
 
     public function dataImport()
@@ -49,9 +62,9 @@ class MenuCreate extends Component
     public function dataExport()
     {
         $sanitizedUrl = str_replace('/', '-', $this->setting->url);
-        $fileName = 'backup-Menus-' . $sanitizedUrl . '-' . $this->date . '.xlsx';
+        $fileName = 'backup-Menus-'.$sanitizedUrl.'-'.$this->date.'.xlsx';
 
-        return Excel::download(new MenuExport, $fileName,  \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new MenuExport, $fileName, \Maatwebsite\Excel\Excel::XLSX);
     }
 
     public function mount()

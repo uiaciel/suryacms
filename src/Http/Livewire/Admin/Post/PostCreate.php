@@ -2,34 +2,49 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Post;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Livewire\Component;
+use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpClient\HttpClient;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Post;
-use Livewire\Component;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
-use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Component\HttpClient\HttpClient;
 
 class PostCreate extends Component
 {
-
     public $titlePage;
+
     public $title;
+
     public $konten; // Menggunakan 'konten' sesuai blade
+
     public $datepublish;
+
     public $language_id;
+
     public $translation_id;
+
     public $status;
+
     public $tags;
+
     public $source_url;
+
     public $source_favicon;
+
     public $source_title;
+
     public $feature; // Akan menjadi boolean (true/false) atau 'Yes'/'No'
+
     public $flash;   // Akan menjadi boolean (true/false) atau 'Yes'/'No'
+
     public $category_id;
+
     public $languages;
+
     public $categories;
+
     public $setting; // Asumsi ada model Setting untuk is_multilingual
 
     protected $listeners = ['tinymce_updated' => 'updateKonten']; // Listener untuk TinyMCE
@@ -54,7 +69,7 @@ class PostCreate extends Component
         $this->category_id = '';
         // Asumsi model Setting ada dan memiliki kolom is_multilingual
         // Anda perlu menyesuaikan cara mendapatkan setting ini, misalnya dari database
-        $this->setting = (object)['is_multilingual' => 'No']; // Contoh default, sesuaikan dengan logic aplikasi Anda
+        $this->setting = (object) ['is_multilingual' => 'No']; // Contoh default, sesuaikan dengan logic aplikasi Anda
     }
 
     public $scrapeResult = [];
@@ -65,8 +80,9 @@ class PostCreate extends Component
             $this->dispatchBrowserEvent('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Please enter a valid URL'
+                'text' => 'Please enter a valid URL',
             ]);
+
             return;
         }
 
@@ -75,7 +91,7 @@ class PostCreate extends Component
             // Create HTTP client with a common User-Agent and timeout to appear more like a real browser
             $client = HttpClient::create([
                 'headers' => [
-                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 ],
                 'timeout' => 15,
             ]);
@@ -94,40 +110,45 @@ class PostCreate extends Component
                     $title = trim($crawler->filter('h1.mb-2')->first()->text());
                 }
                 if ($crawler->filter('.detail-text ')->count()) {
-                    $content = array_map('trim', $crawler->filter('.detail-text ')->each(function ($node) { return $node->text(); }));
+                    $content = array_map('trim', $crawler->filter('.detail-text ')->each(function ($node) {
+                        return $node->text();
+                    }));
                 }
                 if ($crawler->filter('.detail_image figure img')->count()) {
                     $image = $crawler->filter('.detail_image figure img')->first()->attr('src');
                 }
-            }
-            elseif (str_contains($url, 'detik.com')) {
+            } elseif (str_contains($url, 'detik.com')) {
                 if ($crawler->filter('h1.detail__title')->count()) {
                     $title = trim($crawler->filter('h1.detail__title')->first()->text());
                 }
                 if ($crawler->filter('.detail__body-text')->count()) {
-                    $content = array_map('trim', $crawler->filter('.detail__body-text')->each(function ($node) { return $node->text(); }));
+                    $content = array_map('trim', $crawler->filter('.detail__body-text')->each(function ($node) {
+                        return $node->text();
+                    }));
                 }
                 if ($crawler->filter('.detail__media-image img')->count()) {
                     $image = $crawler->filter('.detail__media-image img')->first()->attr('src');
                 }
-            }
-            elseif (str_contains($url, 'tribunnews.com')) {
+            } elseif (str_contains($url, 'tribunnews.com')) {
                 if ($crawler->filter('h1.f50')->count()) {
                     $title = trim($crawler->filter('h1.f50')->first()->text());
                 }
                 if ($crawler->filter('#article_con p')->count()) {
-                    $content = array_map('trim', $crawler->filter('#article_con p')->each(function ($node) { return $node->text(); }));
+                    $content = array_map('trim', $crawler->filter('#article_con p')->each(function ($node) {
+                        return $node->text();
+                    }));
                 }
                 if ($crawler->filter('.imgfull img')->count()) {
                     $image = $crawler->filter('.imgfull img')->first()->attr('src');
                 }
-            }
-            elseif (str_contains($url, 'kompas.com')) {
+            } elseif (str_contains($url, 'kompas.com')) {
                 if ($crawler->filter('h1.read__title')->count()) {
                     $title = trim($crawler->filter('h1.read__title')->first()->text());
                 }
                 if ($crawler->filter('.read__content p')->count()) {
-                    $content = array_map('trim', $crawler->filter('.read__content p')->each(function ($node) { return $node->text(); }));
+                    $content = array_map('trim', $crawler->filter('.read__content p')->each(function ($node) {
+                        return $node->text();
+                    }));
                 }
                 if ($crawler->filter('.photo__wrap img')->count()) {
                     $image = $crawler->filter('.photo__wrap img')->first()->attr('src');
@@ -135,11 +156,11 @@ class PostCreate extends Component
             }
 
             // Normalize image URL if relative
-            if ($image && !preg_match('#^https?://#i', $image)) {
+            if ($image && ! preg_match('#^https?://#i', $image)) {
                 $parsed = parse_url($url);
                 $scheme = $parsed['scheme'] ?? 'https';
                 $host = $parsed['host'] ?? '';
-                $image = rtrim($scheme . '://' . $host, '/') . '/' . ltrim($image, '/');
+                $image = rtrim($scheme.'://'.$host, '/').'/'.ltrim($image, '/');
             }
 
             $this->scrapeResult = [
@@ -155,14 +176,14 @@ class PostCreate extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Scraped',
-                'text' => 'Content scraped successfully.'
+                'text' => 'Content scraped successfully.',
             ]);
 
         } catch (\Exception $e) {
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Failed to scrape content: ' . $e->getMessage()
+                'text' => 'Failed to scrape content: '.$e->getMessage(),
             ]);
         }
     }
@@ -222,7 +243,7 @@ class PostCreate extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Success',
-            'text' => 'Post created Successfully!'
+            'text' => 'Post created Successfully!',
         ]);
 
         // Opsional: reset form setelah publish jika tidak langsung redirect
@@ -272,7 +293,7 @@ class PostCreate extends Component
         $this->dispatch('swal', [
             'icon' => 'info',
             'title' => 'Saved!',
-            'text' => 'Post saved as draft!'
+            'text' => 'Post saved as draft!',
         ]);
 
         // Opsional: reset form setelah save draft
@@ -296,8 +317,8 @@ class PostCreate extends Component
             'flash',
             'category_id',
         ]);
-    // Reset juga TinyMCE editor (browser event)
-    $this->dispatch('tinymce_reset');
+        // Reset juga TinyMCE editor (browser event)
+        $this->dispatch('tinymce_reset');
     }
 
     public function render()

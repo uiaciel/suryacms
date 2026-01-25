@@ -2,15 +2,18 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin;
 
-use Uiaciel\SuryaCms\Models\Gallery;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Uiaciel\SuryaCms\Models\Gallery;
 
 class ImageGalleryModal extends Component
 {
     public $isOpen = false;
+
     public $galleries = [];
+
     public $search = '';
+
     public $selectedImage = null;
 
     protected $listeners = ['openGalleryModal' => 'open', 'closeGalleryModal' => 'close'];
@@ -25,9 +28,9 @@ class ImageGalleryModal extends Component
         $query = Gallery::query();
 
         if ($this->search) {
-            $query->where('name', 'like', '%' . $this->search . '%')
-                ->orWhere('description', 'like', '%' . $this->search . '%')
-                ->orWhere('category', 'like', '%' . $this->search . '%');
+            $query->where('name', 'like', '%'.$this->search.'%')
+                ->orWhere('description', 'like', '%'.$this->search.'%')
+                ->orWhere('category', 'like', '%'.$this->search.'%');
         }
 
         $this->galleries = $query->latest()->get(); // Urutkan berdasarkan yang terbaru
@@ -65,7 +68,6 @@ class ImageGalleryModal extends Component
     }
 
     public function deleteImage($id)
-
     {
         $image = Gallery::find($id);
         if ($image) {

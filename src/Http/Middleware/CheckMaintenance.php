@@ -4,8 +4,8 @@ namespace Uiaciel\SuryaCms\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Uiaciel\SuryaCms\Models\Setting;
 use Illuminate\Support\Facades\Auth;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class CheckMaintenance
 {
@@ -19,7 +19,7 @@ class CheckMaintenance
         }
 
         // 2. Kalau setting tidak ada atau maintenance off → lanjut
-        if (!$setting || !$setting->site_maintenance) {
+        if (! $setting || ! $setting->site_maintenance) {
             return $next($request);
         }
 
@@ -51,10 +51,10 @@ class CheckMaintenance
         $maintenanceView = "frontend.{$theme}.page.maintenance";
 
         // Fallback jika view tidak ditemukan
-        if (!view()->exists($maintenanceView)) {
+        if (! view()->exists($maintenanceView)) {
             return response()
                 ->json([
-                    'message' => 'Website is currently under maintenance. Please try again later.'
+                    'message' => 'Website is currently under maintenance. Please try again later.',
                 ], 503);
         }
 

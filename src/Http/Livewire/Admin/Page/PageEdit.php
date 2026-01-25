@@ -2,28 +2,37 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Page;
 
-use Livewire\Component;
-use Uiaciel\SuryaCms\Models\Page;
-use Uiaciel\SuryaCms\Models\Language;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Livewire\Component;
 use Livewire\WithFileUploads;
+use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Page;
 
 class PageEdit extends Component
 {
     use WithFileUploads;
 
     public $pageId;
+
     public $titlePage;
+
     public $languages;
+
     public $title;
+
     public $konten;
+
     public $datepublish;
+
     public $language_id;
+
     public $status;
 
     public $pages;
+
     public $translation_id;
+
     public $pdf;
 
     public function mount()
@@ -32,7 +41,7 @@ class PageEdit extends Component
         $page = Page::find($this->pageId);
 
         if ($page) {
-            $this->titlePage = "Edit Page";
+            $this->titlePage = 'Edit Page';
             $this->title = $page->title;
             $this->konten = $page->content;
             $this->datepublish = $page->datepublish;
@@ -78,7 +87,7 @@ class PageEdit extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Success',
-            'text' => 'Page updated Successfully!'
+            'text' => 'Page updated Successfully!',
         ]);
 
         session()->flash('success', 'Page updated successfully.');

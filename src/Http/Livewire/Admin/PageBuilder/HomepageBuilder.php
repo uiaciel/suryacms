@@ -2,23 +2,31 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder;
 
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
-use Uiaciel\SuryaCms\Models\Setting;
-use Illuminate\Support\Facades\Auth;
 
 class HomepageBuilder extends Component
 {
     public $html;
+
     public $css;
+
     public $pageId;
+
     public $title;
+
     public $slug;
+
     public $datepublish;
+
     public $status = 'Publish';
+
     public $language_id;
+
     public $pageSlug;
+
     public $blogs;
 
     public function mount($pageSlug)
@@ -59,7 +67,7 @@ class HomepageBuilder extends Component
     {
         $this->validate([
             'title' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:pages,slug,' . $this->pageId,
+            'slug' => 'required|string|max:255|unique:pages,slug,'.$this->pageId,
         ]);
 
         $page = Page::find($this->pageId);
@@ -81,7 +89,7 @@ class HomepageBuilder extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Success',
-            'text' => 'Page Updated Successfully!'
+            'text' => 'Page Updated Successfully!',
         ]);
 
         session()->flash('success', 'Page updated successfully.');

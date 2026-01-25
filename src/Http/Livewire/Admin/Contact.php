@@ -2,17 +2,19 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin;
 
-use Livewire\Component;
-use Uiaciel\SuryaCms\Models\Contact as ContactModel;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Component;
 use Uiaciel\SuryaCms\Mail\ForwardInbox;
+use Uiaciel\SuryaCms\Models\Contact as ContactModel;
 
 class Contact extends Component
 {
-
     public $titlePage = 'Inbox';
+
     public $contacts = [];
+
     public $activeFilter = 'inbox';
+
     public $selectedContact = null;
 
     public function selectContact($id)
@@ -53,18 +55,19 @@ class Contact extends Component
     {
         $contact = ContactModel::find($id);
 
-        if (!$contact) {
+        if (! $contact) {
             session()->flash('error', 'Pesan tidak ditemukan.');
+
             return;
         }
 
         try {
-            Mail::to("emailkamu@gmail.com") // ganti dengan Gmail pribadi
+            Mail::to('emailkamu@gmail.com') // ganti dengan Gmail pribadi
                 ->send(new ForwardInbox($contact));
 
             session()->flash('success', 'Pesan berhasil diteruskan ke email Anda.');
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal meneruskan pesan: ' . $e->getMessage());
+            session()->flash('error', 'Gagal meneruskan pesan: '.$e->getMessage());
         }
     }
 

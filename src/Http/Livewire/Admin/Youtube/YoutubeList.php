@@ -7,11 +7,19 @@ use Uiaciel\SuryaCms\Models\YoutubeVideo;
 
 class YoutubeList extends Component
 {
-    public $titlePage = "Youtube Videos";
+    public $titlePage = 'Youtube Videos';
+
     public $videos;
+
     public $statusPerVideo = [];
 
-    public $editId, $editTitle, $editCategory, $editDescription;
+    public $editId;
+
+    public $editTitle;
+
+    public $editCategory;
+
+    public $editDescription;
 
     public function mount()
     {

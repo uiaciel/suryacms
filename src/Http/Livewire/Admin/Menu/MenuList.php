@@ -3,26 +3,34 @@
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Menu;
 
 use Livewire\Component;
-use Uiaciel\SuryaCms\Models\Menu;
 use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Menu;
 
 class MenuList extends Component
 {
-
     public $menus;
+
     public $menux;
+
     public $categories;
 
     public $editMenuId = null;
+
     public $editName;
+
     public $editType;
+
     public $editLink;
+
     public $editParentId;
+
     public $language;
+
     public $categoriesmenu = ['Primary', 'Secondary'];
 
     // Properties for copying menu group
     public $sourceCategory;
+
     public $newCategory;
 
     // Properties for dynamic content
@@ -140,7 +148,7 @@ class MenuList extends Component
             // Initialize the Alpine.js data
             $this->dispatch('initializeMenuForm', [
                 'type' => $menu->type,
-                'link' => $menu->link
+                'link' => $menu->link,
             ]);
 
             $this->dispatch('showEditMenuModal');

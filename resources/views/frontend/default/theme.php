@@ -2,30 +2,30 @@
 
 return [
 
-    "info" => [
-        "name" => "Surya CMS",
-        "path" => "default",
-        "version" => "1.0.0",
-        "author" => "Kaoskeren Studio",
-        "url" => "https://kaoskeren.id",
-        "license" => "MIT",
-        "description" => "Tema Surya CMS untuk Surya CMS.",
-        "theme_preview" => "/frontend/default/theme_preview.jpg"
+    'info' => [
+        'name' => 'Surya CMS',
+        'path' => 'default',
+        'version' => '1.0.0',
+        'author' => 'Kaoskeren Studio',
+        'url' => 'https://kaoskeren.id',
+        'license' => 'MIT',
+        'description' => 'Tema Surya CMS untuk Surya CMS.',
+        'theme_preview' => '/frontend/default/theme_preview.jpg',
 
     ],
 
-    "assets" => [
-        "styles" => ['/css/bootstrap-icons.css', '/css/styles.css'],
-        "scripts" => ['/js/bootstrap.bundle.min.js', '/js/scripts.js']
+    'assets' => [
+        'styles' => ['/css/bootstrap-icons.css', '/css/styles.css'],
+        'scripts' => ['/js/bootstrap.bundle.min.js', '/js/scripts.js'],
     ],
 
-    "custom_blocks" => [
+    'custom_blocks' => [
         [
-            "id" => "gallery-block",
-            "label" => "Gallery",
-            "category" => "Plugin",
-            "content" => "[[gallery]]",
-            "preview" => '<div class="container">
+            'id' => 'gallery-block',
+            'label' => 'Gallery',
+            'category' => 'Plugin',
+            'content' => '[[gallery]]',
+            'preview' => '<div class="container">
             <div class="jumbotron">
                 <h1 class="text-center">Gallery</h1>
                 <p class="text-center">Gallery Description for Simple CMS, You Can Edit This Title dan Description.</p>
@@ -88,14 +88,14 @@ return [
                     </figure>
                 </div>
             </div>
-        </div>'
+        </div>',
         ],
         [
-            "id" => "blogs-block",
-            "label" => "Blogs",
-            "category" => "Plugin",
-            "content" => "[[blog]]",
-            "preview" => '<section class="py-4 bg-dark">
+            'id' => 'blogs-block',
+            'label' => 'Blogs',
+            'category' => 'Plugin',
+            'content' => '[[blog]]',
+            'preview' => '<section class="py-4 bg-dark">
         <div class="container p-3">
             <h2 class="fw-bold text-white mb-3">Media</h2>
             <div class="row g-4 justify-content-center">
@@ -145,14 +145,14 @@ return [
             </div>
 
         </div>
-    </section>'
+    </section>',
         ],
         [
-            "id" => "youtube-block",
-            "label" => "Youtube",
-            "category" => "Plugin",
-            "content" => "[[youtube]]",
-            "preview" => '<section class="py-5">
+            'id' => 'youtube-block',
+            'label' => 'Youtube',
+            'category' => 'Plugin',
+            'content' => '[[youtube]]',
+            'preview' => '<section class="py-5">
         <div class="jumbotron">
             <h1 class="text-center">Youtube Video</h1>
             <p class="text-center">Youtube Video Description for Simple CMS, You Can Edit This Title dan Description.</p>
@@ -237,16 +237,16 @@ return [
                 </div>
             </div>
         </div>
-    </section>'
-        ]
+    </section>',
+        ],
     ],
 
-    "sections" => [
+    'sections' => [
         [
-            "id" => "section-home",
-            "label" => "Default Home",
-            "category" => "Themes Sections",
-            "content" => <<<HTML
+            'id' => 'section-home',
+            'label' => 'Default Home',
+            'category' => 'Themes Sections',
+            'content' => <<<'HTML'
 <section id="home">
 <header class="bg-dark py-5">
 <div class="container px-5">
@@ -275,10 +275,10 @@ return [
 HTML
         ],
         [
-            "id" => "section-feature",
-            "label" => "Default Feature",
-            "category" => "Themes Sections",
-            "content" => <<<HTML
+            'id' => 'section-feature',
+            'label' => 'Default Feature',
+            'category' => 'Themes Sections',
+            'content' => <<<'HTML'
 <section class="py-5" id="features">
 <div class="container px-5 my-5">
 <div class="row gx-5">
@@ -337,10 +337,10 @@ HTML
 HTML
         ],
         [
-            "id" => "section-div",
-            "label" => "Default Div",
-            "category" => "Themes Sections",
-            "content" => <<<HTML
+            'id' => 'section-div',
+            'label' => 'Default Div',
+            'category' => 'Themes Sections',
+            'content' => <<<'HTML'
 <section class="" id="testimonial">
 <div class="py-5 bg-light">
 <div class="container px-5 my-5">
@@ -369,10 +369,10 @@ HTML
 HTML
         ],
         [
-            "id" => "section-cta",
-            "label" => "Default CTA",
-            "category" => "Themes Sections",
-            "content" => <<<HTML
+            'id' => 'section-cta',
+            'label' => 'Default CTA',
+            'category' => 'Themes Sections',
+            'content' => <<<'HTML'
 <aside class="bg-primary bg-gradient rounded-3 p-4 p-sm-5 mt-5">
 <div class="d-flex align-items-center justify-content-between flex-column flex-xl-row text-center text-xl-start">
     <div class="mb-4 mb-xl-0">
@@ -400,10 +400,10 @@ HTML
 HTML
         ],
         [
-            "id" => "section-blog",
-            "label" => "Default Blog",
-            "category" => "Themes Sections",
-            "content" => <<<HTML
+            'id' => 'section-blog',
+            'label' => 'Default Blog',
+            'category' => 'Themes Sections',
+            'content' => <<<'HTML'
 <section class="py-5">
 <div class="container px-5 my-5">
 <div class="row gx-5 justify-content-center">
@@ -515,7 +515,7 @@ HTML
 </div>
 </section>
 HTML
-        ]
-    ]
+        ],
+    ],
 
 ];

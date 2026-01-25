@@ -2,25 +2,33 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Page;
 
-use Uiaciel\SuryaCms\Models\Language;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Illuminate\Support\Str;
-use Uiaciel\SuryaCms\Models\Page;
+use Livewire\Component;
 use Livewire\WithFileUploads;
+use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Page;
 
 class PageCreate extends Component
 {
     use WithFileUploads;
 
     public $titlePage;
+
     public $languages;
+
     public $title;
+
     public $konten;
+
     public $pdf;
+
     public $datepublish;
+
     public $language_id;
+
     public $translation_id;
+
     public $status;
 
     public $pages;
@@ -70,7 +78,7 @@ class PageCreate extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Success',
-            'text' => 'Page created Successfully!'
+            'text' => 'Page created Successfully!',
         ]);
 
         session()->flash('success', 'Page created successfully.');

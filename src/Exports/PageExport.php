@@ -2,11 +2,11 @@
 
 namespace Uiaciel\SuryaCms\Exports;
 
-use Uiaciel\SuryaCms\Models\Page;
+use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\Exportable;
+use Uiaciel\SuryaCms\Models\Page;
 
 class PageExport implements FromQuery, WithHeadings, WithMapping
 {

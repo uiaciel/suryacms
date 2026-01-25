@@ -2,14 +2,13 @@
 
 namespace Uiaciel\SuryaCms\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\App;
-use Carbon\Carbon;
+use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
-use Uiaciel\SuryaCms\Models\Category;
 
 class GenerateSitemap extends Command
 {
@@ -41,33 +40,33 @@ class GenerateSitemap extends Command
         $urls[] = [
             'loc' => URL::to('/'),
             'lastmod' => $now,
-            'priority' => '1.0'
+            'priority' => '1.0',
         ];
 
         // Pages
         foreach (Page::where('status', 'Publish')->get() as $page) {
             $urls[] = [
-                'loc' => URL::to('/' . $page->slug),
+                'loc' => URL::to('/'.$page->slug),
                 'lastmod' => Carbon::parse($page->updated_at)->toAtomString(),
-                'priority' => '0.8'
+                'priority' => '0.8',
             ];
         }
 
         // Posts
         foreach (Post::where('status', 'Publish')->get() as $post) {
             $urls[] = [
-                'loc' => URL::to('/media/' . $post->slug),
+                'loc' => URL::to('/media/'.$post->slug),
                 'lastmod' => Carbon::parse($post->updated_at)->toAtomString(),
-                'priority' => '0.7'
+                'priority' => '0.7',
             ];
         }
 
         // Categories
         foreach (Category::all() as $cat) {
             $urls[] = [
-                'loc' => URL::to('/category/' . $cat->slug),
+                'loc' => URL::to('/category/'.$cat->slug),
                 'lastmod' => $now,
-                'priority' => '0.6'
+                'priority' => '0.6',
             ];
         }
 

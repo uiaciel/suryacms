@@ -1,32 +1,29 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 use Illuminate\Support\Facades\Route;
-use Uiaciel\SuryaCms\Models\Setting;
+use Illuminate\Support\Facades\Schema;
+use Uiaciel\SuryaCms\Http\Controllers\AdminController;
+use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
+use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
+use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
 use Uiaciel\SuryaCms\Http\Livewire\Admin;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Backup;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Contact;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\FileCheck;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\MenuCreate;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\MenuList;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageIndex;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageCreate;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageEdit;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageIndex;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\HomepageBuilder;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostCreate;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostEdit;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostIndex;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\SearchResult;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube\YoutubeCreate;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube\YoutubeList;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\HomepageBuilder;
 use Uiaciel\SuryaCms\Http\Livewire\SettingWeb;
-use Uiaciel\SuryaCms\Http\Livewire\SettingTheme;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\SearchResult;
-use Uiaciel\SuryaCms\Http\Controllers\AdminController;
-use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
-use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
-
-use Uiaciel\SuryaCms\Http\Middleware\AdminAuth;
+use Uiaciel\SuryaCms\Models\Setting;
 
 Route::middleware(['web', 'auth'])->group(function () {
     // Logout
@@ -41,12 +38,12 @@ Route::prefix('admin')
     ->middleware(['web', 'auth'])
     ->group(function () {
         // Admin Dashboard
-        Route::get('/', Admin::class)->name('dashboard');
+        Route::get('/', Admin::class)->name('admin');
 
         // Settings
         Route::get('setting', SettingWeb::class)->name('setting');
         Route::get('file-check', FileCheck::class)->name('file-check');
-        Route::get('theme', SettingTheme::class)->name('theme');
+        // Route::get('theme', SettingTheme::class)->name('theme');
 
         // Pages Management
         Route::prefix('pages')
@@ -91,7 +88,7 @@ Route::prefix('admin')
         // Backups
         Route::get('backups', Backup::class)->name('backup.index');
 
-    // Menus Management
+        // Menus Management
         Route::get('menu', MenuCreate::class)->name('menu.create');
         Route::get('menus', MenuList::class)->name('menus.index');
 
@@ -113,8 +110,8 @@ Route::prefix('admin')
         Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // General Uploads
-    Route::post('upload', [AdminController::class, 'tinymce'])->name('upload');
+        // General Uploads
+        Route::post('upload', [AdminController::class, 'tinymce'])->name('upload');
     });
 
 // ============================================================================
@@ -136,7 +133,7 @@ Route::middleware(['web', 'suryacms.maintenance'])->group(function () {
     if ($isMultilingual) {
         // Multilingual Routes - Redirect root to default language
         if ($setting && isset($setting->language)) {
-            $defaultLang = $setting->language === "id" ? 'id' : 'en';
+            $defaultLang = $setting->language === 'id' ? 'id' : 'en';
             Route::get('/', function () use ($defaultLang) {
                 return redirect()->to("/{$defaultLang}/");
             });
@@ -147,43 +144,50 @@ Route::middleware(['web', 'suryacms.maintenance'])->group(function () {
             ->where('lang', 'id|en')
             ->name('homepage');
 
-        // Language-specific category
+        // Language-specific category index (must be before catch-all)
         Route::get('/{lang}/category', [FrontendController::class, 'categoryIndex'])
             ->where('lang', 'id|en')
             ->name('frontend.category.index');
 
-        // Language-specific post/media
+        // Language-specific post/media (must be before catch-all page)
         Route::get('/{lang}/media/{slug}', [FrontendController::class, 'postshow'])
             ->where('lang', 'id|en')
+            ->where('slug', '.+')
             ->name('frontend.post.show');
 
-        // Language-specific category detail
+        // Language-specific category detail (must be before catch-all page)
         Route::get('/{lang}/category/{slug}', [FrontendController::class, 'category'])
             ->where('lang', 'id|en')
+            ->where('slug', '.+')
             ->name('frontend.category.show');
 
-        // Language-specific page (catch-all for custom pages)
+        // Language-specific page (catch-all for custom pages) - MUST be last
         Route::get('/{lang}/{slug}', [FrontendController::class, 'pageshow'])
             ->where('lang', 'id|en')
-            ->where('slug', '^(?!admin).*$')  // Exclude admin routes
+            ->where('slug', '^(?!admin).*')  // Exclude /admin/* routes
             ->name('frontend.page.show');
     } else {
         // Monolingual Routes
         Route::get('/', [FrontendController::class, 'single'])
             ->name('homepage.single');
 
+        // Category index (must be before catch-all)
         Route::get('category', [FrontendController::class, 'categoryIndex'])
             ->name('frontend.category.index');
 
+        // Post/media (must be before catch-all page)
         Route::get('media/{slug}', [FrontendController::class, 'postshow'])
+            ->where('slug', '.+')
             ->name('frontend.post.show');
 
+        // Category detail (must be before catch-all page)
         Route::get('category/{slug}', [FrontendController::class, 'category'])
+            ->where('slug', '.+')
             ->name('frontend.category.show');
 
         // Catch-all page route - must be last
         Route::get('/{slug}', [FrontendController::class, 'pageshow'])
-            ->where('slug', '^(?!|login|admin|contact-us|upload|api).*$')  // Exclude reserved paths
+            ->where('slug', '^(?!login|admin).*')  // Exclude /admin/* routes
             ->name('frontend.page.show');
     }
 
@@ -193,7 +197,6 @@ Route::middleware(['web', 'suryacms.maintenance'])->group(function () {
 
     // Test route
     Route::get('suryacms/test', function () {
-        return "SuryaCMS aktif!";
+        return 'SuryaCMS aktif!';
     });
 });
-

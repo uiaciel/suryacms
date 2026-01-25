@@ -4,21 +4,23 @@ namespace Uiaciel\SuryaCms\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
-use ZipArchive;
 use Uiaciel\SuryaCms\Models\Setting;
+use ZipArchive;
 
 class InstallThemeCommand extends Command
 {
     protected $signature = 'theme:install {zipfile} {--activate}';
+
     protected $description = 'Install theme from storage/app/public and optionally activate it';
 
     public function handle()
     {
         $zipFileName = $this->argument('zipfile');
-        $zipFilePath = storage_path('app/private/public/' . $zipFileName);
+        $zipFilePath = storage_path('app/private/public/'.$zipFileName);
 
-        if (!File::exists($zipFilePath)) {
+        if (! File::exists($zipFilePath)) {
             $this->error("❌ File not found: {$zipFilePath}");
+
             return Command::FAILURE;
         }
 
@@ -29,6 +31,7 @@ class InstallThemeCommand extends Command
         $zip = new ZipArchive;
         if ($zip->open($zipFilePath) !== true) {
             $this->error('❌ Failed to open ZIP file. Check if it is a valid archive.');
+
             return Command::FAILURE;
         }
 
@@ -37,25 +40,26 @@ class InstallThemeCommand extends Command
 
         // Cari folder tema di dalam ekstraksi (harus ada folder view/frontend atau langsung file blade)
         $themeFolder = $this->detectThemeFolder($tempExtract);
-        if (!$themeFolder) {
+        if (! $themeFolder) {
             $this->error('❌ Could not find a valid theme folder (missing views/frontend).');
             File::deleteDirectory($tempExtract);
+
             return Command::FAILURE;
         }
 
         $themeName = basename($themeFolder);
 
         // 1️⃣ Copy Views
-        $frontendPath = base_path('resources/views/frontend/' . $themeName);
+        $frontendPath = base_path('resources/views/frontend/'.$themeName);
         File::deleteDirectory($frontendPath);
         File::ensureDirectoryExists(dirname($frontendPath));
         File::copyDirectory($themeFolder, $frontendPath);
         $this->info("✅ Views copied to: resources/views/frontend/{$themeName}");
 
         // 2️⃣ Copy Assets (jika ada public/frontend di dalam zip)
-        $assetsSource = $tempExtract . '/public/frontend/' . $themeName;
+        $assetsSource = $tempExtract.'/public/frontend/'.$themeName;
         if (File::isDirectory($assetsSource)) {
-            $assetsDest = public_path('frontend/' . $themeName);
+            $assetsDest = public_path('frontend/'.$themeName);
             File::deleteDirectory($assetsDest);
             File::ensureDirectoryExists(dirname($assetsDest));
             File::copyDirectory($assetsSource, $assetsDest);
@@ -77,26 +81,27 @@ class InstallThemeCommand extends Command
         // 4️⃣ Cleanup
         File::deleteDirectory($tempExtract);
         $this->info('🎉 Theme installation completed successfully!');
+
         return Command::SUCCESS;
     }
 
     private function detectThemeFolder($basePath)
     {
         // Kasus 1: Tema langsung ada di root (misal: index.blade.php)
-        if (File::exists($basePath . '/index.blade.php')) {
+        if (File::exists($basePath.'/index.blade.php')) {
             return $basePath;
         }
 
         // Kasus 2: Folder tema ada di resources/views/frontend/{tema}
-        $possible = glob($basePath . '/resources/views/frontend/*', GLOB_ONLYDIR);
-        if (!empty($possible)) {
+        $possible = glob($basePath.'/resources/views/frontend/*', GLOB_ONLYDIR);
+        if (! empty($possible)) {
             return $possible[0];
         }
 
         // Kasus 3: Folder tema langsung di root zip
-        $dirs = glob($basePath . '/*', GLOB_ONLYDIR);
+        $dirs = glob($basePath.'/*', GLOB_ONLYDIR);
         foreach ($dirs as $dir) {
-            if (File::exists($dir . '/index.blade.php')) {
+            if (File::exists($dir.'/index.blade.php')) {
                 return $dir;
             }
         }

@@ -27,8 +27,6 @@ return new class extends Migration
             $table->enum('feature', ['Yes', 'No'])->default('No');
             $table->enum('flash', ['Yes', 'No'])->default('No');
 
-
-
             $table->date('datepublish')->nullable();
             $table->integer('view')->default(0);
             $table->enum('status', ['Publish', 'Draft'])->default('Publish');

@@ -4,8 +4,8 @@ namespace Uiaciel\SuryaCMS\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Comment extends Model {
-
+class Comment extends Model
+{
     protected $fillable = [
         'post_id',
         'parent_id',
@@ -42,6 +42,7 @@ class Comment extends Model {
     {
         return $query->where('status', 'pending');
     }
+
     public function scopeRejected($query)
     {
         return $query->where('status', 'rejected');

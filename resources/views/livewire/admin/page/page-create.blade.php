@@ -179,30 +179,67 @@
     <script>
         const server_image_upload_handler = (blobInfo, progress) => new Promise((resolve, reject) => {
                 const xhr = new XMLHttpRequest();
+
                 xhr.open('POST', '{{ route('admin.upload') }}');
+                // Set proper headers untuk AJAX request
+
                 xhr.setRequestHeader('X-CSRF-Token', '{{ csrf_token() }}');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.setRequestHeader('Accept', 'application/json');
 
                 xhr.upload.onprogress = (e) => {
-                    progress(e.loaded / e.total * 100);
+                    if (e.lengthComputable) {
+                    progress((e.loaded / e.total) * 100);
+                    }
+
                 };
 
                 xhr.onload = () => {
-                    if (xhr.status === 403 || xhr.status < 200 || xhr.status >= 300) {
-                        reject('HTTP Error: ' + xhr.status);
+                    console.log('Upload response status:', xhr.status);
+                    console.log('Upload response body:', xhr.responseText);
+
+                    // Handle redirect (302) or other error status
+                    if (xhr.status === 302 || xhr.status === 301) {
+                    reject('Upload endpoint redirected. Status: ' + xhr.status);
+
                         return;
                     }
 
-                    const json = JSON.parse(xhr.responseText);
-                    if (!json || typeof json.location != 'string') {
-                        reject('Invalid JSON: ' + xhr.responseText);
+                    if (xhr.status < 200 || xhr.status>= 300) {
+                        reject('HTTP Error: ' + xhr.status + ' - ' + xhr.responseText);
                         return;
+                        }
+
+                        try {
+
+                        const json = JSON.parse(xhr.responseText);
+
+                        if (!json || typeof json.location !== 'string') {
+                        reject('Invalid response format - missing location property');
+                        return;
+                        }
+
+                        resolve(json.location);
+
+                    } catch (e) {
+                    reject('Failed to parse JSON response: ' + e.message);
+                    }
+                    };
+
+                    xhr.onreadystatechange = () => {
+                    if (xhr.readyState === 2) {
+                    console.log('Upload headers received:', xhr.getAllResponseHeaders());
                     }
 
-                    resolve(json.location);
                 };
 
                 xhr.onerror = () => {
-                    reject('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
+                    reject('Image upload failed due to a XHR Transport error. Status: ' + xhr.status);
+                    };
+
+                    xhr.onabort = () => {
+                    reject('Image upload was aborted');
+
                 };
 
                 const formData = new FormData();

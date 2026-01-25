@@ -1,10 +1,10 @@
 <?php
 
-use Uiaciel\SuryaCms\Models\Setting;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Uiaciel\SuryaCms\Models\Setting;
 
-if (!function_exists('register_admin_menupackage')) {
+if (! function_exists('register_admin_menupackage')) {
     function register_admin_menupackage($packageName, array $menus)
     {
         // Ambil menu yang sudah ada
@@ -20,7 +20,7 @@ if (!function_exists('register_admin_menupackage')) {
     }
 }
 
-if (!function_exists('get_date_format')) {
+if (! function_exists('get_date_format')) {
 
     function get_date_format()
     {
@@ -31,10 +31,11 @@ if (!function_exists('get_date_format')) {
     }
 }
 
-if (!function_exists('formatDate')) {
+if (! function_exists('formatDate')) {
     /**
      * Memformat string tanggal atau objek Carbon sesuai dengan setting aplikasi.
-     * @param string|\Carbon\Carbon|null $date
+     *
+     * @param  string|\Carbon\Carbon|null  $date
      * @return string|null
      */
     function formatDate($date)
@@ -50,23 +51,21 @@ if (!function_exists('formatDate')) {
             if (is_string($date)) {
                 $date = Carbon::parse($date);
             }
+
             // Menggunakan translatedFormat() untuk dukungan bahasa dan format
             return $date->translatedFormat($dateFormat);
         } catch (\Exception $e) {
             // Log error jika parsing gagal
-            Log::error("Error formatting date: " . $e->getMessage(), ['date' => $date]);
+            Log::error('Error formatting date: '.$e->getMessage(), ['date' => $date]);
+
             return null;
         }
     }
 }
 
-if (!function_exists('text')) {
+if (! function_exists('text')) {
     /**
      * Helper untuk menampilkan teks sesuai session locale.
-     *
-     * @param string $idText
-     * @param string $enText
-     * @return string
      */
     function text(string $idText, string $enText): string
     {
@@ -74,10 +73,9 @@ if (!function_exists('text')) {
     }
 }
 
-if (!function_exists('getActiveTheme')) {
+if (! function_exists('getActiveTheme')) {
     /**
      * Get the active frontend theme
-     * @return string
      */
     function getActiveTheme(): string
     {
@@ -92,43 +90,43 @@ if (!function_exists('getActiveTheme')) {
             } catch (\Exception $e) {
                 // Silently fail
             }
+
             return config('frontend.active', 'default');
         });
     }
 }
 
-if (!function_exists('themeAsset')) {
+if (! function_exists('themeAsset')) {
     /**
      * Get URL to a theme asset
-     * @param string $path
-     * @return string
      */
     function themeAsset(string $path): string
     {
         $theme = getActiveTheme();
-        return asset(config('frontend.themes_path') . '/' . $theme . '/' . $path);
+
+        return asset(config('frontend.themes_path').'/'.$theme.'/'.$path);
     }
 }
 
-if (!function_exists('themePath')) {
+if (! function_exists('themePath')) {
     /**
      * Get path to theme directory
-     * @return string
      */
     function themePath(): string
     {
         $theme = getActiveTheme();
-        return resource_path(config('frontend.themes_path') . '/' . $theme);
+
+        return resource_path(config('frontend.themes_path').'/'.$theme);
     }
 }
 
-if (!function_exists('getFirstImage')) {
+if (! function_exists('getFirstImage')) {
     /**
      * Ambil gambar pertama dari artikel menggunakan method gambar() dengan custom class
      *
-     * @param object|Model $item - Object artikel dengan method gambar()
-     * @param string $class - Custom CSS class untuk img tag (default: 'img-thumbnail')
-     * @param string $alt - Alt text untuk gambar (default: judul artikel)
+     * @param  object|Model  $item  - Object artikel dengan method gambar()
+     * @param  string  $class  - Custom CSS class untuk img tag (default: 'img-thumbnail')
+     * @param  string  $alt  - Alt text untuk gambar (default: judul artikel)
      * @return string - HTML img tag atau string kosong jika tidak ada gambar
      *
      * @example
@@ -140,7 +138,7 @@ if (!function_exists('getFirstImage')) {
     {
         try {
             // Pastikan item memiliki method gambar()
-            if (!method_exists($item, 'gambar')) {
+            if (! method_exists($item, 'gambar')) {
                 return '';
             }
 
@@ -154,7 +152,7 @@ if (!function_exists('getFirstImage')) {
             // Ambil gambar pertama
             $firstImage = $images[0] ?? null;
 
-            if (!$firstImage) {
+            if (! $firstImage) {
                 return '';
             }
 
@@ -169,17 +167,18 @@ if (!function_exists('getFirstImage')) {
                 htmlspecialchars($altText, ENT_QUOTES, 'UTF-8')
             );
         } catch (\Exception $e) {
-            Log::error("Error getting first image: " . $e->getMessage());
+            Log::error('Error getting first image: '.$e->getMessage());
+
             return '';
         }
     }
 }
 
-if (!function_exists('getFirstImageUrl')) {
+if (! function_exists('getFirstImageUrl')) {
     /**
      * Ambil URL gambar pertama dari artikel
      *
-     * @param object|Model $item - Object artikel dengan method gambar()
+     * @param  object|Model  $item  - Object artikel dengan method gambar()
      * @return string|null - URL gambar atau null jika tidak ada
      *
      * @example
@@ -190,7 +189,7 @@ if (!function_exists('getFirstImageUrl')) {
     {
         try {
             // Pastikan item memiliki method gambar()
-            if (!method_exists($item, 'gambar')) {
+            if (! method_exists($item, 'gambar')) {
                 return null;
             }
 
@@ -198,7 +197,8 @@ if (!function_exists('getFirstImageUrl')) {
 
             return $images[0] ?? null;
         } catch (\Exception $e) {
-            Log::error("Error getting first image URL: " . $e->getMessage());
+            Log::error('Error getting first image URL: '.$e->getMessage());
+
             return null;
         }
     }

@@ -6,15 +6,22 @@ use Livewire\Component;
 
 class Comment extends Component
 {
-
     public $comment;
+
     public $postId;
+
     public $author_name;
+
     public $content;
+
     public $likes;
+
     public $ip_address;
+
     public $user_agent;
+
     public $status;
+
     public $approved_at;
 
     public function mount($comment)

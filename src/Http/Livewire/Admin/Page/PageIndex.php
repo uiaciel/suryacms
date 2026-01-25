@@ -3,25 +3,30 @@
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Page;
 
 use Livewire\Component;
-use Uiaciel\SuryaCms\Models\Page;
 use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
 use Uiaciel\SuryaCms\Exports\PageExport;
 use Uiaciel\SuryaCms\Imports\PageImport;
 use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Setting;
-use Maatwebsite\Excel\Facades\Excel;
 
 class PageIndex extends Component
 {
-
     use WithFileUploads;
+
     public bool $showImportExportModal = false;
 
     public $pages;
+
     public $languages;
+
     public $setting;
-    public $titlePage = "All Pages";
+
+    public $titlePage = 'All Pages';
+
     public $date;
+
     public $importFile;
 
     public function mount()
@@ -59,10 +64,10 @@ class PageIndex extends Component
     public function dataExport()
     {
         $sanitizedUrl = str_replace('/', '-', $this->setting->url);
-        $fileName = 'backup-Pages-' . $sanitizedUrl . '-' . $this->date . '.xlsx';
+        $fileName = 'backup-Pages-'.$sanitizedUrl.'-'.$this->date.'.xlsx';
         $this->closeImportExportModal();
 
-        return Excel::download(new PageExport, $fileName,  \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new PageExport, $fileName, \Maatwebsite\Excel\Excel::XLSX);
     }
 
     public function render()
@@ -70,17 +75,17 @@ class PageIndex extends Component
         $query = Page::query()->orderBy('created_at', 'desc');
 
         // Filter Bahasa
-        if (!empty($this->filterLanguage)) {
+        if (! empty($this->filterLanguage)) {
             $query->where('language_id', $this->filterLanguage);
         }
 
         // Filter Status
-        if (!empty($this->filterStatus)) {
+        if (! empty($this->filterStatus)) {
             $query->where('status', $this->filterStatus);
         }
 
         // Filter Tanggal
-        if (!empty($this->filterDate)) {
+        if (! empty($this->filterDate)) {
             // Kita asumsikan datepublish adalah kolom tipe DATE
             $query->whereDate('datepublish', $this->filterDate);
         }
@@ -88,7 +93,7 @@ class PageIndex extends Component
         $this->pages = $query->get();
 
         return view('suryacms::livewire.admin.page.page-index', [
-            'pages' => $this->pages
+            'pages' => $this->pages,
         ])->layout('suryacms::layouts.app');
     }
 

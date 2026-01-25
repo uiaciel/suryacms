@@ -2,11 +2,11 @@
 
 namespace Uiaciel\SuryaCms\Exports;
 
-use Uiaciel\SuryaCms\Models\Setting;
+use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\Exportable;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class SettingExport implements FromQuery, WithHeadings, WithMapping
 {
@@ -58,7 +58,7 @@ class SettingExport implements FromQuery, WithHeadings, WithMapping
             'color_dark',
             'site_maintenance',
             'email_forwarder',
-            'date_format'
+            'date_format',
 
         ];
     }

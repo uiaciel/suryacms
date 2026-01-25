@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-
     use HasFactory;
 
     protected $fillable = [
@@ -189,12 +188,12 @@ class Post extends Model
             'who',
             'whom',
             'whose',
-            'because'
+            'because',
         ];
 
         // Filter stopwords
         $filtered = array_filter($words, function ($word) use ($stopwords) {
-            return !in_array($word, $stopwords);
+            return ! in_array($word, $stopwords);
         });
 
         // Hitung frekuensi

@@ -2,9 +2,9 @@
 
 namespace Uiaciel\SuryaCms\Imports;
 
-use Uiaciel\SuryaCms\Models\Setting;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class SettingImport implements ToModel, WithHeadingRow
 {

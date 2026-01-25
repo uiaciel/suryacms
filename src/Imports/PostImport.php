@@ -2,22 +2,21 @@
 
 namespace Uiaciel\SuryaCms\Imports;
 
-use Uiaciel\SuryaCms\Models\Post;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use SebastianBergmann\Type\NullType;
+use Uiaciel\SuryaCms\Models\Post;
 
 class PostImport implements ToModel, WithHeadingRow
 {
     public function model(array $row)
     {
         if (empty($row['title']) || empty($row['slug'])) {
-            return NULL;
+            return null;
         }
 
         return new Post([
             'language_id' => $row['language_id'] ?? 1,
-            'translation_id' => $row['translation_id'] ?? NULL,
+            'translation_id' => $row['translation_id'] ?? null,
             'user_id' => $row['user_id'],
             'category_id' => $row['category_id'],
             'title' => $row['title'],

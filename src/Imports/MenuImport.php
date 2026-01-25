@@ -2,15 +2,15 @@
 
 namespace Uiaciel\SuryaCms\Imports;
 
-use Uiaciel\SuryaCms\Models\Menu;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Uiaciel\SuryaCms\Models\Menu;
 
 class MenuImport implements ToModel, WithHeadingRow
 {
     public function __construct()
     {
-          Menu::query()->delete();
+        Menu::query()->delete();
     }
 
     public function model(array $row)
@@ -21,13 +21,12 @@ class MenuImport implements ToModel, WithHeadingRow
         }
 
         return new Menu([
-            'name'      => $row['name'],
-            'category'  => $row['category'] ?? null,
-            'type'      => $row['type'] ?? 'custom',
-            'link'      => $row['link'] ?? '#',
+            'name' => $row['name'],
+            'category' => $row['category'] ?? null,
+            'type' => $row['type'] ?? 'custom',
+            'link' => $row['link'] ?? '#',
             'parent_id' => $row['parent_id'] ?? null,
-            'order'     => $row['order'] ?? 0,
+            'order' => $row['order'] ?? 0,
         ]);
     }
-
 }

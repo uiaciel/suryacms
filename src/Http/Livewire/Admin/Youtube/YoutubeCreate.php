@@ -2,13 +2,24 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube;
 
-use Uiaciel\SuryaCms\Models\YoutubeVideo;
 use Livewire\Component;
+use Uiaciel\SuryaCms\Models\YoutubeVideo;
 
 class YoutubeCreate extends Component
 {
-    public $video_url, $video_id, $title, $description, $thumbnail_url;
-    public $category, $status = 'draft';
+    public $video_url;
+
+    public $video_id;
+
+    public $title;
+
+    public $description;
+
+    public $thumbnail_url;
+
+    public $category;
+
+    public $status = 'draft';
 
     public function updatedVideoUrl($value)
     {
@@ -31,7 +42,7 @@ class YoutubeCreate extends Component
             $this->thumbnail_url = "https://img.youtube.com/vi/{$videoId}/hqdefault.jpg";
 
             // YouTube oEmbed tidak menyediakan deskripsi → user isi manual
-            if (!$this->description) {
+            if (! $this->description) {
                 $this->description = '';
             }
         }
@@ -40,6 +51,7 @@ class YoutubeCreate extends Component
     public function extractYoutubeId($url)
     {
         preg_match('/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&]+)/', $url, $m);
+
         return $m[1] ?? null;
     }
 
@@ -62,6 +74,7 @@ class YoutubeCreate extends Component
         ]);
 
         session()->flash('success', 'Video berhasil disimpan!');
+
         return $this->redirect('/admin/galleries/');
     }
 

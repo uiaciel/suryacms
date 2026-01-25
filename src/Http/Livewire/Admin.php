@@ -2,46 +2,54 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire;
 
-use Uiaciel\SuryaCms\Models\Category;
-use Uiaciel\SuryaCms\Models\Setting;
-use Uiaciel\SuryaCms\Models\Language;
-use Uiaciel\SuryaCms\Models\Post;
-use Uiaciel\SuryaCms\Models\Page;
-use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Livewire\Component;
-use Carbon\Carbon;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Facades\Artisan;
+use Uiaciel\SuryaCms\Models\Category;
+use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Page;
+use Uiaciel\SuryaCms\Models\Post;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class Admin extends Component
 {
     public $categoryName;
+
     public $categories;
+
     public $categoryStatus = 'Publish';
+
     public $isEditMode = false;
 
     public $posts;
+
     public $pages;
 
     public $commandOutput = null;
+
     public $statusMessage = '';
 
     public $languageName;
+
     public $languageCode;
+
     public $languages;
+
     public $isLanguageEditMode = false;
+
     public $site_maintenance;
 
     public function mount()
     {
         // Check if setting exists, if not redirect to setting page for initial setup
         $setting = Setting::first();
-        if (!$setting) {
+        if (! $setting) {
             $this->redirect(route('admin.setting'), navigate: true);
+
             return;
         }
 
@@ -55,6 +63,7 @@ class Admin extends Component
     public function logout()
     {
         Auth::logout();
+
         return redirect()->route('login');
     }
 
@@ -67,13 +76,13 @@ class Admin extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Success',
-                'text' => 'Site maintenance mode ' . ($value ? 'enabled' : 'disabled') . ' successfully!'
+                'text' => 'Site maintenance mode '.($value ? 'enabled' : 'disabled').' successfully!',
             ]);
         } else {
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Settings not found.'
+                'text' => 'Settings not found.',
             ]);
         }
     }
@@ -100,17 +109,17 @@ class Admin extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Success',
-                'text' => 'Generate Offline Successfully.'
+                'text' => 'Generate Offline Successfully.',
             ]);
         } catch (\Exception $e) {
             // Tangani error jika Artisan gagal total
-            $this->statusMessage = 'An unexpected error occurred: ' . $e->getMessage();
+            $this->statusMessage = 'An unexpected error occurred: '.$e->getMessage();
             $this->commandOutput = nl2br(e($e->getMessage()));
 
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Failed to generate offline pages.'
+                'text' => 'Failed to generate offline pages.',
             ]);
         }
     }
@@ -124,33 +133,33 @@ class Admin extends Component
         $urls[] = [
             'loc' => URL::to('/'),
             'lastmod' => $now,
-            'priority' => '1.0'
+            'priority' => '1.0',
         ];
 
         $pages = Page::where('status', 'Publish')->get();
         foreach ($pages as $page) {
             $urls[] = [
-                'loc' => URL::to('/' . $page->slug),
+                'loc' => URL::to('/'.$page->slug),
                 'lastmod' => Carbon::parse($page->updated_at)->toAtomString(),
-                'priority' => '0.8'
+                'priority' => '0.8',
             ];
         }
 
         $posts = Post::where('status', 'Publish')->get();
         foreach ($posts as $post) {
             $urls[] = [
-                'loc' => URL::to('/media/' . $post->slug),
+                'loc' => URL::to('/media/'.$post->slug),
                 'lastmod' => Carbon::parse($post->updated_at)->toAtomString(),
-                'priority' => '0.7'
+                'priority' => '0.7',
             ];
         }
 
         $categories = Category::all();
         foreach ($categories as $cat) {
             $urls[] = [
-                'loc' => URL::to('/category/' . $cat->slug),
+                'loc' => URL::to('/category/'.$cat->slug),
                 'lastmod' => $now,
-                'priority' => '0.6'
+                'priority' => '0.6',
             ];
         }
 
@@ -161,7 +170,7 @@ class Admin extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Success',
-            'text' => 'Generate Sitemap Successfully.'
+            'text' => 'Generate Sitemap Successfully.',
         ]);
 
         session()->flash('success', 'Generate Sitemap Successfully.');
@@ -182,7 +191,7 @@ class Admin extends Component
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Berhasil',
-            'text' => 'Data berhasil ditambahkan!'
+            'text' => 'Data berhasil ditambahkan!',
         ]);
 
         session()->flash('success', 'Category Created Successfully.');
@@ -234,7 +243,7 @@ class Admin extends Component
             $this->dispatch('swal', [
                 'icon' => 'success',
                 'title' => 'Berhasil',
-                'text' => 'Category Status Updated Successfully!'
+                'text' => 'Category Status Updated Successfully!',
             ]);
             $this->redirect(route('admin.dashboard'), navigate: true);
             session()->flash('success', 'Category Status Updated Successfully.');
@@ -272,8 +281,8 @@ class Admin extends Component
                 'language_id' => $language->id,
                 'translation_id' => null,
                 'user_id' => Auth::id(),
-                'title' => 'Homepage ' . $language->name,
-                'slug' => 'homepage-' . $language->code,
+                'title' => 'Homepage '.$language->name,
+                'slug' => 'homepage-'.$language->code,
                 'content' => null,
                 'html' => null,
                 'css' => null,
@@ -356,5 +365,4 @@ class Admin extends Component
         return view('suryacms::livewire.admin')
             ->layout('suryacms::layouts.app');
     }
-
 }

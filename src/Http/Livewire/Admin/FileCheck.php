@@ -1,18 +1,16 @@
 <?php
+
 // File: app/Livewire/Admin/FileCheck.php
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin;
 
 use Livewire\Component;
 use Uiaciel\SuryaCms\Models\Setting;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\App;
 
 class FileCheck extends Component
 {
     public array $files = [];
+
     public $active_theme = 'default';
 
     public function mount(): void
@@ -40,7 +38,7 @@ class FileCheck extends Component
             ],
             [
                 'label' => 'Theme Config (theme.php)',
-                'path' => base_path('resources/views/frontend/' . $this->active_theme . '/theme.php'), // sesuaikan tema aktif
+                'path' => base_path('resources/views/frontend/'.$this->active_theme.'/theme.php'), // sesuaikan tema aktif
             ],
             [
                 'label' => 'Storage Link (public/storage)',
@@ -63,14 +61,14 @@ class FileCheck extends Component
             return [
                 'status' => 'Ada',
                 'size' => format_bytes(filesize($path)),
-                'modified' => date('d M Y H:i', filemtime($path))
+                'modified' => date('d M Y H:i', filemtime($path)),
             ];
         }
 
         return [
             'status' => 'Tidak Ada',
             'size' => '-',
-            'modified' => '-'
+            'modified' => '-',
         ];
     }
 
@@ -80,7 +78,7 @@ class FileCheck extends Component
     }
 }
 
-if (!function_exists('format_bytes')) {
+if (! function_exists('format_bytes')) {
     function format_bytes($bytes, $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -91,6 +89,6 @@ if (!function_exists('format_bytes')) {
 
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 }

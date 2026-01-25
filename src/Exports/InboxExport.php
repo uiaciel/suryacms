@@ -2,11 +2,10 @@
 
 namespace Uiaciel\SuryaCms\Exports;
 
-use Uiaciel\SuryaCms\Models\Contact;
-
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Uiaciel\SuryaCms\Models\Contact;
 
 class InboxExport implements FromQuery, WithHeadings, WithMapping
 {
@@ -50,5 +49,4 @@ class InboxExport implements FromQuery, WithHeadings, WithMapping
             $contact->updated_at,
         ];
     }
-} {
 }

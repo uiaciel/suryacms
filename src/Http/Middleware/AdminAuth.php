@@ -9,7 +9,7 @@ class AdminAuth
 {
     public function handle($request, Closure $next)
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect('/login'); // atau route login khusus admin
         }
 

@@ -2,32 +2,40 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Post;
 
-use Uiaciel\SuryaCms\Models\Category;
+use Illuminate\Support\Facades\Session;
 use Livewire\Component;
-use Uiaciel\SuryaCms\Models\Post;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination; // Import WithPagination trait
-use Illuminate\Support\Facades\Session; // Import Session facade
+use Maatwebsite\Excel\Facades\Excel; // Import Session facade
 use Uiaciel\SuryaCms\Exports\PostExport;
 use Uiaciel\SuryaCms\Imports\PostImport;
-use Livewire\WithFileUploads;
-use Maatwebsite\Excel\Facades\Excel;
-
+use Uiaciel\SuryaCms\Models\Category;
+use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
+
 class PostIndex extends Component
 {
     use WithPagination; // Use the trait for pagination
+
     protected $paginationTheme = 'bootstrap';
 
     use WithFileUploads;
-    public $titlePage = "All Posts";
+
+    public $titlePage = 'All Posts';
+
     public $categories;
+
     public $setting; // Added to handle multilingual setting
+
     public $date;
 
     // Properties for filters
     public $searchFilter = '';
+
     public $categoryFilter = '';
+
     public $statusFilter = '';
+
     public $importFile;
 
     // Query string configuration to persist filters in URL
@@ -70,7 +78,7 @@ class PostIndex extends Component
         if ($post) {
             $this->dispatch('show-delete-confirmation', [
                 'postId' => $post->id,
-                'postTitle' => $post->title
+                'postTitle' => $post->title,
             ]);
         } else {
             Session::flash('error', 'Post not found.');
@@ -87,7 +95,7 @@ class PostIndex extends Component
             Session::flash('success', 'Post deleted successfully.');
             $this->dispatch('swal', ['icon' => 'success', 'title' => 'Deleted!', 'text' => 'Post deleted Successfully!']);
         } catch (\Exception $e) {
-            Session::flash('error', 'Failed to delete post: ' . $e->getMessage());
+            Session::flash('error', 'Failed to delete post: '.$e->getMessage());
             $this->dispatch('swal', ['icon' => 'error', 'title' => 'Error', 'text' => 'Failed to delete post!']);
         }
 
@@ -112,7 +120,7 @@ class PostIndex extends Component
         session()->flash('message', 'Post Export is Downloading ...');
         $sanitizedUrl = str_replace('/', '-', $this->setting->url);
 
-        return Excel::download(new PostExport, 'backup-Posts-' . $sanitizedUrl . '-' . $this->date . '.xlsx',  \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new PostExport, 'backup-Posts-'.$sanitizedUrl.'-'.$this->date.'.xlsx', \Maatwebsite\Excel\Excel::XLSX);
 
     }
 
@@ -122,7 +130,7 @@ class PostIndex extends Component
 
         // Apply search filter
         if ($this->searchFilter) {
-            $query->where('title', 'like', '%' . $this->searchFilter . '%');
+            $query->where('title', 'like', '%'.$this->searchFilter.'%');
         }
 
         // Apply category filter

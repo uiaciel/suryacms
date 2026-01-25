@@ -16,12 +16,12 @@ class Contact extends Model
         'ip_address',
         'user_agent',
         'is_spam',
-        'referrer'
+        'referrer',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
-        'is_spam' => 'boolean'
+        'is_spam' => 'boolean',
     ];
 
     public function scopeUnread($query)

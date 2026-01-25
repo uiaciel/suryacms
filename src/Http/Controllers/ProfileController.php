@@ -2,20 +2,18 @@
 
 namespace Uiaciel\SuryaCms\Http\Controllers;
 
-use Uiaciel\SuryaCms\Http\Requests\ProfileUpdateRequest;
+use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
-
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Uiaciel\SuryaCms\Http\Requests\ProfileUpdateRequest;
 
 class ProfileController extends Controller
 {
-
     public function index()
     {
         $users = User::All();
@@ -80,19 +78,21 @@ class ProfileController extends Controller
         }
 
         $verified = session('password_verified', false);
+
         return view('suryacms::livewire.admin.user.create', compact('verified'));
     }
 
     public function verifyPassword(Request $request)
     {
         $request->validate([
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
         $user = auth()->user();
 
         if (Hash::check($request->password, $user->password)) {
             session(['password_verified' => true]);
+
             return redirect()->route('admin.users.create');
         } else {
             return back()->withErrors(['password' => 'Incorrect password.']);
@@ -101,14 +101,14 @@ class ProfileController extends Controller
 
     public function store(Request $request)
     {
-        if (auth()->id() !== 1 || !session('password_verified')) {
+        if (auth()->id() !== 1 || ! session('password_verified')) {
             abort(403);
         }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed'
+            'password' => 'required|min:6|confirmed',
         ]);
 
         User::create([

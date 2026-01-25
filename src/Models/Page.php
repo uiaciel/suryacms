@@ -21,12 +21,12 @@ class Page extends Model
         'view',
         'status',
         'html',
-        'css'
+        'css',
     ];
 
     public function homepage()
     {
-        if (!is_null($this->html)) {
+        if (! is_null($this->html)) {
             return '{{!! <h4><span class="badge bg-primary">Homepage</span></h4> !!}';
         }
 
@@ -174,12 +174,12 @@ class Page extends Model
             'who',
             'whom',
             'whose',
-            'because'
+            'because',
         ];
 
         // Filter stopwords
         $filtered = array_filter($words, function ($word) use ($stopwords) {
-            return !in_array($word, $stopwords);
+            return ! in_array($word, $stopwords);
         });
 
         // Hitung frekuensi
