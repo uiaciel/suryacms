@@ -203,3 +203,113 @@ if (! function_exists('getFirstImageUrl')) {
         }
     }
 }
+
+if (! function_exists('locale_url')) {
+    /**
+     * Generate URL with locale prefix if multilingual is enabled
+     *
+     * @param  string  $path
+     * @param  string|null  $locale
+     * @return string
+     */
+    function locale_url($path = '', $locale = null)
+    {
+        $setting = Setting::first();
+        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+
+        if (! $isMultilingual) {
+            return url($path);
+        }
+
+        // Use provided locale or get from session
+        $locale = $locale ?? session('locale', $setting->language ?? 'id');
+
+        // Remove leading slash from path
+        $path = ltrim($path, '/');
+
+        // Build URL with locale prefix
+        if (empty($path)) {
+            return url($locale);
+        }
+
+        return url($locale.'/'.$path);
+    }
+}
+
+if (! function_exists('current_locale')) {
+    /**
+     * Get current locale from session or default
+     *
+     * @return string
+     */
+    function current_locale()
+    {
+        $setting = Setting::first();
+        $defaultLocale = $setting->language ?? config('app.locale', 'id');
+
+        return session('locale', $defaultLocale);
+    }
+}
+
+if (! function_exists('switch_locale_url')) {
+    /**
+     * Generate URL for switching locale, maintaining current path
+     *
+     * @param  string  $newLocale
+     * @return string
+     */
+    function switch_locale_url($newLocale)
+    {
+        $setting = Setting::first();
+        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+
+        if (! $isMultilingual) {
+            return url()->current();
+        }
+
+        $currentLocale = session('locale', $setting->language ?? 'id');
+        $currentUrl = request()->path();
+
+        // Remove current locale from path
+        if (str_starts_with($currentUrl, $currentLocale.'/')) {
+            $path = substr($currentUrl, strlen($currentLocale) + 1);
+        } elseif ($currentUrl === $currentLocale) {
+            $path = '';
+        } else {
+            $path = $currentUrl;
+        }
+
+        // Build new URL with new locale
+        if (empty($path)) {
+            return url($newLocale);
+        }
+
+        return url($newLocale.'/'.$path);
+    }
+}
+
+if (! function_exists('is_multilingual')) {
+    /**
+     * Check if multilingual mode is enabled
+     *
+     * @return bool
+     */
+    function is_multilingual()
+    {
+        $setting = Setting::first();
+
+        return $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+    }
+}
+
+if (! function_exists('available_locales')) {
+    /**
+     * Get all available published locales
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    function available_locales()
+    {
+        return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')->get();
+    }
+}

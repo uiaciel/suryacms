@@ -345,7 +345,7 @@
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
                              <li class="nav-item me-2">
-                                 <a href="{{$setting->url}}" target="_blank" class="nav-link">
+                                 <a href="{{$setting->url ?? config('app.url')}}" target="_blank" class="nav-link">
                                      Homepage
                                  </a>
                              </li>

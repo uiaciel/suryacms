@@ -26,26 +26,18 @@ use Uiaciel\SuryaCms\Http\Livewire\SettingWeb;
 use Uiaciel\SuryaCms\Models\Setting;
 
 Route::middleware(['web', 'auth'])->group(function () {
-    // Logout
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
-// ============================================================================
-// BACKEND ADMIN ROUTES - Protected with Authentication
-// ============================================================================
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['web', 'auth'])
     ->group(function () {
-        // Admin Dashboard
         Route::get('/', Admin::class)->name('admin');
 
-        // Settings
         Route::get('setting', SettingWeb::class)->name('setting');
         Route::get('file-check', FileCheck::class)->name('file-check');
-        // Route::get('theme', SettingTheme::class)->name('theme');
 
-        // Pages Management
         Route::prefix('pages')
             ->name('page.')
             ->group(function () {
@@ -55,7 +47,6 @@ Route::prefix('admin')
                 Route::get('translations/{language_id}', [PageCreate::class, 'getTranslations'])->name('get-translations');
             });
 
-        // Posts Management
         Route::prefix('posts')
             ->name('post.')
             ->group(function () {
@@ -65,7 +56,6 @@ Route::prefix('admin')
                 Route::get('translations/{language_id}', [PostCreate::class, 'getTranslations'])->name('get-translations');
             });
 
-        // YouTube Videos Management
         Route::prefix('youtube')
             ->name('youtube.')
             ->group(function () {
@@ -73,7 +63,6 @@ Route::prefix('admin')
                 Route::get('create', YoutubeCreate::class)->name('create');
             });
 
-        // Gallery Management
         Route::prefix('galleries')
             ->name('gallery.')
             ->group(function () {
@@ -82,13 +71,10 @@ Route::prefix('admin')
                 Route::post('{id}/edit', [AdminController::class, 'editGallery'])->name('edit');
             });
 
-        // Contacts
         Route::get('contacts', Contact::class)->name('contact.index');
 
-        // Backups
         Route::get('backups', Backup::class)->name('backup.index');
 
-        // Menus Management
         Route::get('menu', MenuCreate::class)->name('menu.create');
         Route::get('menus', MenuList::class)->name('menus.index');
 
@@ -96,7 +82,6 @@ Route::prefix('admin')
         Route::get('getmenus/pages', [FrontendController::class, 'getPages'])->name('menus.getPages');
         Route::get('getmenus/categories', [FrontendController::class, 'getCategories'])->name('menus.getCategories');
 
-        // Homepage Builder
         Route::get('homepage-builder/{pageSlug}', HomepageBuilder::class)->name('homepage.builder');
 
         Route::get('search', SearchResult::class)->name('search.results');
@@ -105,98 +90,94 @@ Route::prefix('admin')
         Route::post('users/verify-password', [ProfileController::class, 'verifyPassword'])->name('users.verifyPassword');
         Route::post('users/store', [ProfileController::class, 'store'])->name('users.store');
 
-        // Route::view('profile', 'profile')->name('profile');
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-        // General Uploads
         Route::post('upload', [AdminController::class, 'tinymce'])->name('upload');
     });
 
-// ============================================================================
-// FRONTEND PUBLIC ROUTES
-// ============================================================================
-Route::middleware(['web', 'suryacms.maintenance'])->group(function () {
+Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Detect Setting (safe)
+    |--------------------------------------------------------------------------
+    */
     try {
-        if (Schema::hasTable('settings')) {
-            $setting = Setting::first() ?? null;
-        } else {
-            $setting = null;
-        }
+        $setting = Schema::hasTable('settings')
+            ? \Uiaciel\SuryaCms\Models\Setting::first()
+            : null;
     } catch (\Exception $e) {
         $setting = null;
     }
 
-    $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+    $isMultilingual = $setting && $setting->is_multilingual === 'Yes';
+    $defaultLang = $setting->language ?? 'id';
+
+    /*
+    |--------------------------------------------------------------------------
+    | HOMEPAGE (MULTILINGUAL ONLY HERE)
+    |--------------------------------------------------------------------------
+    */
 
     if ($isMultilingual) {
-        // Multilingual Routes - Redirect root to default language
-        if ($setting && isset($setting->language)) {
-            $defaultLang = $setting->language === 'id' ? 'id' : 'en';
-            Route::get('/', function () use ($defaultLang) {
-                return redirect()->to("/{$defaultLang}/");
-            });
-        }
 
-        // Language-specific homepage
-        Route::get('/{lang}/', [FrontendController::class, 'index'])
-            ->where('lang', 'id|en')
+        // / → /id
+        Route::get('/', function () use ($defaultLang) {
+            return redirect()->to('/'.$defaultLang);
+        });
+
+        // /id , /en → homepage
+        Route::get('{lang}', [FrontendController::class, 'index'])
+            ->where('lang', '[a-z]{2}')
             ->name('homepage');
 
-        // Language-specific category index (must be before catch-all)
-        Route::get('/{lang}/category', [FrontendController::class, 'categoryIndex'])
-            ->where('lang', 'id|en')
-            ->name('frontend.category.index');
-
-        // Language-specific post/media (must be before catch-all page)
-        Route::get('/{lang}/media/{slug}', [FrontendController::class, 'postshow'])
-            ->where('lang', 'id|en')
-            ->where('slug', '.+')
-            ->name('frontend.post.show');
-
-        // Language-specific category detail (must be before catch-all page)
-        Route::get('/{lang}/category/{slug}', [FrontendController::class, 'category'])
-            ->where('lang', 'id|en')
-            ->where('slug', '.+')
-            ->name('frontend.category.show');
-
-        // Language-specific page (catch-all for custom pages) - MUST be last
-        Route::get('/{lang}/{slug}', [FrontendController::class, 'pageshow'])
-            ->where('lang', 'id|en')
-            ->where('slug', '^(?!admin).*')  // Exclude /admin/* routes
-            ->name('frontend.page.show');
     } else {
-        // Monolingual Routes
+
+        // Single language homepage
         Route::get('/', [FrontendController::class, 'single'])
             ->name('homepage.single');
-
-        // Category index (must be before catch-all)
-        Route::get('category', [FrontendController::class, 'categoryIndex'])
-            ->name('frontend.category.index');
-
-        // Post/media (must be before catch-all page)
-        Route::get('media/{slug}', [FrontendController::class, 'postshow'])
-            ->where('slug', '.+')
-            ->name('frontend.post.show');
-
-        // Category detail (must be before catch-all page)
-        Route::get('category/{slug}', [FrontendController::class, 'category'])
-            ->where('slug', '.+')
-            ->name('frontend.category.show');
-
-        // Catch-all page route - must be last
-        Route::get('/{slug}', [FrontendController::class, 'pageshow'])
-            ->where('slug', '^(?!login|admin).*')  // Exclude /admin/* routes
-            ->name('frontend.page.show');
     }
 
-    // Shared Frontend Routes (not language-specific)
-    Route::get('contact-us', [FrontendController::class, 'contact'])->name('frontend.contact');
-    Route::post('contact-us/send', [FrontendController::class, 'sendcontact'])->name('sendcontact');
+    /*
+    |--------------------------------------------------------------------------
+    | CONTENT ROUTES (NO MULTILINGUAL PREFIX)
+    |--------------------------------------------------------------------------
+    */
 
-    // Test route
-    Route::get('suryacms/test', function () {
-        return 'SuryaCMS aktif!';
-    });
+    Route::get('category', [FrontendController::class, 'categoryIndex'])
+        ->name('frontend.category.index');
+
+    Route::get('category/{slug}', [FrontendController::class, 'category'])
+        ->where('slug', '[a-zA-Z0-9\-_]+')
+        ->name('frontend.category.show');
+
+    Route::get('media/{slug}', [FrontendController::class, 'postshow'])
+        ->where('slug', '[a-zA-Z0-9\-_]+')
+        ->name('frontend.post.show');
+
+    Route::get('{slug}', [FrontendController::class, 'pageshow'])
+        ->where('slug', '^(?!login|register|password|email|logout|contact-us|homepage-builder|suryacms|api|_debugbar|horizon|telescope).*$')
+        ->name('frontend.page.show');
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONTACT
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('contact-us', [FrontendController::class, 'contact'])
+        ->name('frontend.contact');
+
+    Route::post('contact-us/send', [FrontendController::class, 'sendcontact'])
+        ->name('sendcontact');
+
+    /*
+    |--------------------------------------------------------------------------
+    | TEST
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('suryacms/test', fn () => 'SuryaCMS aktif!');
 });

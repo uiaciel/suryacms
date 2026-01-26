@@ -12,6 +12,7 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
 use Uiaciel\SuryaCms\Http\Middleware\CheckMaintenance;
+use Uiaciel\SuryaCms\Http\Middleware\SetLocaleFromUrl; // ← TAMBAHKAN INI
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Contact;
 use Uiaciel\SuryaCms\Models\Gallery;
@@ -81,9 +82,13 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
     private function registerMiddleware(): void
     {
-
         $router = $this->app->make(Router::class);
+
+        // Register maintenance middleware
         $router->aliasMiddleware('suryacms.maintenance', CheckMaintenance::class);
+
+        // Register locale middleware
+        $router->aliasMiddleware('suryacms.locale', SetLocaleFromUrl::class); // ← TAMBAHKAN INI
     }
 
     private function bootTheme(): void
@@ -169,11 +174,6 @@ class SuryaCmsServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../public/frontend' => public_path('frontend'),
         ], 'suryacms-frontend-assets');
-
-        // Publish all suryacms views (admin)
-        // $this->publishes([
-        //     __DIR__ . '/../resources/views' => resource_path('views/vendor/suryacms'),
-        // ], 'suryacms-views');
 
         $this->publishes([
             __DIR__.'/../database/migrations' => database_path('migrations'),

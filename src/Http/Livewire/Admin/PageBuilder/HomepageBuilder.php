@@ -35,6 +35,7 @@ class HomepageBuilder extends Component
 
         $this->blogs = Post::All();
         $page = Page::where('slug', $pageSlug)->firstOrFail();
+
         $this->pageId = $page->id;
         $this->title = $page->title;
         $this->slug = $page->slug;

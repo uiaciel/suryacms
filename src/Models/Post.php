@@ -39,6 +39,11 @@ class Post extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function language()
+    {
+        return $this->belongsTo(Language::class);
+    }
+
     public function gambar()
     {
         preg_match_all('@src="([^"]+)"@', $this->content, $match);
