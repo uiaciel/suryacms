@@ -3,17 +3,19 @@
   "description": "Surya CMS Laravel Package",
   "type": "library",
   "license": "MIT",
-  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "uiaciel",
+      "email": "uiaciel@gmail.com"
+    }
+  ],
   "require": {
     "php": ">=8.1",
-    "laravel/framework": "^11.0|^12.0",
+    "illuminate/support": "^11.0|^12.0",
     "livewire/livewire": "^3.0",
     "maatwebsite/excel": "^3.1",
     "spatie/pdf-to-image": "^3.1",
-    "symfony/dom-crawler": "^7.2",
-    "symfony/http-client": "^7.3",
     "barryvdh/laravel-dompdf": "^3.1",
-    "guzzlehttp/guzzle": "^7.9",
     "intervention/image-laravel": "^1.5"
   },
   "autoload": {
