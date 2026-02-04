@@ -46,6 +46,12 @@ class HomepageBuilder extends Component
         $this->css = $page->css;
     }
 
+    public function exportPage()
+    {
+        $page = Page::findOrFail($this->pageId);
+        return \Maatwebsite\Excel\Facades\Excel::download(new \Uiaciel\SuryaCms\Exports\PageExport($page), 'page-' . $this->slug . '.xlsx');
+    }
+
     public function renderPageHtml($html)
     {
 

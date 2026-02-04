@@ -11,6 +11,9 @@
                 <a href="/" class="btn btn-info btn-sm me-2" title="Lihat Halaman"><i class="fas fa-eye"></i></a>
                 <button type="submit" id="saveBtn" class="btn btn-success btn-sm" title="Simpan Perubahan"><i
                         class="fas fa-upload"></i> Save</button>
+                <button type="button" wire:click="exportPage" class="btn btn-warning btn-sm ms-2" title="Export Page">
+                    <i class="fas fa-download"></i> Export
+                </button>
 
                 {{-- Elemen input tersembunyi --}}
                 <input type="text" id="htmldata" wire:model="html" hidden>

@@ -8,6 +8,9 @@ use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
 use Uiaciel\SuryaCms\Http\Livewire\Admin;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Backup;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\SettingTheme;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\ConvertTheme;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\EditorTheme;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Contact;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\FileCheck;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\MenuCreate;
@@ -95,6 +98,14 @@ Route::prefix('admin')
         Route::delete('profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
         Route::post('upload', [AdminController::class, 'tinymce'])->name('upload');
+
+        Route::prefix('themes')
+            ->name('themes.')
+            ->group(function () {
+                Route::get('/', SettingTheme::class)->name('index');
+                 Route::get('/convert', ConvertTheme::class)->name('convert.theme');
+                Route::get('/editor', EditorTheme::class)->name('admin.theme.editor');
+            });
     });
 
 Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(function () {
@@ -112,32 +123,30 @@ Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(fun
         $setting = null;
     }
 
-    $isMultilingual = $setting && $setting->is_multilingual === 'Yes';
-    $defaultLang = $setting->language ?? 'id';
-
     /*
     |--------------------------------------------------------------------------
     | HOMEPAGE (MULTILINGUAL ONLY HERE)
     |--------------------------------------------------------------------------
     */
 
+    $setting = Schema::hasTable('settings') ? \Uiaciel\SuryaCms\Models\Setting::first() : null;
+    $isMultilingual = ($setting->is_multilingual ?? 'No') === 'Yes';
+    $defaultLang = $setting->language ?? 'id';
+
     if ($isMultilingual) {
 
-        // / → /id
-        Route::get('/', function () use ($defaultLang) {
-            return redirect()->to('/'.$defaultLang);
+    Route::get('/', function () use ($defaultLang) {
+            return redirect()->to('/' . session('locale', $defaultLang));
         });
 
-        // /id , /en → homepage
         Route::get('{lang}', [FrontendController::class, 'index'])
             ->where('lang', '[a-z]{2}')
             ->name('homepage');
-
     } else {
+        Route::get('/', [FrontendController::class, 'index'])->name('homepage.single');
 
-        // Single language homepage
-        Route::get('/', [FrontendController::class, 'single'])
-            ->name('homepage.single');
+        Route::get('{lang}', function () { return redirect()->to('/'); })->where('lang', '[a-z]{2}');
+
     }
 
     /*

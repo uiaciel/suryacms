@@ -6,67 +6,43 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
-use Symfony\Component\HttpFoundation\Response;
 use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Setting;
 
 class SetLocaleFromUrl
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        // Check if multilingual is enabled
         $setting = Setting::first();
-        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
+        $isMultilingual = ($setting->is_multilingual ?? 'No') === 'Yes';
+        $defaultLocale = $setting->language ?? config('app.locale', 'id');
 
-        if (! $isMultilingual) {
-            // If not multilingual, use default language
-            $defaultLocale = $setting->language ?? config('app.locale', 'id');
-            App::setLocale($defaultLocale);
-            Session::put('locale', $defaultLocale);
-
+        if (!$isMultilingual) {
+            $this->setLocale($defaultLocale);
             return $next($request);
         }
 
-        // Get locale from URL parameter
+        // Ambil locale dari parameter route 'lang'
         $locale = $request->route('lang');
 
-        // If locale is in URL, validate and set it
-        if ($locale) {
-            // Check if locale is valid in database
-            $language = Language::where('code', $locale)
-                ->where('status', 'Publish')
-                ->first();
-
-            if ($language) {
-                // Valid locale found, set it
-                App::setLocale($locale);
-                Session::put('locale', $locale);
-            } else {
-                // Invalid locale, use default
-                $defaultLocale = $setting->language ?? config('app.locale', 'id');
-                App::setLocale($defaultLocale);
-                Session::put('locale', $defaultLocale);
-            }
+        if ($locale && $this->isValidLanguage($locale)) {
+            $this->setLocale($locale);
         } else {
-            // No locale in URL, check session
-            $sessionLocale = Session::get('locale');
-
-            if ($sessionLocale) {
-                // Use session locale
-                App::setLocale($sessionLocale);
-            } else {
-                // Use default locale
-                $defaultLocale = $setting->language ?? config('app.locale', 'id');
-                App::setLocale($defaultLocale);
-                Session::put('locale', $defaultLocale);
-            }
+            // Jika tidak ada di URL, pakai yang ada di session atau default
+            $this->setLocale(Session::get('locale', $defaultLocale));
         }
 
         return $next($request);
+    }
+
+    private function isValidLanguage($code)
+    {
+        return Language::where('code', $code)->where('status', 'Publish')->exists();
+    }
+
+    private function setLocale($code)
+    {
+        App::setLocale($code);
+        Session::put('locale', $code);
     }
 }

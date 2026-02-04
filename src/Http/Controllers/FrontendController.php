@@ -10,49 +10,29 @@ use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
+use Illuminate\Support\Facades\App;
 
 class FrontendController extends Controller
 {
     public function index($lang = null)
     {
         $setting = Setting::first();
-
         $homepageType = $setting->homepage_type ?? 'index';
-        $homepageId = $setting->homepage_id ?? null;
 
-        if ($homepageType === 'homepage' && $homepageId) {
-            $query = Page::where('id', $homepageId);
+        // 1. JIKA TYPE = HOMEPAGE
+        if ($homepageType === 'homepage') {
+            $currentLocale = $lang ?? App::getLocale();
 
-            if ($lang) {
-                $languageId = $this->getLanguageIdFromCode($lang);
-                if ($languageId) {
-                    $page = Page::where('translation_id', $homepageId)
-                        ->where('language_id', $languageId)
-                        ->first();
-
-                    if (! $page) {
-                        $page = Page::where('id', $homepageId)
-                            ->where('language_id', $languageId)
-                            ->first();
-                    }
-                } else {
-                    $page = $query->first();
-                }
-            } else {
-                $page = $query->first();
-            }
+            $page = Page::where('slug', "homepage-{$currentLocale}")->first();
 
             if ($page) {
-                $page->html = $this->processShortcodes($page->html);
-
                 return view('frontend::homepage', [
-                    'html' => $page->html,
-                    'css' => $page->css,
+                    'html'  => $page->html,
+                    'css'   => $page->css,
                     'title' => $page->title,
                 ]);
             }
         }
-
         return view('frontend::index');
     }
 
