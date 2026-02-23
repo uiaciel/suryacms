@@ -15,7 +15,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div class="card" x-data="menuForm()">
+            <div class="card bg-white" x-data="menuForm()">
 
                 <div class="card-body">
                     <x-suryacms::session-status />

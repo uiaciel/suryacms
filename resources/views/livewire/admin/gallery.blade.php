@@ -29,23 +29,22 @@
 
         }">
 
-        <header class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
-            <div class="d-flex flex-column">
-                <h2 class="fw-bolder mb-0 text-primary">
-                    <i class="bi bi-images me-2"></i> Media Library
-                </h2>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0 small text-muted">
+        <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <h3 class="fw-bold mb-0 text-dark">Media Library</h3>
+
+            <button type="button" class="btn btn-primary rounded-pill px-3 shadow-sm btn-sm btn-md-base" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
+                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Image
+            </button>
+        </div>
+
+        <nav aria-label="breadcrumb" class="d-none d-sm-block">
+            <ol class="breadcrumb mb-0 small text-muted">
                         <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none">Admin</a></li>
                         <li class="breadcrumb-item"><a href="/admin/galleries" class="text-decoration-none">Media Library</a></li>
                         <li class="breadcrumb-item active" aria-current="page">{{ $titlePage ?? 'Files' }}</li>
                     </ol>
-                </nav>
-            </div>
-
-            <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
-                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Image
-            </button>
+        </nav>
         </header>
 
         @if (session()->has('success') || session()->has('error'))

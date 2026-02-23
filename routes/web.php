@@ -103,7 +103,7 @@ Route::prefix('admin')
             ->name('themes.')
             ->group(function () {
                 Route::get('/', SettingTheme::class)->name('index');
-                 Route::get('/convert', ConvertTheme::class)->name('convert.theme');
+                 Route::get('/generate', ConvertTheme::class)->name('convert.theme');
                 Route::get('/editor', EditorTheme::class)->name('admin.theme.editor');
             });
     });

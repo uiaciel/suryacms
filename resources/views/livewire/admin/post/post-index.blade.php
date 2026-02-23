@@ -1,10 +1,15 @@
 <div class="container-fluid">
     <x-suryacms::import-export-offcanvas />
 
-    <header class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold mb-0 text-primary">Posts
-        </h3>
-        <nav aria-label="breadcrumb">
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <h3 class="fw-bold mb-0 text-dark">Posts</h3>
+            <a href="{{ route('admin.post.create') }}" class="btn btn-primary rounded-pill px-3 shadow-sm btn-sm btn-md-base">
+                        <i class="bi bi-plus-lg me-2"></i>Create New Post
+                    </a>
+        </div>
+
+        <nav aria-label="breadcrumb" class="d-none d-sm-block">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Admin</a></li>
                 <li class="breadcrumb-item"><a href="/admin/posts" class="text-decoration-none">Posts</a></li>
@@ -84,9 +89,6 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="card-title fw-bold mb-0 text-primary">All Posts</h5>
                 <div>
-                    <a href="{{ route('admin.post.create') }}" class="btn btn-primary rounded-pill px-3 shadow-sm">
-                        <i class="bi bi-plus-lg me-2"></i>Create New Post
-                    </a>
 
                 </div>
             </div>
@@ -148,7 +150,7 @@
                             <tr>
                                 <td x-text="index + 1"></td>
                                 <td>
-                                    <a :href="`/media/${post.slug}`" target="_blank" class="text-decoration-none fw-bold text-primary" data-bs-toggle="tooltip" data-bs-placement="top" :title="post.title">
+                                    <a :href="`/media/${post.slug}`" target="_blank" class="text-decoration-none text-primary fw-bold" data-bs-toggle="tooltip" data-bs-placement="top" :title="post.title">
                                         <span x-text="post.title.length > 50 ? post.title.substring(0, 50) + '...' : post.title"></span>
                                     </a>
                                 </td>
@@ -175,7 +177,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a :href="`/admin/posts/edit/${post.id}`" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="Edit Post">
+                                    <a :href="`/admin/posts/edit/${post.id}`" class="btn btn-sm btn-outline-primary rounded-xl" title="Edit Post">
 
                                         <i class="bi bi-pencil me-1"></i> Edit
                                     </a>

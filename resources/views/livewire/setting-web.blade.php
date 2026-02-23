@@ -1,5 +1,4 @@
 <div>
-
     <x-suryacms::import-export-offcanvas />
 
 <div class="container-fluid">
@@ -11,7 +10,7 @@
             <!-- HEADER -->
             <header class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
                 <div>
-                    <h2 class="fw-bold text-primary mb-1 d-flex align-items-center">
+                    <h2 class="fw-bold text-dark mb-1 d-flex align-items-center">
                         <i class="bi bi-gear-fill me-2"></i> Website Settings
                     </h2>
 
@@ -23,30 +22,30 @@
                     </nav>
                 </div>
 
-                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold">
                     <i class="bi bi-save me-1"></i> Save Changes
                 </button>
             </header>
 
             <!-- MAIN CARD -->
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4">
+            <div class="">
+                <div class="">
 
                     <x-suryacms::session-status />
 
                     <!-- TABS -->
                     <ul class="nav nav-tabs modern-tabs mb-4" role="tablist">
                         <li class="nav-item">
-                            <a class="nav-link active" data-bs-toggle="tab" href="#seo">SEO</a>
+                            <a class="nav-link active" data-bs-toggle="tab" href="#seo"><i class="bi bi-search me-1"></i> SEO</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#office">Contact</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#office"><i class="bi bi-envelope me-1"></i> Contact</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#setting">Website</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#setting"><i class="bi bi-globe me-1"></i> Website</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" data-bs-toggle="tab" href="#themes">Themes</a>
+                            <a class="nav-link" data-bs-toggle="tab" href="#themes"><i class="bi bi-palette me-1"></i> Themes</a>
                         </li>
                     </ul>
 
@@ -57,7 +56,7 @@
 
                             <div class="row g-4 ">
                                 <div class="col-lg-6">
-                                    <div class="card border-0 shadow-sm rounded-4">
+                                    <div class="card border shadow-sm bg-white rounded-4">
                                         <div class="card-body">
 
                                             <div class="mb-3">
@@ -178,13 +177,13 @@
 
                                 <!-- SEO Preview -->
                                 <div class="col-lg-6">
-                                    <div class="card border-0 shadow-sm rounded-4 mb-3">
+                                    <div class="card border shadow-sm bg-white rounded-4 mb-3 bg-light">
                                         <div class="card-body">
                                             <label class="form-label fw-semibold">SEO Preview</label>
 
-                                            <div class="border rounded p-3">
-                                                <h5 class="text-primary">{{ $sitename }} - {{ $tagline }}</h5>
-                                                <p class="text-success small mb-1">{{ $url }}</p>
+                                            <div class="bg-white border rounded p-3">
+                                                <h5 class="text-primary mb-1">{{ $sitename }} - {{ $tagline }}</h5>
+                                                <p class="text-success small mb-2">{{ $url }}</p>
                                                 <p class="text-muted small mb-0">{{ Str::limit($description, 160) }}</p>
                                             </div>
                                         </div>
@@ -194,7 +193,7 @@
                                         <div class="card-body">
                                             <label class="form-label fw-semibold">Social Share Preview</label>
 
-                                            <div class="d-flex gap-3 border rounded p-3">
+                                            <div class="d-flex gap-3 border rounded p-3 bg-light">
                                                 @if ($images instanceof \Livewire\TemporaryUploadedFile)
                                                 <img src="{{ $images->temporaryUrl() }}" width="100" class="rounded">
                                                 @elseif(isset($setting) && $setting->images)
@@ -222,8 +221,8 @@
                         <div class="tab-pane fade" id="setting" >
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-body">
+                                    <div class="card border shadow-sm bg-white rounded-4">
+                                        <div class="card-body p-4">
                                             @if(isset($setting) && $dateFormats)
 
                                             <div class="mb-3">
@@ -292,8 +291,8 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-body">
+                                    <div class="card border shadow-sm bg-white rounded-4">
+                                        <div class="card-body p-4">
                                             <div class="mb-3">
                                                 <label class="form-label fw-bold" for="googlesiteverification">Google
                                                     Site
@@ -322,9 +321,9 @@
                         <div class="tab-pane fade" id="office" >
                             <div class="row">
                                 <div class="col-md-8">
-                                    <div class="card mb-3">
+                                    <div class="card border shadow-sm bg-white rounded-4 mb-3">
 
-                                        <div class="card-body">
+                                        <div class="card-body p-4">
                                             <div class="mb-3" wire:ignore>
                                                 <label class="form-label fw-bold" for="address">Address</label>
                                                 <textarea id="address" class="form-control" wire:model="address">{{ old('address', $address) }}</textarea>
@@ -346,14 +345,14 @@
                                 </div>
 
                                 <div class="col-md-4">
-                                    <div class="accordion" id="socialMediaAccordion">
-                                        <div class="accordion-item mb-3">
+                                    <div class="accordion shadow-sm" id="socialMediaAccordion">
+                                        <div class="accordion-item border-0 rounded-4 overflow-hidden">
                                             <h2 class="accordion-header" id="headingSocial">
-                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSocial" aria-expanded="false" aria-controls="collapseSocial">
-                                                    Social Media Links
+                                                <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSocial" aria-expanded="true" aria-controls="collapseSocial">
+                                                    <i class="bi bi-share me-2"></i> Social Media Links
                                                 </button>
                                             </h2>
-                                            <div id="collapseSocial" class="accordion-collapse collapse" aria-labelledby="headingSocial" data-bs-parent="#socialMediaAccordion">
+                                            <div id="collapseSocial" class="accordion-collapse collapse show" aria-labelledby="headingSocial" data-bs-parent="#socialMediaAccordion">
                                                 <div class="accordion-body">
                                                     <div class="mb-3">
                                                         <label class="form-label fw-bold" for="facebook">Facebook</label>
@@ -388,8 +387,8 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="themes" >
-                            <div class="card mb-3">
-                                <div class="card-body">
+                            <div class="card border shadow-sm bg-white rounded-4 mb-4">
+                                <div class="card-body p-4">
                                     <div class="mb-3">
                                         <label class="form-label fw-bold" for="timezone">Multi Languages</label>
                                         <select class="form-control" id="timezone" wire:model="is_multilingual">
@@ -412,8 +411,8 @@
                                     </div>
 
                                     <div class="mb-3">
-                                        <div class="card">
-                                            <div class="card-body">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body p-4">
                                                 <div class="row mb-0">
                                                     <div class="col-lg-8">
                                                         <table class="table table-borderless table-sm">
@@ -501,9 +500,9 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card">
-                                <div class="card-header fw-bold">Color Scheme</div>
-                                <div class="card-body">
+                            <div class="card border shadow-sm bg-white rounded-4">
+                                <div class="card-header fw-bold bg-white border-bottom p-3">Color Scheme</div>
+                                <div class="card-body p-4">
 
                                     <div class="row">
                                         @php
@@ -557,20 +556,26 @@
 
     <!-- Extra Modern Tab Style -->
     <style>
+        .modern-tabs {
+            border-bottom: 2px solid #f0f0f0;
+        }
         .modern-tabs .nav-link {
-            border-radius: 8px 8px 0 0;
-            padding: 10px 18px;
+            border: none;
+            padding: 12px 24px;
             font-weight: 600;
-            color: #555;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
         }
-
-        .modern-tabs .nav-link.active {
-            background: #fff;
-            border-color: #dee2e6 #dee2e6 #fff;
+        .modern-tabs .nav-link:hover {
             color: #0d6efd;
-            box-shadow: 0 -2px 6px rgba(0, 0, 0, .05);
+            background: #f8f9fa;
         }
-
+        .modern-tabs .nav-link.active {
+            background: transparent;
+            color: #0d6efd;
+            border-bottom: 3px solid #0d6efd;
+        }
     </style>
 
     <!-- Modal Setup Setting (Shown when Setting::first() is empty) -->

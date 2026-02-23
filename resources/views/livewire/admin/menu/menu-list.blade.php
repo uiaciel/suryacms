@@ -14,13 +14,13 @@
 
             <div class="collapse {{ $loop->first ? 'show' : '' }}  mb-3" id="collapse{{ $category }}">
 
-                <div class="accordion-body">
+                <div class="accordion-body bg-white">
 
                     <div class="d-flex justify-content-between align-items-center mb-4">
 
                         <h4>{{$category}}</h4>
                         <button type="button" class="btn btn-sm btn-outline-primary ms-2" wire:click="showCopyModal('{{ $category }}')">
-                            <i class="bi bi-copy"></i> Copy Group
+                            <i class="bi bi-copy"></i>
 
                         </button>
 

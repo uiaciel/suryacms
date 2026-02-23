@@ -19,6 +19,8 @@ class SettingTheme extends Component
 
     public $activeTheme;
 
+    public $themeToDelete = null;
+
     public function mount()
     {
         try {
@@ -90,6 +92,43 @@ class SettingTheme extends Component
         session()->flash('success', 'Tema berhasil diaktifkan');
     }
 
+    public function deleteTheme(string $themeName)
+    {
+        try {
+            $setting = Setting::first();
+
+            // Jika tema yang dihapus adalah tema aktif, reset ke default
+            if ($setting && $setting->active_theme === $themeName) {
+                $setting->update([
+                    'active_theme' => 'default', // ganti ke default
+                ]);
+                $this->activeTheme = 'default';
+            }
+
+            // Path ke folder tema
+            $resourcePath = resource_path('views/frontend/'.$themeName);
+            $publicPath   = public_path('frontend/'.$themeName);
+
+            // Hapus folder jika ada
+            if (File::exists($resourcePath)) {
+                File::deleteDirectory($resourcePath);
+            }
+
+            if (File::exists($publicPath)) {
+                File::deleteDirectory($publicPath);
+            }
+
+            // Refresh daftar tema
+            $this->themes = [];
+            $this->loadThemes();
+
+            session()->flash('success', "Tema '{$themeName}' berhasil dihapus.");
+        } catch (\Exception $e) {
+            \Log::error('SettingTheme deleteTheme error: ' . $e->getMessage());
+            session()->flash('error', '❌ Gagal menghapus tema: '.$e->getMessage());
+        }
+    }
+
     public function uploadAndInstall()
     {
         $this->validate([
@@ -117,6 +156,20 @@ class SettingTheme extends Component
             $this->dispatch('alert', type: 'success', message: "🎉 Tema berhasil diinstal dan diaktifkan!\n\n{$output}");
         } catch (\Exception $e) {
             $this->dispatch('alert', type: 'error', message: '❌ Terjadi kesalahan saat menginstall tema: '.$e->getMessage());
+        }
+    }
+
+    public function confirmDeleteTheme(string $themeName)
+    {
+        $this->themeToDelete = $themeName;
+        $this->dispatch('show-delete-modal'); // trigger JS untuk buka modal
+    }
+
+    public function deleteConfirmed()
+    {
+        if ($this->themeToDelete) {
+            $this->deleteTheme($this->themeToDelete);
+            $this->themeToDelete = null;
         }
     }
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,43 +12,96 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Jost:wght@400;600;700&family=Sarina&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Jost:wght@400;600;700&family=Sarina&display=swap"
+        rel="stylesheet">
 
     <style>
-        /* Variabel Warna Kustom (Lebih Elegan & Modern) */
+        :root {
+            --indigo-600: #4f46e5;
+            --indigo-700: #4338ca;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-500: #64748b;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+
+            --success-custom: #10b981;
+            --info-custom: #0ea5e9;
+            --warning-custom: #f59e0b;
+            --danger-custom: #ef4444;
+        }
+
+        :root,
+        [data-bs-theme="light"] {}
+
         :root,
         [data-bs-theme="light"] {
             --bs-body-bg: #f5f7f9;
-            /* Background lebih soft */
-            --bs-primary: #4a69bd;
-            /* Warna Aksen Biru yang Lebih Lembut */
+
+            --bs-body-bg: var(--slate-50);
+            --bs-body-color: var(--slate-900);
+
+            --bs-primary: var(--indigo-600);
+            --bs-primary-rgb: 79, 70, 229;
+
+            --bs-secondary: var(--slate-500);
+            --bs-secondary-bg: var(--slate-100);
+
+            --bs-border-color: var(--slate-200);
+            --bs-border-color-translucent: rgba(226, 232, 240, 0.5);
+
+            --bs-card-bg: #ffffff;
+            --bs-tertiary-bg: #ffffff;
+
+            --bs-success: var(--success-custom);
+            --bs-info: var(--info-custom);
+            --bs-warning: var(--warning-custom);
+            --bs-danger: var(--danger-custom);
+
+            --bs-link-color: var(--indigo-600);
+            --bs-link-hover-color: var(--indigo-700);
+
+            --bs-button-bg: var(--indigo-600);
+            --bs-button-hover-bg: var(--indigo-700);
+
             --bs-sidebar-bg: #2c3e50;
-            /* Dark Charcoal Blue untuk Sidebar */
+
             --bs-sidebar-text: #ecf0f1;
             --bs-sidebar-header-bg: #34495e;
             --bs-sidebar-link-hover: #3b5472;
             --bs-link-color: #212529;
             --bs-navbar-bg: #ffffff;
-            /* Navbar light mode */
+
             --bs-card-bg: #ffffff;
             --bs-border-color: #e0e6ed;
+            --bs-text-primary: var(--slate-900);
+
         }
 
         [data-bs-theme="dark"] {
-            --bs-body-bg: #1e272e;
-            --bs-body-color: #ecf0f1;
+            --bs-body-bg: var(--slate-950, #020617);
+            --bs-body-color: var(--slate-100);
+
+            --bs-primary: #818cf8;
+            --bs-primary-rgb: 129, 140, 248;
+
+            --bs-card-bg: var(--slate-900);
+            --bs-tertiary-bg: var(--slate-900);
+            --bs-border-color: var(--slate-800);
+
+            --bs-secondary-bg: var(--slate-800);
             --bs-sidebar-bg: #131a23;
             --bs-sidebar-text: #bdc3c7;
             --bs-sidebar-header-bg: #1c2834;
             --bs-sidebar-link-hover: #1f2a38;
             --bs-navbar-bg: #2c3e50;
-            /* Navbar dark mode */
+
             --bs-link-color: #95a5a6;
-            --bs-card-bg: #2c3e50;
-            --bs-border-color: #34495e;
+            --bs-text-primary: var(--slate-50);
         }
 
-        /* Teks Logo Kustom */
         .logo-text {
             font-family: "Sarina", cursive;
             font-size: 1.8rem;
@@ -75,6 +129,10 @@
 
         .navbar .nav-link:hover {
             background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .text-primary {
+            color: var(--bs-text-primary) !important;
         }
 
         /* Tombol Toggle Sidebar */
@@ -223,15 +281,14 @@
             transform: translateY(-50%);
             z-index: 1051;
             border-radius: 50px 0 0 50px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
             transition: all .2s ease-in-out;
         }
 
         .fixed-right-btn:hover {
             right: 25px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         }
-
     </style>
 
     @vite(['resources/js/app.js'])
@@ -240,31 +297,41 @@
     @stack('styles')
 
 </head>
+
 <body>
     <div class="d-flex" id="wrapper">
         <div class="d-flex flex-column" id="sidebar-wrapper">
-            <div class="sidebar-heading bg-primary text-white logo-text">
+            <div class="sidebar-heading bg-primary logo-text text-white">
                 Surya Cms
 
             </div>
             <div id="sidebar-menu" class="flex-grow-1">
-                <a href="/admin" wire:navigate class="sidebar-menu-item {{ Request::is('admin') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard">
+                <a href="/admin" wire:navigate class="sidebar-menu-item {{ Request::is('admin') ? 'active' : '' }}"
+                    data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard">
                     <i class="bi bi-grid-fill me-3"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="/admin/posts" wire:navigate class="sidebar-menu-item {{ Request::is('admin/posts*') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Posts">
+                <a href="/admin/posts" wire:navigate
+                    class="sidebar-menu-item {{ Request::is('admin/posts*') ? 'active' : '' }}" data-bs-toggle="tooltip"
+                    data-bs-placement="right" title="Posts">
                     <i class="bi bi-file-earmark-text-fill me-3"></i>
                     <span>Posts</span>
                 </a>
-                <a href="/admin/pages" wire:navigate class="sidebar-menu-item {{ Request::is('admin/pages*') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Pages">
+                <a href="/admin/pages" wire:navigate
+                    class="sidebar-menu-item {{ Request::is('admin/pages*') ? 'active' : '' }}" data-bs-toggle="tooltip"
+                    data-bs-placement="right" title="Pages">
                     <i class="bi bi-file-earmark-fill me-3"></i>
                     <span>Pages</span>
                 </a>
-                <a href="/admin/galleries" wire:navigate class="sidebar-menu-item {{ Request::is('admin/galleries*') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Media Library">
+                <a href="/admin/galleries" wire:navigate
+                    class="sidebar-menu-item {{ Request::is('admin/galleries*') ? 'active' : '' }}"
+                    data-bs-toggle="tooltip" data-bs-placement="right" title="Media Library">
                     <i class="bi bi-image-fill me-3"></i>
                     <span>Media Library</span>
                 </a>
-                <a href="/admin/contacts" wire:navigate class="sidebar-menu-item {{ Request::is('admin/contacts*') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Inbox Messages">
+                <a href="/admin/contacts" wire:navigate
+                    class="sidebar-menu-item {{ Request::is('admin/contacts*') ? 'active' : '' }}"
+                    data-bs-toggle="tooltip" data-bs-placement="right" title="Inbox Messages">
                     <i class="bi bi-chat-dots-fill me-3"></i>
                     <span>Inbox Messages</span>
                 </a>
@@ -281,10 +348,8 @@
 
                         @foreach ($menus as $menu)
                             <a href="{{ $menu['route'] }}"
-                            class="sidebar-menu-item {{ Request::is(ltrim($menu['route'], '/')) ? 'active' : '' }}"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            title="{{ $menu['label'] }}">
+                                class="sidebar-menu-item {{ Request::is(ltrim($menu['route'], '/')) ? 'active' : '' }}"
+                                data-bs-toggle="tooltip" data-bs-placement="right" title="{{ $menu['label'] }}">
 
                                 <i class="{{ $menu['icon'] }} me-3"></i>
                                 <span>{{ $menu['label'] }}</span>
@@ -298,32 +363,37 @@
                 </div>
 
                 @if (isset($setting) && $setting->homepage_type == 'homepage')
-                    <a data-bs-toggle="collapse" href="#homepageBuilderMenu" class="sidebar-menu-item" data-bs-toggle="tooltip" data-bs-placement="right" title="Homepage Builder" aria-expanded="false">
+                    <a data-bs-toggle="collapse" href="#homepageBuilderMenu" class="sidebar-menu-item"
+                        data-bs-toggle="tooltip" data-bs-placement="right" title="Homepage Builder"
+                        aria-expanded="false">
                         <i class="bi bi-palette-fill me-2"></i> {{-- Tambahkan ikon di sini --}}
                         <span>Homepage Builder</span>
                         <span class="caret ms-auto"></span>
                     </a>
                     <div class="collapse" id="homepageBuilderMenu">
                         <ul class="nav nav-collapse">
-                            @foreach (collect($pages)
-                            ->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))
-                            ->take(4) as $page)
-                            <li>
-                                <a href="/admin/homepage-builder/{{ $page->slug }}" class="sidebar-menu-item ps-5 {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Homepage Editor">
-                                    <i class="bi bi-list-task me-3"></i>
-                                    <span>{{ $page->title }}</span>
-                                </a>
-                            </li>
+                            @foreach (collect($pages)->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))->take(4) as $page)
+                                <li>
+                                    <a href="/admin/homepage-builder/{{ $page->slug }}"
+                                        class="sidebar-menu-item {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'active' : '' }} ps-5"
+                                        data-bs-toggle="tooltip" data-bs-placement="right" title="Homepage Editor">
+                                        <i class="bi bi-list-task me-3"></i>
+                                        <span>{{ $page->title }}</span>
+                                    </a>
+                                </li>
                             @endforeach
                         </ul>
                     </div>
                 @endif
 
-                <a href="/admin/menu" class="sidebar-menu-item {{ Request::is('admin/menu*') ? 'active' : '' }}" wire:navigate data-bs-toggle="tooltip" data-bs-placement="right" title="Menu">
+                <a href="/admin/menu" class="sidebar-menu-item {{ Request::is('admin/menu*') ? 'active' : '' }}"
+                    wire:navigate data-bs-toggle="tooltip" data-bs-placement="right" title="Menu">
                     <i class="bi bi-list-task me-3"></i>
                     <span>Menu</span>
                 </a>
-                <a href="/admin/setting" wire:navigate class="sidebar-menu-item {{ Request::is('admin/setting*') ? 'active' : '' }}" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
+                <a href="/admin/setting" wire:navigate
+                    class="sidebar-menu-item {{ Request::is('admin/setting*') ? 'active' : '' }}"
+                    data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
                     <i class="bi bi-gear-fill me-3"></i>
                     <span>Setting</span>
                 </a>
@@ -342,13 +412,13 @@
                         <span class="cursor"></span>
                     </a>
 
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 d-flex flex-row align-items-center">
-                             <li class="nav-item me-2">
-                                 <a href="{{$setting->url ?? config('app.url')}}" target="_blank" class="nav-link">
-                                     Homepage
-                                 </a>
-                             </li>
+                    <div class="navbar-collapse collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mb-lg-0 d-flex align-items-center mb-2 ms-auto flex-row">
+                            <li class="nav-item me-2">
+                                <a href="{{ $setting->url ?? config('app.url') }}" target="_blank" class="nav-link">
+                                    Homepage
+                                </a>
+                            </li>
 
                             <li class="nav-item me-2">
                                 <a id="darkModeToggle" type="button" class="nav-link">
@@ -357,8 +427,10 @@
                             </li>
 
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center p-2 border rounded-pill" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name ?? 'User' }}&background=4a69bd&color=fff&size=30&rounded=true" alt="Admin" class="rounded-circle me-2" style="height:30px; width:30px;">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center rounded-pill border p-2"
+                                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="https://ui-avatars.com/api/?name={{ Auth::user()->name ?? 'User' }}&background=4a69bd&color=fff&size=30&rounded=true"
+                                        alt="Admin" class="rounded-circle me-2" style="height:30px; width:30px;">
                                     <span class="d-none d-lg-inline me-1">{{ Auth::user()->name ?? 'User' }}</span>
 
                                 </a>
@@ -372,13 +444,15 @@
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="h{{ route('admin.profile.edit') }}" wire:navigate>
+                                        <a class="dropdown-item" href="h{{ route('admin.profile.edit') }}"
+                                            wire:navigate>
 
                                             <i class="bi bi-gear me-2"></i>Edit Profile
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('admin.users.index') }}" wire:navigate>
+                                        <a class="dropdown-item" href="{{ route('admin.users.index') }}"
+                                            wire:navigate>
 
                                             <i class="bi bi-people me-2"></i>Manage Users
                                         </a>
@@ -387,12 +461,13 @@
                                         <hr class="dropdown-divider">
                                     </li>
                                     <li>
-                                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                                        </button>
-                                    </form>
+                                        <form method="POST" action="{{ route('logout') }}"
+                                            style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                            </button>
+                                        </form>
 
                                     </li>
                                 </ul>
@@ -405,16 +480,16 @@
             <div class="main-content container-fluid p-4">
                 <div class="main">
 
-                   @hasSection('content')
-                   @yield('content')
-                   @else
-                   {{ $slot ?? '' }}
-                   @endif
+                    @hasSection('content')
+                        @yield('content')
+                    @else
+                        {{ $slot ?? '' }}
+                    @endif
 
                 </div>
                 <div class="footer mt-3">
                     <div class="container">
-                        2025 © Kreasi Tek Media | <a href="#">{{$setting->url ?? 'https://#'}}</a>
+                        2025 © Kreasi Tek Media | <a href="#">{{ $setting->url ?? 'https://#' }}</a>
 
                     </div>
                 </div>
@@ -429,10 +504,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.all.min.js "></script>
-    <script src="https://cdn.tiny.cloud/1/plcsua64qzb9xyaxabkhv7wtjcpr0vzounlnexchn12g0x7a/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="https://cdn.tiny.cloud/1/{{ env('TINY_EDITOR_KEY', 'plcsua64qzb9xyaxabkhv7wtjcpr0vzounlnexchn12g0x7a') }}/tinymce/7/tinymce.min.js"
+        referrerpolicy="origin"></script>
 
     <script>
-
         document.addEventListener("DOMContentLoaded", function() {
             var sidebarToggle = document.getElementById('sidebarToggle');
             var wrapper = document.getElementById('wrapper');
@@ -464,8 +539,8 @@
                 localStorage.setItem('theme', theme);
             });
         });
-
     </script>
 
 </body>
+
 </html>

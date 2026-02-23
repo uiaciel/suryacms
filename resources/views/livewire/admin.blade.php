@@ -3,7 +3,7 @@
     <style>
         .info-list li {
             padding: 8px 0;
-            border-bottom: 1px dashed #e9ecef;
+            border-bottom: 1px dashed #525252;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -45,7 +45,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 100%);
+            background: #ffffff;
             z-index: 1;
             border-radius: calc(0.25rem * 4);
             /* Mencocokkan rounded-4 */
@@ -60,7 +60,7 @@
     @endpush
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div class="d-flex align-items-center">
-            <img src="{{$setting->logo}}" alt="Site Logo" class="me-3 rounded-circle shadow-sm" style="height:50px; width:50px; object-fit:cover;">
+            <img src="{{$setting->logo ?? '/frontend/default/www.png'}}" alt="Site Logo" class="me-3 rounded-circle shadow-sm" style="height:50px; width:50px; object-fit:cover;">
             <h1 class="h3 mb-0 text-primary fw-bold">{{ $setting->sitename ?? 'Admin Dashboard' }}</h1>
         </div>
         <a href="{{$setting->url}}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center">
@@ -74,7 +74,7 @@
         <div class="col-lg-8">
             <div class="row g-3 mb-3">
                 <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card h-100 shadow-sm bg-white border-0 rounded-4">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -98,7 +98,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card h-100 shadow-sm bg-white border-0 rounded-4">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -122,7 +122,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card h-100 shadow-sm border-0 bg-white rounded-4">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -147,7 +147,7 @@
                     </div>
                 </div>
                 <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card h-100 shadow-sm border-0 bg-white rounded-4">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>

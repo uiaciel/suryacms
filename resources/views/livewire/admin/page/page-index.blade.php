@@ -1,120 +1,139 @@
 <div class="container-fluid">
     <x-suryacms::import-export-offcanvas />
 
-    <header class="page-header d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-bold mb-2">Pages
-        </h3>
-        <nav aria-label="breadcrumb">
+    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <h3 class="fw-bold mb-0 text-dark">Pages</h3>
+            <a href="{{ route('admin.page.create') }}" class="btn btn-primary rounded-pill px-3 shadow-sm btn-sm btn-md-base">
+                <i class="bi bi-plus-lg me-2"></i>Create New Page
+            </a>
+        </div>
+
+        <nav aria-label="breadcrumb" class="d-none d-sm-block">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Admin</a></li>
-                <li class="breadcrumb-item"><a href="/admin/pages">Pages</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Admin</a></li>
+                <li class="breadcrumb-item"><a href="/admin/pages" class="text-decoration-none">Pages</a></li>
                 <li class="breadcrumb-item active">{{ $titlePage }}</li>
             </ol>
         </nav>
     </header>
-
     <x-suryacms::session-status />
 
     <div class="card border-0 shadow rounded">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="card-title">{{ $titlePage }}</h4>
-            <a href="{{ route('admin.page.create') }}" class="btn btn-primary">New Page</a>
-        </div>
-        <div class="card-body">
+        <div class="card-body" x-data="{
+                search: '',
+                phpFormat: '{{ get_date_format() ?? 'm/d/Y' }}',
+                format_tanggal(dateString) {
+                    if (!dateString) return '';
+                    const date = new Date(dateString);
+                    if (isNaN(date)) return dateString;
+                    const pad = (num) => String(num).padStart(2, '0');
+                    const Y = date.getFullYear();
+                    const m = pad(date.getMonth() + 1);
+                    const d = pad(date.getDate());
+                    const M = date.toLocaleDateString('id-ID', { month: 'short' });
+                    switch (this.phpFormat) {
+                        case 'd/m/Y': return `${d}/${m}/${Y}`;
+                        case 'Y-m-d': return `${Y}-${m}-${d}`;
+                        case 'm/d/Y': return `${m}/${d}/${Y}`;
+                        case 'd-M-Y': return `${d}-${M}-${Y}`;
+                        default: return date.toLocaleDateString('id-ID');
+                    }
+                },
+                pages: {{ Js::from($pages) }},
+                filteredPages() {
+                    return this.pages.filter(page => {
+                        return this.search === '' ||
+                               page.title.toLowerCase().includes(this.search.toLowerCase()) ||
+                               page.status.toLowerCase().includes(this.search.toLowerCase());
+                    });
+                }
+            }">
+
+            {{-- Search Section --}}
+            <div class="mb-4">
+                <div class="input-group" style="max-width: 400px;">
+                    <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-1" placeholder="Search pages..." x-model.debounce.300ms="search">
+                </div>
+            </div>
+
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Title</th>
+                            <th scope="col" style="width: 50px;">#</th>
+                            <th scope="col">Title</th>
                             @if ($setting->is_multilingual == 'Yes')
-                            <th>Lang</th>
+                            <th scope="col" class="text-center">Lang</th>
                             @endif
-                            <th>PDF</th>
-                            <th>Datepublish</th>
-                            <th>Status</th>
-
-                            <th>Action</th>
+                            <th scope="col" class="text-center">PDF</th>
+                            <th scope="col">Date Publish</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if ($setting->is_multilingual == 'Yes')
-                        @foreach ($pages as $page)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>
-                                {{ $page->title }} <span><a href="/{{ $page->slug }}" target="_blank"><i class="ti ti-external-link"></i></a></span>
-                            </td>
-                            <td>
-                                @if ($page->language_id == 1)
-                                <img src="/assets/images/id.png" width="20">
-                                @else
-                                <img src="/assets/images/us.png" width="20">
+                        <template x-for="(page, index) in filteredPages()" :key="page.id">
+                            <tr>
+                                <td x-text="index + 1"></td>
+                                <td>
+                                    <div class="fw-bold text-dark" x-text="page.title"></div>
+                                    <small class="text-muted" x-text="'/' + page.slug"></small>
+                                </td>
+                                @if ($setting->is_multilingual == 'Yes')
+                                <td class="text-center">
+                                    <template x-if="page.language_id == 1">
+                                        <img src="/assets/images/id.png" width="20" alt="ID">
+                                    </template>
+                                    <template x-if="page.language_id == 2">
+                                        <img src="/assets/images/us.png" width="20" alt="US">
+                                    </template>
+                                </td>
                                 @endif
-                            </td>
-                            <td>
-                                <i class="bi bi-file-earmark-pdf text-secondary"></i>
-
-                                @if (!empty($page->pdf))
-                                <a href="/storage/{{ $page->pdf }}"><i class="bi bi-file-earmark-pdf text-primary"></i></a>
-                                @endif
-                            </td>
-                            <td>{{ formatDate($page->datepublish) }}</td>
-
-                            <td>{{ $page->status }}</td>
-                            <td>
-                                @if (Str::startsWith($page->title, 'Homepage'))
-                                                                <a href="/admin/homepage-builder/{{ $page->slug }}" class="btn btn-primary btn-sm">Homepage Builder</a>
-
-                                @else
-                                <a href="{{ route('admin.page.edit', $page->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                                <a href="/{{$page->slug}}" class="btn btn-success btn-sm">View</a>
-                                                                <button onclick="confirm('Are you sure you want to delete this Page?') || event.stopImmediatePropagation()" wire:click="deletePage({{ $page->id }})" class="btn btn-danger btn-sm">Delete</button>
-
-                                @endif
-
-                            </td>
-                        </tr>
-                        @endforeach
-                        @else
-                        @foreach ($pages->where('language_id', 1) as $page)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $page->title }} @if (!is_null($page->html))
-                                <span class="badge bg-primary">Homepage</span>
-                                @endif
-                            </td>
-                            @if ($setting->is_multilingual == 'Yes')
-                            <td>
-                                @if ($page->language_id = 1)
-                                <img src="/assets/img/id.png" width="20">@else<img src="/assets/img/us.png" width="20">
-                                @endif
-                            </td>
-                            @endif
-                            <td>
-                                @if (!empty($page->pdf))
-                                <a href="/storage/{{ $page->pdf }}"><i class="fas fa-file-pdf"></i></a>
-                                @endif
-                            </td>
-                            <td>{{ $page->datepublish }}</td>
-                            <td>{{ $page->status }}</td>
-                            <td>
-                                @if (Str::startsWith($page->title, 'Homepage'))
-
-                                <a href="/admin/homepage-builder/{{ $page->slug }}" class="btn btn-primary btn-sm">Homepage Builder</a>
-
-                                @else
-                                                                <a href="{{ route('admin.page.edit', $page->id) }}" class="btn btn-primary btn-sm">Edit</a>
-                                                                <a href="/{{$page->slug}}" class="btn btn-success btn-sm">View</a>
-                                                                <button onclick="confirm('Are you sure you want to delete this Page?') || event.stopImmediatePropagation()" wire:click="deletePage({{ $page->id }})" class="btn btn-danger btn-sm">Delete</button>
-
-                                @endif
-
-                            </td>
-                            </td>
-                        </tr>
-                        @endforeach
-                        @endif
+                                <td class="text-center">
+                                    <template x-if="page.pdf">
+                                        <a :href="'/storage/' + page.pdf" target="_blank" class="text-danger fs-5">
+                                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                                        </a>
+                                    </template>
+                                    <template x-if="!page.pdf">
+                                        <i class="bi bi-dash text-muted"></i>
+                                    </template>
+                                </td>
+                                <td x-text="format_tanggal(page.datepublish)"></td>
+                                <td>
+                                    <span :class="page.status === 'Publish' ? 'badge bg-primary' : 'badge bg-secondary'" x-text="page.status"></span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group shadow-sm">
+                                        <template x-if="page.title.startsWith('Homepage')">
+                                            <a :href="'/admin/homepage-builder/' + page.slug" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-palette me-1"></i> Builder
+                                            </a>
+                                        </template>
+                                        <template x-if="!page.title.startsWith('Homepage')">
+                                            <div class="d-flex gap-1">
+                                                <a :href="'/admin/pages/edit/' + page.id" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a :href="'/' + page.slug" target="_blank" class="btn btn-sm btn-outline-success" title="View">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <button @click="if(confirm('Are you sure?')) $wire.deletePage(page.id)" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <template x-if="filteredPages().length === 0">
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">No pages found.</td>
+                            </tr>
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -149,4 +168,3 @@
 
     @endpush
 </div>
-
