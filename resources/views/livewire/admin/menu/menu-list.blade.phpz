@@ -1,0 +1,127 @@
+<div>
+    <div class="row">
+        <div class="col-md-4">
+            @include('suryacms::livewire.admin.menu.menu-form')
+        </div>
+        <div class="col-md-8">
+            @if (session()->has('message'))
+                <div class="alert alert-success">
+                    {{ session('message') }}
+                </div>
+            @endif
+
+            @foreach ($menus->groupBy('category') as $category => $items)
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ $category }}</h5>
+                        <div>
+                            <button wire:click="showCopyModal('{{ $category }}')" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-copy"></i> Duplicate
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group" wire:sortable="saveOrder">
+                            @foreach ($items->where('parent_id', null) as $menu)
+                                @include('suryacms::livewire.admin.menu.menu-item', ['menu' => $menu, 'level' => 0])
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    {{-- Edit Modal --}}
+    @if ($showEditModal)
+        <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Menu</h5>
+                        <button type="button" class="btn-close" wire:click="$set('showEditModal', false)"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form wire:submit.prevent="updateMenu">
+                            <div class="mb-3">
+                                <label for="editName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="editName" wire:model.defer="editName">
+                            </div>
+                            <div class="mb-3">
+                                <label for="editType" class="form-label">Type</label>
+                                <select class="form-control" id="editType" wire:model="editType">
+                                    <option value="link">Link</option>
+                                    <option value="page">Page</option>
+                                    <option value="post">Post</option>
+                                    <option value="category">Category</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                @if ($editType === 'link')
+                                    <label for="editLink" class="form-label">URL</label>
+                                    <input type="text" class="form-control" id="editLink" wire:model.defer="editLink">
+                                @elseif($editType === 'page')
+                                    <label for="editLink" class="form-label">Select Page</label>
+                                    <select class="form-control" id="editLink" wire:model.defer="editLink">
+                                        @foreach($pages as $page)
+                                            <option value="{{ $page->slug }}">{{ $page->title }}</option>
+                                        @endforeach
+                                    </select>
+                                @elseif($editType === 'post')
+                                    <label for="editLink" class="form-label">Select Post</label>
+                                    <select class="form-control" id="editLink" wire:model.defer="editLink">
+                                        @foreach($posts as $post)
+                                            <option value="{{ $post->slug }}">{{ $post->title }}</option>
+                                        @endforeach
+                                    </select>
+                                @elseif($editType === 'category')
+                                    <label for="editLink" class="form-label">Select Category</label>
+                                     <select class="form-control" id="editLink" wire:model.defer="editLink">
+                                        @foreach($categories as $category)
+                                            <option value="{{ $category->slug }}">{{ $category->name }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                            </div>
+                             <div class="mb-3">
+                                <label for="editParentId" class="form-label">Parent Menu</label>
+                                <select class="form-control" id="editParentId" wire:model.defer="editParentId">
+                                    <option value="">None</option>
+                                    @foreach($menus->where('parent_id', null)->where('id', '!=', $editMenuId) as $parentMenu)
+                                        <option value="{{ $parentMenu->id }}">{{ $parentMenu->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Copy Modal --}}
+    @if ($showCopyModal)
+        <div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Duplicate Menu Category</h5>
+                        <button type="button" class="btn-close" wire:click="$set('showCopyModal', false)"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form wire:submit.prevent="copyMenuGroup">
+                            <p>You are about to duplicate the '<strong>{{ $sourceCategory }}</strong>' menu category.</p>
+                            <div class="mb-3">
+                                <label for="newCategory" class="form-label">New Category Name</label>
+                                <input type="text" class="form-control" id="newCategory" wire:model.defer="newCategory" placeholder="Enter new category name">
+                                @error('newCategory') <span class="text-danger">{{ $message }}</span> @enderror
+                            </div>
+                            <button type="submit" class="btn btn-primary">Duplicate</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>

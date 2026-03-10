@@ -1,54 +1,49 @@
-<div class="container-fluid">
+<div class="w-full">
     <x-suryacms::import-export-offcanvas />
 
-    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <h3 class="fw-bold mb-0 text-dark">Posts</h3>
-            <a href="{{ route('admin.post.create') }}" class="btn btn-primary rounded-pill px-3 shadow-sm btn-sm btn-md-base">
-                        <i class="bi bi-plus-lg me-2"></i>Create New Post
-                    </a>
+    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <h3 class="font-bold text-gray-800 text-2xl mb-0">Posts</h3>
+            <a href="{{ route('admin.post.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-full shadow-sm text-sm hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i>Create New Post
+            </a>
         </div>
 
-        <nav aria-label="breadcrumb" class="d-none d-sm-block">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Admin</a></li>
-                <li class="breadcrumb-item"><a href="/admin/posts" class="text-decoration-none">Posts</a></li>
-                <li class="breadcrumb-item active">{{ $titlePage }}</li>
+        <nav aria-label="breadcrumb" class="hidden sm:block">
+            <ol class="flex gap-2 text-sm text-gray-600">
+                <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
+                <li>/</li>
+                <li><a href="/admin/posts" class="text-blue-600 hover:text-blue-700">Posts</a></li>
+                <li>/</li>
+                <li class="text-gray-600">{{ $titlePage }}</li>
             </ol>
         </nav>
     </header>
 
     <x-suryacms::session-status />
 
-    <div class="card border-0 shadow rounded">
-        <div class="card-body" x-data="{
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div class="p-6" x-data="{
                 search: '',
                 category: '',
                 status: '',
 
-                // 1. Ambil format mentah PHP dan ekspos ke Alpine
                 phpFormat: '{{ get_date_format() ?? "m/d/Y" }}',
 
-                // 2. Fungsi JavaScript untuk memformat tanggal
                 format_tanggal(dateString) {
                     if (!dateString) return '';
 
-                    // Membuat objek Date dari string tanggal database (Y-m-d H:i:s)
                     const date = new Date(dateString);
                     if (isNaN(date)) return dateString; // Fallback jika tanggal tidak valid
 
-                    // Helper untuk memastikan digit (01, 02, dst.)
                     const pad = (num) => String(num).padStart(2, '0');
 
-                    // Ekstraksi komponen tanggal
                     const Y = date.getFullYear(); // Tahun (YYYY)
                     const m = pad(date.getMonth() + 1); // Bulan (01-12)
                     const d = pad(date.getDate()); // Hari (01-31)
 
-                    // Nama bulan singkat ('Jan', 'Feb', 'Okt', dst.) menggunakan locale Indonesia
                     const M = date.toLocaleDateString('id-ID', { month: 'short' });
 
-                    // Pengecekan format berdasarkan setting PHP
                     switch (this.phpFormat) {
                         case 'd/m/Y':
                             // Contoh: 16/10/2025
@@ -86,107 +81,94 @@
                     this.status = '';
                 }
             }">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="card-title fw-bold mb-0 text-primary">All Posts</h5>
-                <div>
-
-                </div>
+            <div class="flex justify-between items-center mb-6">
+                <h5 class="font-bold text-lg text-blue-600 mb-0">All Posts</h5>
             </div>
 
             {{-- Search and Filter Section --}}
-            <div class="p-4 rounded border border-primary mb-4">
-                <div class="row g-3 align-items-center">
-                    <div class="col-12 col-lg-5">
-                        <label for="search-input" class="form-label text-muted mb-1 visually-hidden">Search</label>
-                        <div class="input-group">
-                            <span class="input-group-text border-end-0"><i class="bi bi-search"></i></span>
-                            <input type="text" id="search-input" class="form-control border-start-0 ps-1" placeholder="Search by title, category, or status..." x-model.debounce.500ms="search" aria-label="Search posts">
+            <div class="p-4 rounded-lg border border-blue-200 bg-blue-50 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
+                    <div class="lg:col-span-2">
+                        <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <div class="flex items-center border border-gray-300 rounded-lg bg-white">
+                            <span class="px-3 text-gray-400"><i class="fas fa-search"></i></span>
+                            <input type="text" id="search-input" class="w-full px-3 py-2 border-0 focus:outline-none focus:ring-0" placeholder="Search by title, category, or status..." x-model.debounce.500ms="search" aria-label="Search posts">
                         </div>
                     </div>
-                    <div class="col-6 col-lg-3">
-                        <label for="filter-category" class="form-label text-muted mb-1 visually-hidden">Category</label>
-                        <select id="filter-category" class="form-select py-2" x-model="category" aria-label="Filter by category">
+                    <div>
+                        <label for="filter-category" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                        <select id="filter-category" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" x-model="category" aria-label="Filter by category">
                             <option value="">All Categories</option>
                             @foreach ($categories as $cat)
                             <option value="{{ $cat->name }}">{{ $cat->name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-6 col-lg-2">
-                        <label for="filter-status" class="form-label text-muted mb-1 visually-hidden">Status</label>
-                        <select id="filter-status" class="form-select py-2" x-model="status" aria-label="Filter by status">
+                    <div>
+                        <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select id="filter-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" x-model="status" aria-label="Filter by status">
                             <option value="">All Statuses</option>
                             <option value="Publish">Published</option>
                             <option value="Draft">Drafted</option>
                         </select>
                     </div>
-                    <div class="col-12 col-md-2 d-grid">
-                        <button type="button" class="btn btn-outline-secondary" @click="resetFilters()">Reset</button>
+                    <div>
+                        <button type="button" class="w-full px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 font-medium" @click="resetFilters()">Reset</button>
                     </div>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0 rounded-4 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
                     <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Title</th>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">#</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">Title</th>
                             @if ($setting->is_multilingual == 'Yes')
-                            <th scope="col" class="d-none d-md-table-cell">Lang</th>
-
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm hidden md:table-cell">Lang</th>
                             @endif
-                            <th scope="col" class="d-none d-md-table-cell">Category</th>
-
-                            <th scope="col" class="d-none d-md-table-cell">Date Publish</th>
-
-                            <th scope="col" class="d-none d-md-table-cell">Status</th>
-
-                            <th scope="col">Actions</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm hidden md:table-cell">Category</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm hidden md:table-cell">Date Publish</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm hidden md:table-cell">Status</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="(post, index) in filteredPosts()" :key="post.id">
-                            <tr>
-                                <td x-text="index + 1"></td>
-                                <td>
-                                    <a :href="`/media/${post.slug}`" target="_blank" class="text-decoration-none text-primary fw-bold" data-bs-toggle="tooltip" data-bs-placement="top" :title="post.title">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="px-4 py-3 text-sm" x-text="index + 1"></td>
+                                <td class="px-4 py-3">
+                                    <a :href="`/media/${post.slug}`" target="_blank" class="text-blue-600 hover:text-blue-700 font-semibold" :title="post.title">
                                         <span x-text="post.title.length > 50 ? post.title.substring(0, 50) + '...' : post.title"></span>
                                     </a>
                                 </td>
                                 @if ($setting->is_multilingual === 'Yes')
-                                <td class="d-none d-md-table-cell">
-
+                                <td class="px-4 py-3 hidden md:table-cell">
                                     <template x-if="post.language_id == 1">
-                                        <img src="/assets/images/id.png" width="20" class="img-fluid" alt="ID">
+                                        <img src="/assets/images/id.png" width="20" class="rounded" alt="ID">
                                     </template>
                                     <template x-if="post.language_id == 2">
-                                        <img src="/assets/images/us.png" width="20" class="img-fluid" alt="US">
+                                        <img src="/assets/images/us.png" width="20" class="rounded" alt="US">
                                     </template>
                                 </td>
                                 @endif
-                                <td x-text="post.category.name" class="d-none d-md-table-cell"></td>
-
-                                {{-- PANGGIL FUNGSI JS YANG BARU --}}
-                                <td x-text="format_tanggal(post.datepublish)" class="d-none d-md-table-cell"></td>
-
-                                <td class="d-none d-md-table-cell">
-
-                                    <span :class="post.status === 'Publish' ? 'badge bg-primary' : 'badge bg-secondary'">
+                                <td class="px-4 py-3 text-sm hidden md:table-cell" x-text="post.category.name"></td>
+                                <td class="px-4 py-3 text-sm hidden md:table-cell" x-text="format_tanggal(post.datepublish)"></td>
+                                <td class="px-4 py-3 hidden md:table-cell">
+                                    <span :class="post.status === 'Publish' ? 'px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium' : 'px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium'">
                                         <span x-text="post.status === 'Publish' ? 'Published' : 'Drafted'"></span>
                                     </span>
                                 </td>
-                                <td>
-                                    <a :href="`/admin/posts/edit/${post.id}`" class="btn btn-sm btn-outline-primary rounded-xl" title="Edit Post">
-
-                                        <i class="bi bi-pencil me-1"></i> Edit
+                                <td class="px-4 py-3">
+                                    <a :href="`/admin/posts/edit/${post.id}`" class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium inline-flex items-center" title="Edit Post">
+                                        <i class="fas fa-pencil mr-1"></i> Edit
                                     </a>
                                 </td>
                             </tr>
                         </template>
                         <template x-if="filteredPosts().length === 0">
                             <tr>
-                                <td colspan="{{ $setting->is_multilingual == 'Yes' ? '7' : '6' }}" class="text-center py-4">
+                                <td colspan="{{ $setting->is_multilingual == 'Yes' ? '7' : '6' }}" class="px-4 py-8 text-center text-gray-500 text-sm">
                                     No posts found.
                                 </td>
                             </tr>

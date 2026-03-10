@@ -1,71 +1,85 @@
-<div>
-
-    <button class="btn btn-warning rounded-0 rounded-start shadow-lg fixed-right-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-        <i class="bi bi-question-circle-fill me-2"></i>
+<div x-data="{ open: false }" x-cloak>
+    <!-- Floating Button Bottom Right -->
+    <button
+        @click="open = true"
+        class="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 bg-yellow-500 text-white rounded-full shadow-2xl hover:bg-yellow-600 transition-all transform hover:scale-110 focus:outline-none"
+        type="button"
+    >
+        <i class="bi bi-question-circle-fill text-2xl"></i>
     </button>
 
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-        <div class="offcanvas-header bg-primary text-white">
-            <h5 class="offcanvas-title" id="offcanvasRightLabel">Manage Data & Support</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <!-- Backdrop -->
+    <div
+        x-show="open"
+        x-transition:opacity
+        @click="open = false"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50"
+    ></div>
+
+    <!-- Offcanvas Panel (Tailwind) -->
+    <div
+        x-show="open"
+        x-transition:enter="transition ease-in-out duration-300 transform"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in-out duration-300 transform"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        class="fixed inset-y-0 right-0 w-80 md:w-96 bg-white shadow-2xl z-[60] overflow-y-auto"
+    >
+        <div class="flex items-center justify-between p-4 bg-blue-600 text-white">
+            <h5 class="font-bold">Manage Data & Support</h5>
+            <button @click="open = false" class="text-white hover:text-gray-200">
+                <i class="fas fa-times text-xl"></i>
+            </button>
         </div>
-        <div class="offcanvas-body">
-            <h6 class="text-primary fw-bold mb-3">Import & Export</h6>
 
-            <div class="card mb-3">
-                <div class="card-body">
+        <div class="p-6">
+            <h6 class="text-blue-600 font-bold mb-4 uppercase text-xs tracking-wider">Import & Export</h6>
+
+            <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden mb-6">
+                <div class="p-4">
                     <form wire:submit.prevent="dataImport">
-                        <h5 class="card-title">Import Data</h5>
+                        <h5 class="text-sm font-semibold mb-3">Import Data</h5>
 
-                        <div class="input-group mb-3">
-                            <input type="file" class="form-control @error('importFile') is-invalid @enderror" wire:model="importFile" id="importFile" aria-describedby="button-addon2" accept=".xls,.xlsx,.csv">
-                            <button class="btn btn-primary" type="submit" id="button-addon2" wire:loading.attr="disabled" wire:target="importFile">
+                        <div class="flex flex-col gap-2">
+                            <input type="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 @error('importFile') border-red-500 @enderror" wire:model="importFile" accept=".xls,.xlsx,.csv">
+
+                            <button class="w-full mt-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50" type="submit" wire:loading.attr="disabled" wire:target="importFile">
                                 <span wire:loading.remove wire:target="importFile">Upload</span>
-                                <span wire:loading wire:target="importFile">Uploading</span>
+                                <span wire:loading wire:target="importFile"><i class="fas fa-spinner fa-spin mr-2"></i>Uploading</span>
                             </button>
                         </div>
-                        <div class="form-text" id="importFile">File Format: xls/xlsx/csv</div>
+                        <p class="text-xs text-gray-500 mt-2">Format: xls, xlsx, csv</p>
 
                         @error('importFile')
-                        <span class="text-danger">{{ $message }}</span>
+                        <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
                         @enderror
 
                         <div x-data="{ isUploading: false, progress: 0 }" x-on:livewire-upload-start="isUploading = true" x-on:livewire-upload-finish="isUploading = false" x-on:livewire-upload-error="isUploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress">
-
-                            <div x-show="isUploading" class="progress mt-2">
-                                <div class="progress-bar" role="progressbar" :style="`width: ${progress}%`" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div x-show="isUploading" class="w-full bg-gray-200 rounded-full h-1.5 mt-3">
+                                <div class="bg-blue-600 h-1.5 rounded-full" :style="`width: ${progress}%`"></div>
                             </div>
                         </div>
-
-                        <div wire:loading wire:target="dataImport" class="mt-2 text-primary">
-                            <div class="spinner-border spinner-border-sm" role="status"></div>
-                            <span class="ms-2">Processing Import...</span>
-                        </div>
                     </form>
-
                 </div>
-                <div class="card-footer">
-                    <div class="d-grid gap-2">
-                        <button wire:click="dataExport" class="btn btn-success" wire:loading.attr="disabled" wire:target="dataExport">
-                            <span wire:loading.remove wire:target="dataExport">
-                                <i class="fas fa-download"></i> Export Data
-                            </span>
-                            <span wire:loading wire:target="dataExport">
-                                <i class="fas fa-spinner fa-spin"></i> Preparing...
-                            </span>
-                        </button>
-
-                    </div>
-
+                <div class="p-4 bg-gray-100 border-t border-gray-200">
+                    <button wire:click="dataExport" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2 disabled:opacity-50" wire:loading.attr="disabled" wire:target="dataExport">
+                        <span wire:loading.remove wire:target="dataExport">
+                            <i class="fas fa-download"></i> Export Data
+                        </span>
+                        <span wire:loading wire:target="dataExport">
+                            <i class="fas fa-spinner fa-spin"></i> Preparing...
+                        </span>
+                    </button>
                 </div>
             </div>
 
-            <h6 class="text-primary fw-bold mb-3">Help & Support</h6>
-            <div class="d-grid gap-2">
-                <a href="#" class="btn btn-outline-info">User Documentation</a>
-                <a href="#" class="btn btn-outline-success">Contact Support (Live Chat)</a>
+            <h6 class="text-blue-600 font-bold mb-4 uppercase text-xs tracking-wider">Help & Support</h6>
+            <div class="flex flex-col gap-3">
+                <a href="#" class="w-full text-center py-2 px-4 border border-cyan-500 text-cyan-600 rounded-lg hover:bg-cyan-50 transition font-medium">User Documentation</a>
+                <a href="#" class="w-full text-center py-2 px-4 border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition font-medium">Contact Support (Live Chat)</a>
             </div>
         </div>
     </div>
-
 </div>

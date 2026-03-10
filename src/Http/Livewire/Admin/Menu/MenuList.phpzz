@@ -1,0 +1,67 @@
+<?php
+
+namespace Uiaciel\SuryaCms\Http\Livewire\Admin\Menu;
+
+use Livewire\Component;
+use Uiaciel\SuryaCMS\Models\Category;
+use Uiaciel\SuryaCms\Models\Menu;
+use Uiaciel\SuryaCMS\Models\Page;
+use Uiaciel\SuryaCMS\Models\Post;
+
+use function Laravel\Prompts\info;
+
+class MenuList extends Component
+{
+    public $editMenuId = null;
+    public $showModal = false;
+
+    public $selectedMenu;
+
+    public $editName;
+    public $editType;
+    public $editLink;
+    public $editParentId;
+
+    // data pendukung (biar blade tidak error)
+    public $posts = [];
+    public $pages = [];
+    public $categories = [];
+
+    public function mount()
+    {
+        // preload agar blade aman
+        $this->posts = Post::select('id','title','slug')->get();
+        $this->pages = Page::select('id','title','slug')->get();
+        $this->categories = Category::select('id','name','slug')->get();
+    }
+
+    public function loadEditMenu($id)
+    {
+        $menu = Menu::findOrFail($id);
+
+        $this->selectedMenu = $menu;
+
+        $this->editMenuId   = $menu->id;
+        $this->editName     = $menu->name;
+        $this->editType     = $menu->type;
+        $this->editLink     = $menu->link;
+        $this->editParentId = $menu->parent_id;
+
+        $this->showModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+    }
+
+    public function render()
+    {
+        return view('suryacms::livewire.admin.menu.menu-list',[
+            'menus' => Menu::with('children')
+                ->orderBy('order')
+                ->get()
+        ])->layout('suryacms::layouts.app');
+
+    }
+}

@@ -132,7 +132,7 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'image_path' => 'required|image|max:30024', // Max 1MB
+            'image_path' => 'required|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:30024',
             'category' => 'nullable|string|max:255',
             'status' => 'in:Publish,Draft',
         ]);
@@ -145,17 +145,24 @@ class AdminController extends Controller
             $gallery->status = $request->status;
 
             if ($request->hasFile('image_path')) {
-                $manager = new ImageManager(new Driver);
-
+                $file = $request->file('image_path');
                 $timestamp = now()->format('YmdHis');
                 $slugTitle = str_replace(' ', '_', strtolower($request->name));
-                $fileName = "{$timestamp}_gallery_{$slugTitle}.webp";
+                $extension = $file->getClientOriginalExtension();
 
-                // Read and encode the image to WebP format
-                $convertedImage = $manager->read($request->file('image_path')->getRealPath())->encode(new WebpEncoder(quality: 70));
+                if (strtolower($extension) === 'pdf') {
+                    $fileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
+                    Storage::disk('public')->putFileAs('galleries', $file, $fileName);
+                } else {
+                    $manager = new ImageManager(new Driver);
+                    $fileName = "{$timestamp}_gallery_{$slugTitle}.webp";
 
-                // Save the WebP image to the storage
-                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
+                    // Read and encode the image to WebP format
+                    $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
+
+                    // Save the WebP image to the storage
+                    Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
+                }
 
                 // Set the image path for the gallery
                 $gallery->image_path = 'galleries/'.$fileName;

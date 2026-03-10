@@ -45,8 +45,22 @@ class YoutubeVideoModal extends Component
 
         $embedHtml = $this->generateYoutubeEmbedCode($this->youtubeUrl);
 
-        $this->dispatch('copy-to-clipboard', text: $this->youtubeUrl);
-        $this->closeModal();
+        if ($embedHtml) {
+            $this->dispatch('videoSelectedFromYoutube', ['embedHtml' => $embedHtml]);
+            $this->closeModal();
+        }
+    }
+
+    public function selectVideo($videoId)
+    {
+        $video = YoutubeVideo::find($videoId);
+        if ($video && $video->video_url) {
+            $embedHtml = $this->generateYoutubeEmbedCode($video->video_url);
+            if ($embedHtml) {
+                $this->dispatch('videoSelectedFromYoutube', ['embedHtml' => $embedHtml]);
+                $this->closeModal();
+            }
+        }
     }
 
     private function generateYoutubeEmbedCode($url)

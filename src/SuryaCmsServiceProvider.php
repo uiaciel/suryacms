@@ -215,7 +215,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
                     ->get();
 
                 $contact = Contact::orderBy('created_at', 'desc')->get();
-
+                $posts = Post::with('category')->where('status', 'Publish')->get();
                 $menus = Menu::whereNull('parent_id')
                     ->with(['children' => function ($query) {
                         $query->orderBy('order');
@@ -264,6 +264,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
                 $sharedData = [
                     'menus' => $menus,
                     'categories' => $categories,
+                    'posts' => $posts,
                     'latestposts' => $latestposts,
                     'topposts' => $topposts,
                     'tagcloud' => $tagcloud,

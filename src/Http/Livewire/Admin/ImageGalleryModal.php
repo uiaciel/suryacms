@@ -2,6 +2,7 @@
 
 namespace Uiaciel\SuryaCms\Http\Livewire\Admin;
 
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Uiaciel\SuryaCms\Models\Gallery;
@@ -54,10 +55,24 @@ class ImageGalleryModal extends Component
     {
         $image = Gallery::find($id);
         if ($image) {
-            // Dapatkan URL publik dari gambar
-            $this->selectedImage = Storage::url($image->image_path);
-            // Dispatch event kembali ke JavaScript dengan URL gambar yang dipilih
-            $this->dispatch('imageSelectedFromGallery', ['url' => $this->selectedImage]);
+
+            $extension = strtolower(pathinfo($image->image_path, PATHINFO_EXTENSION));
+
+            if ($extension === 'pdf') {
+                // Ensure PDF URL is always absolute full URL
+                $pdfUrl = asset(Storage::url($image->image_path));
+                $this->dispatch('pdfSelectedFromGallery', [
+                    'url' => $pdfUrl,
+                    'name' => $image->name,
+                    'path' => $image->image_path
+                ]);
+                \Log::info('PDF selected from gallery with full URL: ' . $pdfUrl);
+            } else {
+                $url = asset(Storage::url($image->image_path));
+                $this->selectedImage = $url;
+                $this->dispatch('imageSelectedFromGallery', ['url' => $this->selectedImage]);
+            }
+
             $this->close(); // Tutup modal setelah memilih
         }
     }

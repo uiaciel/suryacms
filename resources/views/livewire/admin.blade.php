@@ -1,16 +1,12 @@
-<div>
+<div x-data="{ open: false, langOpen: false, backupOpen: false, genOpen: false }">
     @push('styles')
     <style>
         .info-list li {
-            padding: 8px 0;
-            border-bottom: 1px dashed #525252;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            @apply py-2 border-b border-dashed border-gray-300 flex justify-between items-center;
         }
 
         .info-list li:last-child {
-            border-bottom: none;
+            @apply border-b-0;
         }
 
         .header-icon {
@@ -23,541 +19,382 @@
             width: 80px;
         }
 
-        .card-header[data-bs-toggle="collapse"][aria-expanded="false"] .bi-chevron-down {
-            transform: rotate(0deg);
-            transition: transform 0.3s ease-in-out;
-        }
+        .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
 
-        /* Ikon saat terbuka (show) */
-        .card-header[data-bs-toggle="collapse"][aria-expanded="true"] .bi-chevron-down {
-            transform: rotate(180deg);
-            transition: transform 0.3s ease-in-out;
+        /* Data list hover */
+        .data-list .:hover {
+            @apply bg-gray-50;
         }
-
-        .list-group-item .d-flex>div {
-            margin-right: auto;
-        }
-
-        .maintenance-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #ffffff;
-            z-index: 1;
-            border-radius: calc(0.25rem * 4);
-            /* Mencocokkan rounded-4 */
-        }
-
-        /* Style untuk list item Category/Language yang lebih rapi (menggantikan tabel) */
-        .data-list .list-group-item:hover {
-            background-color: #f8f9fa;
-        }
-
     </style>
     @endpush
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center">
-            <img src="{{$setting->logo ?? '/frontend/default/www.png'}}" alt="Site Logo" class="me-3 rounded-circle shadow-sm" style="height:50px; width:50px; object-fit:cover;">
-            <h1 class="h3 mb-0 text-primary fw-bold">{{ $setting->sitename ?? 'Admin Dashboard' }}</h1>
+
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-4">
+            <img src="{{$setting->logo ?? '/frontend/default/www.png'}}" alt="Site Logo" class="w-12 h-12 rounded-full shadow-sm object-cover">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-600">{{ $setting->sitename ?? 'Admin Dashboard' }}</h1>
+                <p class="text-xs text-gray-400 mt-1">Selamat datang — {{ now()->format('l, j F Y') }}</p>
+            </div>
         </div>
-        <a href="{{$setting->url}}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center">
-            <span class="me-2">{{$setting->url}}</span><i class="bi bi-box-arrow-up-right fs-6"></i>
+        <a href="{{$setting->url}}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 transition shadow-sm text-sm font-semibold">
+            <span>{{$setting->url}}</span><i class="fas fa-external-link-alt text-sm"></i>
         </a>
     </div>
 
-    <div class="mb-3"> <x-suryacms::session-status /> </div>
+    <div class="mb-4"> <x-suryacms::session-status /> </div>
 
-    <div class="row mb-3">
-        <div class="col-lg-8">
-            <div class="row g-3 mb-3">
-                <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm bg-white border-0 rounded-4">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-
-                                    <h6 class="mb-2 f-w-400 text-muted"> Pages</h6>
-                                    <h2 class="mb-3">{{ $pages->count() }}</h2>
-
-                                </div>
-                                <div><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-news">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h11" />
-                                        <path d="M8 8l4 0" />
-                                        <path d="M8 12l4 0" />
-                                        <path d="M8 16l4 0" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <p class="mb-0 text-muted  fst-italic text-sm fs-6">Published : {{ $pages->where('status', 'Publish')->count() }} /
-                                {{ $pages->count() }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <!-- Main Content (Left) -->
+        <div class="lg:col-span-2">
+            <!-- Stat Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium mb-1">Pages</p>
+                            <h3 class="text-3xl font-bold text-gray-800">{{ $pages->count() }}</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file text-blue-600"></i>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm bg-white border-0 rounded-4">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-
-                                    <h6 class="mb-2 f-w-400 text-muted"> Posts</h6>
-                                    <h2 class="mb-3">{{ $posts->count() }}</h2>
-
-                                </div>
-                                <div><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-file-description">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M14 3v4a1 1 0 0 0 1 1h4" />
-                                        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
-                                        <path d="M9 17h6" />
-                                        <path d="M9 13h6" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <p class="mb-0 text-muted  fst-italic text-sm fs-6">Published : {{ $posts->where('status', 'Publish')->count() }} /
-                                {{ $posts->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-0 bg-white rounded-4">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-
-                                    <h6 class="mb-2 f-w-400 text-muted"> Gallery</h6>
-                                    <h2 class="mb-3">{{ $gallery->count() }}</h2>
-
-                                </div>
-                                <div><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-library-photo">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M7 3m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z" />
-                                        <path d="M4.012 7.26a2.005 2.005 0 0 0 -1.012 1.737v10c0 1.1 .9 2 2 2h10c.75 0 1.158 -.385 1.5 -1" />
-                                        <path d="M17 7h.01" />
-                                        <path d="M7 13l3.644 -3.644a1.21 1.21 0 0 1 1.712 0l3.644 3.644" />
-                                        <path d="M15 12l1.644 -1.644a1.21 1.21 0 0 1 1.712 0l2.644 2.644" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <p class="mb-0 text-muted  fst-italic text-sm fs-6">Published : {{ $gallery->where('status', 'Publish')->count() }} /
-                                {{ $gallery->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-0 bg-white rounded-4">
-                        <div class="card-body p-4">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-
-                                    <h6 class="mb-2 f-w-400 text-muted"> Inbox</h6>
-                                    <h2 class="mb-3">{{ $contacts->count() }}</h2>
-
-                                </div>
-                                <div><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="currentColor" class="icon icon-tabler icons-tabler-filled icon-tabler-mail">
-                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                        <path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z" />
-                                        <path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <p class="mb-0 text-muted  fst-italic text-sm fs-6">Unread : {{ $contacts->where('is_read', false)->count() }} / {{ $contacts->count() }}</p>
-                        </div>
-                    </div>
+                    <p class="text-xs text-gray-400">Published: {{ $pages->where('status', 'Publish')->count() }}/{{ $pages->count() }}</p>
                 </div>
 
-            </div>
-
-            <div class="card mb-3 maintenance-card shadow-lg border-0 rounded-4">
-                <div class="card-body p-4 position-relative" style="z-index: 2;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title fw-bold mb-0 text-primary">
-                            <i class="bi bi-tools me-2"></i>Site Maintenance
-                        </h5>
-                        <div class="form-check form-switch form-check-lg">
-                            <input class="form-check-input" type="checkbox" id="siteMaintenanceToggle" wire:model.live="site_maintenance" style="transform: scale(1.5);">
-                            <label class="form-check-label ms-2" for="siteMaintenanceToggle">
-                                @if ($site_maintenance)
-                                <span class="badge bg-warning  rounded-pill px-3 py-2 shadow-sm">Active</span>
-                                @else
-                                <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">Inactive</span>
-                                @endif
-                            </label>
+                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium mb-1">Posts</p>
+                            <h3 class="text-3xl font-bold text-gray-800">{{ $posts->count() }}</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-alt text-purple-600"></i>
                         </div>
                     </div>
-                    <p class="card-text text-muted mb-3">
-                        Control the availability of your website to visitors.
-                    </p>
-                    @if ($site_maintenance)
-                    <div class="alert alert-warning border-0 rounded-3 shadow-sm" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Your site is currently in maintenance mode. Visitors will see the maintenance page.
+                    <p class="text-xs text-gray-400">Published: {{ $posts->where('status', 'Publish')->count() }}/{{ $posts->count() }}</p>
+                </div>
+
+                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium mb-1">Gallery</p>
+                            <h3 class="text-3xl font-bold text-gray-800">{{ $gallery->count() }}</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-images text-amber-600"></i>
+                        </div>
                     </div>
-                    @else
-                    <div class="alert alert-success border-0 rounded-3 shadow-sm" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>Your site is currently active. Visitors can access the site as usual.
+                    <p class="text-xs text-gray-400">Published: {{ $gallery->where('status', 'Publish')->count() }}/{{ $gallery->count() }}</p>
+                </div>
+
+                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium mb-1">Inbox</p>
+                            <h3 class="text-3xl font-bold text-gray-800">{{ $contacts->count() }}</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-envelope text-emerald-600"></i>
+                        </div>
                     </div>
-                    @endif
+                    <p class="text-xs text-gray-400">Unread: {{ $contacts->where('is_read', false)->count() }}/{{ $contacts->count() }}</p>
                 </div>
             </div>
 
-            <div class="row mb-3">
-
-                <div class="col-md-6">
-                    <div class="card w-100 shadow-lg">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseCategory" role="button" aria-expanded="true" aria-controls="collapseCategory">
-                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center ">
-                                <h5 class="card-title fs-5 fw-bold mb-0 text-white">
-                                    <i class="bi bi-tags-fill me-2"></i>Categories
-                                </h5>
-                                <i class="bi bi-chevron-down fs-5"></i>
-                            </div>
-                        </a>
-
-                        <div class="collapse" id="collapseCategory">
-                            <div class="card-body p-4">
-                                <!-- Form Input Kategori -->
-                                <form wire:submit.prevent="{{ $isEditMode ? 'updateCategory' : 'saveCategory' }}" class="mb-2">
-                                    <label for="categoryName" class="form-label small fw-semibold">{{ $isEditMode ? 'Edit Category' : 'New Category' }}</label>
-                                    <div class="mb-3">
-                                        <input type="text" id="categoryName" class="form-control" wire:model="categoryName" placeholder="Category Name" aria-label="categoryName">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary"> <i class="bi bi-plus-lg"></i> {{ $isEditMode ? 'Update' : 'Save' }} </button>
-
-                                </form>
-                                @error('categoryName')
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-
-                                </form>
-
-                                <!-- List Group (Menggantikan Tabel) -->
-                                <ul class="list-group list-group-flush data-list small p-3" id="categoryList">
-                                    <!-- Data kategori akan di-render oleh JS -->
-                                    @foreach ($categories as $category)
-
-                                    <li class="list-group-item border border-bottom d-flex justify-content-between align-items-center py-3">
-
-                                        <div class="d-flex align-items-center">
-                                            <span class="fw-bold  me-3">{{ $category->name }}</span>
-                                            @if ($category->status == 'Publish')
-                                            <span class="badge bg-primary fw-medium rounded-pill shadow-sm">Publish</span>
-
-                                            @else
-                                            <span class="badge bg-warning fw-medium rounded-pill shadow-sm">Draft</span>
-
-                                            @endif
-
-                                        </div>
-                                        <div>
-
-                                            <!-- Tombol ini hanya dummy, di Livewire/PHP akan memicu fungsi -->
-                                            <button wire:click="editCategory({{ $category->id }})" class="btn btn-sm btn-warning rounded-pill px-2" title="Edit"><i class="bi bi-pencil"></i></button>
-                                            <button wire:click="changeStatus({{ $category->id }})" class="btn btn-sm btn-primary"><i class="bi bi-toggle-off"></i></button>
-                                            <button onclick="confirm('Are you sure you want to delete this category?') || event.stopImmediatePropagation()" wire:click="deleteCategory({{ $category->id }})" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
-
-                                        </div>
-
-                                    </li>
-                                    @endforeach
-                                </ul>
-                            </div>
+            <!-- Maintenance Card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-tools text-blue-600"></i> Site Maintenance
+                    </h3>
+                    <label class="flex items-center cursor-pointer">
+                        <div class="relative">
+                            <input type="checkbox" wire:model.live="site_maintenance" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                         </div>
-                    </div>
-
+                        <span class="ml-3 text-sm font-medium text-gray-700">@if ($site_maintenance) <span class="px-3 py-1 text-xs font-bold bg-yellow-100 text-yellow-800 rounded-full">Active</span> @else <span class="px-3 py-1 text-xs font-bold bg-green-100 text-green-800 rounded-full">Inactive</span> @endif</span>
+                    </label>
                 </div>
-
-                <div class="col-md-6">
-
-                    <div class="card w-100 shadow-lg">
-                        <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseLanguage" role="button" aria-expanded="true" aria-controls="collapseLanguage">
-                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center ">
-                                <h5 class="card-title fs-5 fw-bold mb-0 text-white">
-                                    <i class="bi bi-translate me-2"></i>Languages
-                                </h5>
-                                <i class="bi bi-chevron-down fs-5"></i>
-                            </div>
-                        </a>
-
-                        <div class="collapse" id="collapseLanguage">
-
-                            <div class="card-body p-4">
-                                <!-- Form Input Kategori -->
-                                <form wire:submit.prevent="{{ $isLanguageEditMode ? 'updateLanguage' : 'saveLanguage' }}" class="mb-2">
-
-                                    <label for="languageName" class="form-label small fw-semibold">{{ $isLanguageEditMode ? 'Edit Language' : 'Add Language' }}</label>
-
-                                    <div class="mb-3">
-                                        <input type="text" id="languageName" class="form-control" wire:model="languageName" placeholder="Language Name : English" aria-label="languageName">
-
-                                    </div>
-                                    <div class="mb-3">
-                                        <input type="text" id="languageCode" placeholder="Language Code : en" class="form-control" wire:model="languageCode">
-
-                                    </div>
-                                    <button type="submit" class="btn btn-primary"> <i class="bi bi-plus-lg"></i> {{ $isLanguageEditMode ? 'Update' : 'Save' }} </button>
-
-                                </form>
-                                @error('languageName')
-
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-                                @error('languageCode')
-
-                                <span class="text-danger">{{ $message }}</span>
-                                @enderror
-
-                                </form>
-
-                                <!-- List Group (Menggantikan Tabel) -->
-                                <ul class="list-group list-group-flush data-list small p-3" id="languageList">
-                                    <!-- Data kategori akan di-render oleh JS -->
-                                    @foreach ($languages as $language)
-
-                                    <li class="list-group-item border border-bottom d-flex justify-content-between align-items-center py-3">
-
-                                        <div class="d-flex align-items-center">
-                                            <span class="fw-bold  me-3">{{ $language->name }} / {{$language->code}} </span>
-
-                                        </div>
-                                        <div>
-
-                                            <!-- Tombol ini hanya dummy, di Livewire/PHP akan memicu fungsi -->
-                                            <button wire:click="editLanguage({{ $language->id }})" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></button>
-                                            <button onclick="confirm('Are you sure you want to delete this language?') || event.stopImmediatePropagation()" wire:click="deleteLanguage({{ $language->id }})" class="btn btn-sm btn-danger"><i class="fas bi-trash"></i></button>
-
-                                        </div>
-
-                                    </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </div>
+                <p class="text-sm text-gray-600 mb-3">Kontrol ketersediaan website Anda kepada pengunjung.</p>
+                @if ($site_maintenance)
+                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Website Anda sedang dalam mode maintenance. Pengunjung akan melihat halaman maintenance.
                     </div>
-
-                </div>
+                @else
+                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
+                        <i class="fas fa-check-circle mr-2"></i>Website Anda sedang aktif. Pengunjung dapat mengakses website dengan normal.
+                    </div>
+                @endif
             </div>
 
-            <div class="card mb-3">
-
-                <div class="card-body p-4">
-                    <div class="mb-4 border-bottom pb-4">
-                        <label class="form-label fs-6 fw-bold  mb-3">
-                            <i class="bi bi-google me-2 text-primary"></i>Google Search Result Preview
-                        </label>
-                        <div class="border p-3 rounded-3 bg-light shadow-sm">
-                            <h5 class="text-primary mb-1 fw-bold">{{ $setting->sitename }} - {{ $setting->tagline }}</h5>
-                            <p class="text-success mb-1 small">{{ $setting->url }}</p>
-                            <p class="text-secondary mb-0 small">{{ Str::limit($setting->description, 160) }}</p>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fs-6 fw-bold  mb-3">
-                            <i class="bi bi-share-fill me-2 text-primary"></i>Social Media Share Preview
-                        </label>
-                        <div class="border p-3 rounded-3 d-flex align-items-center bg-light shadow-sm">
-                            @if (isset($setting) && $setting->images)
-                            <img src="{{ asset($setting->images) }}" alt="Current Image" class="img-thumbnail me-3 rounded" width="100" style="object-fit: cover; height: 100px;">
-                            @else
-                            <div class="bg-white p-3 me-3 rounded d-flex align-items-center justify-content-center border" style="width: 100px; height: 100px;">
-                                <i class="bi bi-image-fill text-muted fs-4"></i>
-                            </div>
-                            @endif
+            <!-- Categories Section -->
+            <div class="mb-6">
+                <!-- Categories Card -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <button @click="open = !open" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
+                        <h3 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fas fa-tags"></i> Categories
+                        </h3>
+                        <i class="fas fa-chevron-down transition-transform" :class="open && 'rotate-180'"></i>
+                    </button>
+                    <div x-show="open" class="p-5">
+                        <div class="grid md:grid-cols-2 gap-8">
                             <div>
-                                <h6 class="mb-1 fw-bold">{{ $setting->sitename }} - {{ $setting->tagline }}</h6>
-                                <p class="text-muted mb-1 small">{{ Str::limit($setting->description, 100) }}</p>
-                                <small class="text-success">{{ $setting->url }}</small>
+                                <form wire:submit.prevent="{{ $isEditMode ? 'updateCategory' : 'saveCategory' }}">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ $isEditMode ? 'Edit Category' : 'New Category' }}</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" wire:model="categoryName" placeholder="Category Name" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"><i class="fas fa-save mr-1"></i> {{ $isEditMode ? 'Update' : 'Save' }}</button>
+                                    </div>
+                                    @error('categoryName') <span class="text-red-600 text-xs mt-1">{{ $message }}</span> @enderror
+                                </form>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Category List</label>
+                                <ul class="space-y-2 data-list">
+                                    @foreach ($categories as $category)
+                                        <li class=" flex justify-between items-center px-3 py-2 rounded-lg border border-transparent hover:border-gray-200 transition">
+                                            <div class="flex items-center gap-3">
+                                                <span class="font-semibold text-gray-800">{{ $category->name }}</span>
+                                                @if ($category->status == 'Publish')
+                                                    <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">Published</span>
+                                                @else
+                                                    <span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full">Draft</span>
+                                                @endif
+                                            </div>
+                                            <div class="flex gap-2">
+                                                <button wire:click="editCategory({{ $category->id }})" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
+                                                <button wire:click="changeStatus({{ $category->id }})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fas fa-toggle-off"></i></button>
+                                                <button onclick="confirm('Hapus kategori ini?') || event.stopImmediatePropagation()" wire:click="deleteCategory({{ $category->id }})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Languages Section -->
+            <div class="mb-6">
+                <!-- Languages Card -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <button @click="langOpen = !langOpen" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
+                        <h3 class="text-lg font-bold flex items-center gap-2">
+                            <i class="fas fa-language"></i> Languages
+                        </h3>
+                        <i class="fas fa-chevron-down transition-transform" :class="langOpen && 'rotate-180'"></i>
+                    </button>
+                    <div x-show="langOpen" class="p-5">
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <form wire:submit.prevent="{{ $isLanguageEditMode ? 'updateLanguage' : 'saveLanguage' }}">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ $isLanguageEditMode ? 'Edit Language' : 'Add Language' }}</label>
+                                    <div class="space-y-2 mb-2">
+                                        <input type="text" wire:model="languageName" placeholder="Language Name (e.g. English)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <input type="text" wire:model="languageCode" placeholder="Language Code (e.g. en)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"><i class="fas fa-save mr-1"></i> {{ $isLanguageEditMode ? 'Update' : 'Save' }}</button>
+                                    @error('languageName') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                                    @error('languageCode') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                                </form>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Language List</label>
+                                <ul class="space-y-2 data-list">
+                                    @foreach ($languages as $language)
+                                        <li class=" flex justify-between items-center px-3 py-2 rounded-lg border border-transparent hover:border-gray-200 transition">
+                                            <span class="font-semibold text-gray-800">{{ $language->name }} <span class="text-gray-500">/ {{ $language->code }}</span></span>
+                                            <div class="flex gap-2">
+                                                <button wire:click="editLanguage({{ $language->id }})" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
+                                                <button onclick="confirm('Hapus bahasa ini?') || event.stopImmediatePropagation()" wire:click="deleteLanguage({{ $language->id }})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"><i class="fas fa-trash"></i></button>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEO Preview Card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <div class="mb-6 pb-6 border-b border-gray-200">
+                    <label class="block text-sm font-bold text-gray-800 mb-3">
+                        <i class="fas fa-google text-blue-500 mr-2"></i> Google Search Result Preview
+                    </label>
+                    <div class="border border-gray-200 p-4 rounded-lg bg-gray-50">
+                        <h4 class="text-blue-600 font-semibold mb-1">{{ $setting->sitename }} - {{ $setting->tagline }}</h4>
+                        <p class="text-green-600 text-xs mb-1">{{ $setting->url }}</p>
+                        <p class="text-gray-600 text-sm">{{ Str::limit($setting->description, 160) }}</p>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-3">
+                        <i class="fas fa-share-alt text-blue-500 mr-2"></i> Social Media Share Preview
+                    </label>
+                    <div class="border border-gray-200 p-4 rounded-lg bg-gray-50 flex gap-4">
+                        @if (isset($setting) && $setting->images)
+                            <img src="{{ asset($setting->images) }}" alt="Preview" class="w-24 h-24 rounded object-cover">
+                        @else
+                            <div class="w-24 h-24 bg-white rounded border border-gray-200 flex items-center justify-center">
+                                <i class="fas fa-image text-gray-400"></i>
+                            </div>
+                        @endif
+                        <div class="flex-1">
+                            <h5 class="font-semibold text-gray-800 mb-1">{{ $setting->sitename }} - {{ $setting->tagline }}</h5>
+                            <p class="text-gray-600 text-xs mb-1">{{ Str::limit($setting->description, 100) }}</p>
+                            <p class="text-green-600 text-xs">{{ $setting->url }}</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Download Backups -->
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+                    <button @click="backupOpen = !backupOpen" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
+                        <h3 class="font-bold flex items-center gap-2">
+                            <i class="fas fa-download"></i> Download Backups
+                        </h3>
+                        <i class="fas fa-chevron-down transition-transform" :class="backupOpen && 'rotate-180'"></i>
+                    </button>
+                    <div x-show="backupOpen" class="p-5 border-t border-gray-200">
+                        <livewire:suryacms::admin.backup />
+                    </div>
+                </div>
         </div>
 
-        <div class="col-lg-4">
-            {{-- <livewire:visitor-stats /> --}}
-
-            <div class="card  mb-3 w-100 shadow-lg overflow-hidden">
-
-                <!-- Card Header -->
-                <div class="card-header bg-primary text-white position-relative p-4 ">
-                    <h5 class="card-title fs-4 fw-bold mb-1">System Information</h5>
-                    <p class="card-subtitle text-white-50 small">{{$setting->url}}</p>
-
-                    <!-- Ikon Laptop (diatur dengan opacity rendah) -->
-                    <svg xmlns="http://www.w3.org/2000/svg" class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                        <path d="M3 19l18 0" />
-                        <path d="M5 6m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z" />
-                    </svg>
+        <!-- Sidebar (Right) -->
+        <div class="lg:col-span-1">
+            <!-- System Information Card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-5">
+                    <h3 class="text-lg font-bold mb-1">System Information</h3>
+                    <p class="text-blue-100 text-sm">{{ $setting->url }}</p>
                 </div>
+                <div class="p-5 space-y-6">
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800 mb-3 pb-3 border-b border-gray-200">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i> Site Profile
+                        </h4>
+                        <ul class="info-list text-xs space-y-2">
+                            <li>
+                                <div class="flex justify-between items-center">
+                                    <strong>Sitename:</strong>
+                                    <span class="font-medium">{{ $setting->sitename }}</span>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="flex justify-between items-center">
+                                    <strong>URL:</strong>
+                                    <a href="{{ $setting->url }}" target="_blank" class="text-blue-600 hover:underline">{{ $setting->url }}</a>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="flex justify-between items-center">
+                                    <strong>Email:</strong>
+                                    <span class="font-medium">{{ $setting->email }}</span>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="flex justify-between items-center">
 
-                <!-- Card Body -->
-                <div class="card-body p-4">
-
-                    <!-- Bagian Profil Situs -->
-                    <div class="mb-4">
-                        <h6 class="fs-6 fw-semibold  mb-3 border-start border-4 ps-3">
-                            <i class="bi bi-info-circle-fill me-2 text-primary"></i>Site Profile
-                        </h6>
-                        <ul class="list-unstyled info-list small">
-                            <!-- Data Mockup -->
-                            <li>
-                                <strong class="">Sitename:</strong>
-                                <span class="fw-medium">{{$setting->sitename}}</span>
-                            </li>
-                            <li>
-                                <strong class="">URL</strong>
-                                <a href="#" class="link-primary fw-medium text-decoration-none">{{$setting->url}}</a>
-                            </li>
-                            <li>
-                                <strong class="">Email:</strong>
-                                <span class="fw-medium">{{$setting->email}}</span>
-                            </li>
-                            <li>
-                                <strong class="">Primary Language:</strong>
-                                <span class="badge text-bg-info  fw-bold rounded-pill shadow-sm">
-                                    {{$setting->language}}
-                                </span>
+                                    <strong>Language:</strong>
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">{{ $setting->language }}</span>
+                                </div>
                             </li>
                         </ul>
                     </div>
 
-                    <!-- Bagian Konfigurasi Tambahan -->
                     <div>
-                        <h6 class="fs-6 fw-semibold  mb-3 border-start border-4  ps-3">
-                            <i class="bi bi-gear-fill me-2 text-primary"></i>Confituration
-                        </h6>
-                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
-
-                            <!-- Theme Name -->
-                            <div class="flex-fill bg-light p-3 rounded-3 border border-light-subtle">
-                                <p class="small text-uppercase text-dark fw-medium mb-1">Theme Active</p>
-                                <span class="text-sm fw-bold">{{ $setting->active_theme }}</span>
-
+                        <h4 class="text-sm font-bold text-gray-800 mb-3 pb-3 border-b border-gray-200">
+                            <i class="fas fa-cog text-blue-600 mr-2"></i> Configuration
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-600 uppercase font-semibold mb-1">Active Theme</p>
+                                <p class="text-sm font-bold text-gray-800">{{ $setting->active_theme }}</p>
                             </div>
-
-                            <!-- Multi Language -->
-                            <div class="flex-fill bg-light p-3 rounded-3 border border-light-subtle">
-                                <p class="small  text-uppercase text-dark fw-medium mb-1">Multi language</p>
-                                <span class="badge text-bg-success fw-bold rounded-pill">
-                                    {{ $setting->is_multilingual }}
-
-                                </span>
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-xs text-gray-600 uppercase font-semibold mb-1">Multi Language</p>
+                                <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">{{ $setting->is_multilingual }}</span>
                             </div>
                         </div>
                     </div>
-
                 </div>
-
-                <!-- Card Footer (opsional) -->
-                <div class="card-footer bg-light border-top text-muted text-center small p-3 rounded-bottom-4">
+                <div class="bg-gray-50 border-t border-gray-200 text-center py-3 text-xs text-gray-600">
                     Supported by Kreasi Tek Media
                 </div>
-
             </div>
 
-            <div class="card w-100 shadow-lg overflow-hidden mb-3">
-                <a class="text-decoration-none" data-bs-toggle="collapse" href="#collapseDownload" role="button" aria-expanded="true" aria-controls="collapseDownload">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="card-title fs-5 fw-bold mb-0 text-white">
-                            <i class="bi bi-download me-2"></i>Download Backups
-                        </h5>
-                        <i class="bi bi-chevron-down fs-5"></i>
-                    </div>
-                </a>
-
-                <div class="collapse" id="collapseDownload">
-                    <div class="card-body p-0">
-                        <livewire:suryacms::admin.backup />
-
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#collapseGenerate" aria-expanded="false" aria-controls="collapseGenerate" role="button">
-                    <h5 class="card-title fs-5 fw-bold mb-0 text-white">
-                        <i class="bi bi-lightning-charge me-2"></i>Quick Generate
-                    </h5>
-                    <i class="bi bi-chevron-down fs-5"></i>
-                </div>
-                <a class="text-decoration-none">
-
-                </a>
-
-                <div class="collapse" id="collapseGenerate">
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    Generate Offline Page
-                                    <small class="text-muted d-block">Create static HTML files for offline access.</small>
-                                </div>
-                                <button wire:click="generateOffline" wire:loading.attr="disabled" class="btn btn-sm btn-primary">
-                                    <span wire:loading.remove wire:target="generateOffline"><i class="bi bi-cloud-arrow-down"></i></span>
-                                    <span wire:loading wire:target="generateOffline"><i class="spinner-border spinner-border-sm"></i></span>
-                                </button>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    Generate Sitemap.xml
-                                    <small class="text-muted d-block">Generate an XML sitemap for search engines.</small>
-                                </div>
-                                <button wire:click="generateSitemap" wire:loading.attr="disabled" class="btn btn-sm btn-primary">
-                                    <span wire:loading.remove wire:target="generateSitemap"><i class="bi bi-file-earmark-code"></i></span>
-                                    <span wire:loading wire:target="generateSitemap"><i class="spinner-border spinner-border-sm"></i></span>
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-3">
-                <div class="card-header">
-                    <h5 class="card-title fw-bold mb-0">File System Check</h5>
-                </div>
-                <div class="card-body">
-
-                    <!-- Area untuk menampilkan status dan output command -->
-                    <div class="mt-4 text-muted small">
-                        <!-- Menampilkan pesan status terakhir -->
-                        @if ($statusMessage) {{-- Asumsi $statusMessage berisi pesan sukses atau error --}}
-                        <div class="alert alert-{{ str_contains(strtolower($statusMessage), 'success') ? 'success' : (str_contains(strtolower($statusMessage), 'error') ? 'danger' : 'info') }} alert-dismissible fade show" role="alert">
-                            <p class="fw-semibold mb-0">{{ $statusMessage }}</p>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <!-- Quick Generate -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+                <button @click="genOpen = !genOpen" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
+                    <h3 class="font-bold flex items-center gap-2">
+                        <i class="fas fa-bolt"></i> Quick Generate
+                    </h3>
+                    <i class="fas fa-chevron-down transition-transform" :class="genOpen && 'rotate-180'"></i>
+                </button>
+                <div x-show="genOpen" class="divide-y divide-gray-200">
+                    <div class="p-4 flex justify-between items-start hover:bg-gray-50">
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">Generate Offline Page</p>
+                            <p class="text-xs text-gray-500 mt-1">Create static HTML files for offline access</p>
                         </div>
-                        @endif
-
-                        <!-- Menampilkan output detail dari command jika ada -->
-                        @if ($commandOutput)
-                        <div class="alert alert-secondary alert-dismissible fade show mt-2" role="alert">
-                            <h6 class="alert-heading">Command Output Details:</h6>
-                            <div class="bg-light p-2 rounded font-monospace text-break" style="max-height: 200px; overflow-y: auto;">
-                                {!! $commandOutput !!}
-                            </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button wire:click="generateOffline" wire:loading.attr="disabled" class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded font-semibold hover:bg-blue-700 disabled:opacity-50">
+                            <span wire:loading.remove><i class="fas fa-cloud-download-alt"></i></span>
+                            <span wire:loading><i class="fas fa-spinner animate-spin"></i></span>
+                        </button>
+                    </div>
+                    <div class="p-4 flex justify-between items-start hover:bg-gray-50">
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">Generate Sitemap.xml</p>
+                            <p class="text-xs text-gray-500 mt-1">Generate an XML sitemap for search engines</p>
                         </div>
-
-                        @endif
+                        <button wire:click="generateSitemap" wire:loading.attr="disabled" class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded font-semibold hover:bg-blue-700 disabled:opacity-50">
+                            <span wire:loading.remove><i class="fas fa-file-code"></i></span>
+                            <span wire:loading><i class="fas fa-spinner animate-spin"></i></span>
+                        </button>
                     </div>
-
-                    @if (session()->has('message'))
-                    <div class="alert alert-success mt-2">
-                        {{ session('message') }}
-                    </div>
-                    @endif
-
-                    <livewire:suryacms::admin.file-check />
                 </div>
             </div>
 
-        </div>
-
+            <!-- File System Check -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+        <h3 class="font-bold flex items-center gap-2">
+            <i class="fas fa-shield-check"></i> File System Check
+        </h3>
     </div>
+    <div class="p-5 space-y-4">
+          @if ($statusMessage)
+            <div class="p-3 rounded-xl border text-sm font-medium flex items-center gap-2 {{ str_contains(strtolower($statusMessage), 'success') ? 'bg-green-50 border-green-100 text-green-700' : (str_contains(strtolower($statusMessage), 'error') ? 'bg-red-50 border-red-100 text-red-700' : 'bg-blue-50 border-blue-100 text-blue-700') }}">
+                <i class="fas {{ str_contains(strtolower($statusMessage), 'success') ? 'fa-check-circle' : 'fa-info-circle' }}"></i>
+                {{ $statusMessage }}
+            </div>
+            @endif
 
+            @if ($commandOutput)
+            <div class="bg-slate-900 rounded-xl p-4 overflow-hidden">
+                <h5 class="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-2">Output Details</h5>
+                <div class="text-xs font-mono text-slate-200 overflow-y-auto max-h-40 sidebar-scroll leading-relaxed">
+                    {!! $commandOutput !!}
+                </div>
+            </div>
+            @endif
+
+            @if (session()->has('message'))
+            <div class="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-xl text-sm flex items-center gap-2">
+                <i class="fas fa-check-circle"></i> {{ session('message') }}
+            </div>
+            @endif
+        <livewire:suryacms::admin.file-check />
+    </div>
+</div>
+        </div>
+    </div>
 </div>

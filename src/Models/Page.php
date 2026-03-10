@@ -33,6 +33,11 @@ class Page extends Model
         return '';
     }
 
+    public function isHomepage()
+    {
+        return ! is_null($this->html);
+    }
+
     public function getKeywordsAttribute()
     {
         $content = strip_tags($this->content);

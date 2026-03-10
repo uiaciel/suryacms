@@ -24,6 +24,8 @@ class SettingWeb extends Component
 
     public $title = 'Settings';
 
+    public string $activeTab = 'seo';
+
     public $sitename;
 
     public $tagline;

@@ -1,262 +1,379 @@
 @extends('suryacms::layouts.app')
 @section('content')
-        <div class="mb-3" x-data="{
-            search: '',
-            category: '',
-            showEditModal: false,
+    <div class="mb-6" x-data="{
+        search: '',
+        category: '',
+        showEditModal: false,
+        showUploadModal: false,
+        successMessage: 0,
+        errorMessage: 0,
 
-            selectedGallery: null,
-            galleries: @js($galleries),
-            categories: [...new Set(@js($galleries).map(g => g.category))], // Extract unique categories
-            filteredGalleries() {
-                return this.galleries.filter(g => {
-                    let matchCategory = this.category === '' || g.category === this.category;
-                    let matchSearch = g.name.toLowerCase().includes(this.search.toLowerCase());
-                    return matchCategory && matchSearch;
-                });
-            },
-            openEditModal(gallery) {
-                this.selectedGallery = gallery;
-                this.showEditModal = true;
-            },
-            closeEditModal() {
-                this.showEditModal = false;
-                this.selectedGallery = null;
-            },
-            filterByCategory(cat) {
-                this.category = cat;
-            },
+        selectedGallery: null,
+        galleries: @js($galleries),
+        categories: [...new Set(@js($galleries).map(g => g.category))],
+        filteredGalleries() {
+            return this.galleries.filter(g => {
+                let matchCategory = this.category === '' || g.category === this.category;
+                let matchSearch = g.name.toLowerCase().includes(this.search.toLowerCase());
+                return matchCategory && matchSearch;
+            });
+        },
+        openEditModal(gallery) {
+            this.selectedGallery = gallery;
+            this.showEditModal = true;
+        },
+        closeEditModal() {
+            this.showEditModal = false;
+            this.selectedGallery = null;
+        },
+        filterByCategory(cat) {
+            this.category = cat;
+        },
+    }">
 
-        }">
+        <!-- Header Section -->
+        <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6">
+            <div class="flex flex-wrap items-center gap-3">
+                <h3 class="font-bold text-lg text-gray-900">Media Library</h3>
+                <button type="button" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full shadow-sm transition-colors" @click="showUploadModal = true">
+                    <i class="bi bi-cloud-arrow-up-fill mr-2"></i> Upload Media
+                </button>
+            </div>
 
-        <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <h3 class="fw-bold mb-0 text-dark">Media Library</h3>
-
-            <button type="button" class="btn btn-primary rounded-pill px-3 shadow-sm btn-sm btn-md-base" data-bs-toggle="modal" data-bs-target="#uploadImageModal">
-                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Upload Image
-            </button>
-        </div>
-
-        <nav aria-label="breadcrumb" class="d-none d-sm-block">
-            <ol class="breadcrumb mb-0 small text-muted">
-                        <li class="breadcrumb-item"><a href="/admin" class="text-decoration-none">Admin</a></li>
-                        <li class="breadcrumb-item"><a href="/admin/galleries" class="text-decoration-none">Media Library</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">{{ $titlePage ?? 'Files' }}</li>
-                    </ol>
-        </nav>
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="hidden sm:block">
+                <ol class="flex gap-2 text-sm text-gray-500">
+                    <li><a href="/admin" class="hover:text-gray-700 transition-colors">Admin</a></li>
+                    <li class="before:content-['/'] before:mr-2">/</li>
+                    <li><a href="/admin/galleries" class="hover:text-gray-700 transition-colors">Media Library</a></li>
+                    <li class="before:content-['/'] before:mr-2">/</li>
+                    <li class="text-gray-700">{{ $titlePage ?? 'Files' }}</li>
+                </ol>
+            </nav>
         </header>
 
-        @if (session()->has('success') || session()->has('error'))
-        <div class="mb-4">
-            @if (session()->has('success'))
-            <div class="alert alert-success alert-dismissible fade show fw-semibold" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <!-- Alerts -->
+        @if (session()->has('success'))
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                <i class="bi bi-check-circle-fill text-green-600 text-lg mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="font-semibold text-green-800">{{ session('success') }}</p>
+                </div>
+                <button @click="show = false" class="text-green-600 hover:text-green-800">
+                    <i class="bi bi-x text-lg"></i>
+                </button>
             </div>
-            @endif
-            @if (session()->has('error'))
-            <div class="alert alert-danger alert-dismissible fade show fw-semibold" role="alert">
-                <i class="bi bi-x-octagon-fill me-2"></i> {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        @endif
+        @if (session()->has('error'))
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
+                <i class="bi bi-x-octagon-fill text-red-600 text-lg mt-0.5"></i>
+                <div class="flex-1">
+                    <p class="font-semibold text-red-800">{{ session('error') }}</p>
+                </div>
+                <button @click="show = false" class="text-red-600 hover:text-red-800">
+                    <i class="bi bi-x text-lg"></i>
+                </button>
             </div>
-            @endif
-        </div>
         @endif
 
-        <div class="row g-4">
+        <!-- Gallery Section -->
+        <div class="grid gap-6">
+            <div class="col-span-full">
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
 
-            <div class="col-lg-12">
+                    <!-- Filter Bar -->
+                    <div class="border-b border-gray-200 p-4">
+                        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
 
-                <div class="card shadow-lg rounded-4 border-0 ">
-
-                    <div class="card-header border-bottom p-3">
-                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-
-                            <div class="d-flex flex-wrap gap-2 mb-3 mb-md-0 me-md-3">
-                                <button type="button" class="btn btn-sm fw-semibold" :class="category === '' ? 'btn-primary' : 'btn-outline-primary'" @click="filterByCategory('')">All ({{ count($galleries) }})</button>
+                            <!-- Category Filter Buttons -->
+                            <div class="flex flex-wrap gap-2">
+                                <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors" :class="category === '' ? 'bg-blue-600 text-white' : 'border border-blue-600 text-blue-600 hover:bg-blue-50'" @click="filterByCategory('')">
+                                    All ({{ count($galleries) }})
+                                </button>
                                 <template x-for="cat in categories" :key="cat">
-                                    <button type="button" class="btn btn-sm fw-semibold" :class="category === cat ? 'btn-primary' : 'btn-outline-primary'" @click="filterByCategory(cat)" x-text="cat"></button>
+                                    <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors" :class="category === cat ? 'bg-blue-600 text-white' : 'border border-blue-600 text-blue-600 hover:bg-blue-50'" @click="filterByCategory(cat)" x-text="cat"></button>
                                 </template>
                             </div>
 
-                            <input type="text" class="form-control" style="max-width: 300px;" placeholder="Find image by title or description..." x-model="search">
+                            <!-- Search Input -->
+                            <input
+                                type="text"
+                                class="flex-1 md:max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                placeholder="Search images..."
+                                x-model="search"
+                            >
                         </div>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-3">
+
+                    <!-- Gallery Grid -->
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                             <template x-for="gallery in filteredGalleries()" :key="gallery.id">
-                                <div class="col">
-                                    <div class="card h-100 shadow-sm rounded-3 overflow-hidden" style="cursor:pointer;" @click="openEditModal(gallery)">
-                                        <div class="ratio ratio-1x1 bg-light">
-                                            <img :src="'{{ asset('storage') }}/' + gallery.image_path" :alt="gallery.name" class="img-fluid w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                                <div class="cursor-pointer group">
+                                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md overflow-hidden transition-shadow h-full flex flex-col border border-gray-100">
+                                        <div class="aspect-square bg-gray-50 overflow-hidden flex items-center justify-center relative">
+
+                                            <template x-if="gallery.category.toUpperCase() === 'PDF'">
+                                                <div class="flex flex-col items-center justify-center w-full h-full bg-red-50 group-hover:bg-red-100 transition-colors" @click="openEditModal(gallery)">
+                                                    <i class="fas fa-file-pdf text-5xl text-red-500"></i>
+                                                    <span class="text-[10px] font-bold text-red-600 mt-2">PDF DOCUMENT</span>
+                                                    <a :href="'{{ asset('storage') }}/' + gallery.image_path" target="_blank" class="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-sm text-gray-600" title="View PDF" @click.stop>
+                                                        <i class="bi bi-eye text-sm"></i>
+                                                    </a>
+                                                </div>
+                                            </template>
+
+                                            <template x-if="gallery.category.toUpperCase() !== 'PDF'">
+                                                <img
+                                                    :src="'{{ asset('storage') }}/' + gallery.image_path"
+                                                    :alt="gallery.name"
+                                                    class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                                    @click="openEditModal(gallery)"
+                                                >
+                                            </template>
                                         </div>
 
-                                        <div class="p-2 border-top bg-white">
-                                            <div class="text-truncate fw-bold small" x-text="gallery.name"></div>
-                                            <span class="badge rounded-pill" :class="gallery.status === 'Publish' ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'" x-text="gallery.status"></span>
+                                        <div class="p-3 border-t border-gray-200 bg-white flex-1 flex flex-col">
+                                            <p class="text-sm font-bold text-gray-900 truncate" x-text="gallery.name"></p>
+                                            <div class="flex items-center justify-between mt-2">
+                                                <span
+                                                    class="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full"
+                                                    :class="gallery.status === 'Publish' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+                                                    x-text="gallery.status"
+                                                ></span>
+                                                <span class="text-[10px] text-gray-400 font-medium" x-text="gallery.category"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </template>
                         </div>
 
-                        <div x-show="filteredGalleries().length === 0" class="text-center p-5 text-muted">
-                            <i class="bi bi-search display-4 mb-3"></i>
-                            <h5 class="fw-light">No images found matching your criteria.</h5>
+                        <!-- Empty State -->
+                        <div x-show="filteredGalleries().length === 0" class="text-center py-16 text-gray-500">
+                            <i class="bi bi-search text-6xl mb-4 block text-gray-300"></i>
+                            <h5 class="font-light text-lg">No images found matching your criteria.</h5>
                         </div>
                     </div>
 
-                    <div class="card-body">
-
-                        <!-- Gallery Grid -->
-                        {{-- <div class="row">
-                            <template x-for="gallery in filteredGalleries()" :key="gallery.id">
-                                <div class="col-lg-3 col-md-3  mb-1 d-flex align-items-stretch">
-                                    <div class="card w-100 overflow-hidden" style="cursor:pointer;" @click="openEditModal(gallery)">
-                                        <img :src="'{{ asset('storage') }}/' + gallery.image_path" class="card-img-top img-fluid" :alt="gallery.name" style="object-fit: cover; height: 200px; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-
-                                    </div>
-
-                                </div>
-                            </template>
-                        </div> --}}
-                    </div>
                 </div>
-
             </div>
-
         </div>
 
-        <div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content rounded-4 shadow-lg">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title fw-bold" id="uploadImageModalLabel">
-                            <i class="bi bi-plus-circle me-2"></i> Upload New Image
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-4">
-                        <form action="{{ route('admin.gallery.store') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <div class="form-group mb-3">
-                                <label for="name" class="form-label fw-bold">Title</label>
-                                <input type="text" class="form-control rounded-3" id="name" name="name" required>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="description" class="form-label fw-bold">Description</label>
-                                <textarea class="form-control rounded-3" id="description" name="description"></textarea>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="image_path" class="form-label fw-bold">Upload Images</label>
-                                <input type="file" class="form-control rounded-3" id="image_path" name="image_path" required>
-                                <div class="form-text">Max file size 2MB. Allowed formats: JPG, PNG.</div>
-                            </div>
+        <!-- Upload Modal (Alpine) -->
+        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center transition-opacity" x-show="showUploadModal" x-transition @click="showUploadModal = false" style="display: none;">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" @click.stop>
+                <!-- Modal Header -->
+                <div class="bg-blue-600 text-white p-4 flex items-center justify-between rounded-t-2xl">
+                    <h5 class="text-lg font-bold flex items-center gap-2">
+                        <i class="bi bi-plus-circle"></i> Upload New Image
+                    </h5>
+                    <button type="button" class="text-white hover:bg-blue-700 p-1 rounded transition-colors" @click="showUploadModal = false">
+                        <i class="bi bi-x text-2xl"></i>
+                    </button>
+                </div>
 
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <label for="category" class="form-label fw-bold">Category</label>
-                                    <input type="text" class="form-control rounded-3" id="category" name="category" placeholder="e.g., Slider, Post, Thumbnail">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="status" class="form-label fw-bold">Status</label>
-                                    <select class="form-select rounded-3" id="status" name="status">
-                                        <option value="Publish">Publish</option>
-                                        <option value="Draft">Draft</option>
-                                    </select>
-                                </div>
-                            </div>
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <form action="{{ route('admin.gallery.store') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="mb-4">
+                            <label for="name" class="block text-sm font-bold text-gray-900 mb-2">Title</label>
+                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" id="name" name="name" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="description" class="block text-sm font-bold text-gray-900 mb-2">Description</label>
+                            <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none" id="description" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="image_path" class="block text-sm font-bold text-gray-900 mb-2">
+                                File <span class="text-gray-400 font-normal">(Image or PDF)</span>
+                            </label>
+                            <input type="file"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                id="image_path" name="image_path"
+                                accept=".jpg,.png,.jpeg,.pdf"
+                                required>
+                            <p class="text-xs text-gray-500 mt-1">Max 2MB. Format: JPG, PNG, or PDF.</p>
+                        </div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary rounded-pill fw-semibold py-2">
-                                    <i class="bi bi-upload me-1"></i> Upload & Save
-                                </button>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div>
+                                <label for="category" class="block text-sm font-bold text-gray-900 mb-2">Category</label>
+                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase"
+                            id="category" name="category" placeholder="e.g., PDF, SLIDER, POST" x-model="categoryHint">
                             </div>
-                        </form>
-                    </div>
+                            <div>
+                                <label for="status" class="block text-sm font-bold text-gray-900 mb-2">Status</label>
+                                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white" id="status" name="status">
+                                    <option value="Publish">Publish</option>
+                                    <option value="Draft">Draft</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button type="submit" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
+                                <i class="bi bi-upload"></i> Upload & Save
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
 
         <!-- Edit Modal (Alpine) -->
-        <div class="modal fade" :class="{'show d-block': showEditModal}" tabindex="-1" style="background:rgba(0,0,0,0.5);" x-show="showEditModal">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content" x-show="selectedGallery">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Image</h5>
-                        <button type="button" class="btn-close" @click="closeEditModal"></button>
-                    </div>
-                    <div class="modal-body">
+        <div
+            class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center transition-opacity"
+            x-show="showEditModal"
+            x-transition
+            @click="closeEditModal()"
+        >
+            <div
+                class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+                @click.stop
+                x-show="selectedGallery"
+            >
+                <!-- Modal Header -->
+                <div class="border-b border-gray-200 p-6 flex items-center justify-between">
+                    <h5 class="text-lg font-bold text-gray-900">Edit Media</h5>
+                    <button
+                        type="button"
+                        class="text-gray-500 hover:text-gray-700 p-1 rounded transition-colors"
+                        @click="closeEditModal()"
+                    >
+                        <i class="bi bi-x text-2xl"></i>
+                    </button>
+                </div>
 
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <img :src="'{{ asset('storage') }}/' + selectedGallery.image_path" class="img-fluid mt-2">
+                <!-- Modal Body -->
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Image Preview -->
+                        <div class="flex items-start justify-center">
+                        <template x-if="selectedGallery.category.toUpperCase() === 'PDF'">
+                            <embed
+                                :src="'{{ asset('storage') }}/' + selectedGallery.image_path"
+                                type="application/pdf"
+                                class="w-full rounded-lg h-[500px]"
+                            >
+                        </template>
+                        <template x-if="selectedGallery.category.toUpperCase() !== 'PDF'">
+                            <img
+                                :src="'{{ asset('storage') }}/' + selectedGallery.image_path"
+                                class="w-full rounded-lg object-cover max-h-96"
+                            >
+                        </template>
+                        </div>
 
-                            </div>
-                            <div class="col-lg-6">
-                                <form @submit.prevent="
-                                                                    // Inline update logic
-                                                                    fetch('{{ url('admin/gallery') }}/' + selectedGallery.id, {
-                                                                        method: 'POST',
-                                                                        headers: {
-                                                                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                                                            'Accept': 'application/json'
-                                                                        },
-                                                                        body: new FormData($event.target)
-                                                                    }).then(response => {
-                                                                        if(response.ok) {
-                                                                            closeEditModal();
-                                                                            // Optionally refresh galleries or show success
-                                                                        }
-                                                                    });
-                                                                ">
-                                    <div class="form-group mb-3">
-                                        <label for="edit_name">Title</label>
-                                        <input type="text" class="form-control" id="edit_name" name="name" x-model="selectedGallery.name" required>
+                        <!-- Edit Form -->
+                        <div>
+                            <form @submit.prevent="
+                                fetch('{{ url('admin/gallery') }}/' + selectedGallery.id, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: new FormData($event.target)
+                                }).then(response => {
+                                    if(response.ok) {
+                                        closeEditModal();
+                                        // Show success notification
+                                        document.querySelector('[data-success-notification]')?.classList.remove('hidden');
+                                        setTimeout(() => {
+                                            document.querySelector('[data-success-notification]')?.classList.add('hidden');
+                                        }, 3000);
+                                    }
+                                }).catch(error => console.error(error));
+                            ">
+                                <!-- Title -->
+                                <div class="mb-4">
+                                    <label for="edit_name" class="block text-sm font-bold text-gray-900 mb-2">Title</label>
+                                    <input
+                                        type="text"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        id="edit_name"
+                                        name="name"
+                                        x-model="selectedGallery.name"
+                                        required
+                                    >
+                                </div>
+
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <label for="edit_description" class="block text-sm font-bold text-gray-900 mb-2">Description</label>
+                                    <textarea
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                                        id="edit_description"
+                                        name="description"
+                                        x-model="selectedGallery.description"
+                                        rows="3"
+                                    ></textarea>
+                                </div>
+
+                                <!-- Image Upload -->
+                                <div class="mb-4">
+                                    <label for="edit_image_path" class="block text-sm font-bold text-gray-900 mb-2">Update Image (Optional)</label>
+                                    <input
+                                        type="file"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        id="edit_image_path"
+                                        name="image_path"
+                                    >
+                                    <p class="text-xs text-gray-500 mt-1">Leave empty to keep current image.</p>
+                                </div>
+
+                                <!-- Category & Status -->
+                                <div class="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label for="edit_category" class="block text-sm font-bold text-gray-900 mb-2">Category</label>
+                                        <input
+                                            type="text"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            id="edit_category"
+                                            name="category"
+                                            x-model="selectedGallery.category"
+                                        >
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label for="edit_description">Description</label>
-                                        <textarea class="form-control" id="edit_description" name="description" x-model="selectedGallery.description"></textarea>
+                                    <div>
+                                        <label for="edit_status" class="block text-sm font-bold text-gray-900 mb-2">Status</label>
+                                        <select
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+                                            id="edit_status"
+                                            name="status"
+                                            x-model="selectedGallery.status"
+                                        >
+                                            <option value="Publish">Publish</option>
+                                            <option value="Draft">Draft</option>
+                                        </select>
                                     </div>
-                                    <div class="form-group mb-3">
-                                        <label for="edit_image_path">Image</label>
-                                        <input type="file" class="form-control" id="edit_image_path" name="image_path">
-                                    </div>
+                                </div>
 
-                                    <div class="form-group mb-3">
-                                        <div class="row align-items-end">
-                                            <div class="col-lg-6">
-                                                <label for="edit_category">Category</label>
-                                                <input type="text" class="form-control" id="edit_category" name="category" x-model="selectedGallery.category">
-                                            </div>
-                                            <div class="col-lg-6">
-                                                <label for="edit_status">Status</label>
-                                                <select class="form-control" id="edit_status" name="status" x-model="selectedGallery.status">
-                                                    <option value="Publish">Publish</option>
-                                                    <option value="Draft">Draft</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group mb-3 d-flex justify-content-between">
-
-                                        <button type="submit" class="btn btn-primary">Update</button>
-                                        <button type="button" x-on:click="
+                                <!-- Action Buttons -->
+                                <div class="flex gap-3">
+                                    <button
+                                        type="submit"
+                                        class="flex-1 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <i class="bi bi-check-circle"></i> Update
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="
                                             if (confirm('Are you sure you want to delete this image?')) {
                                                 $wire.deleteImage(selectedGallery.id);
                                                 closeEditModal();
                                             }
-                                        " class="btn btn-danger">Delete</button>
-
-                                    </div>
-                                </form>
-                            </div>
+                                        "
+                                        class="flex-1 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-
                     </div>
-
                 </div>
             </div>
         </div>
@@ -265,4 +382,3 @@
 
     <livewire:suryacms::admin.youtube.youtube-list />
 @endsection
-

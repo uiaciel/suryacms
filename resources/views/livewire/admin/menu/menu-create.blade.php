@@ -1,152 +1,169 @@
-<div class="container-fluid">
+<div class="p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
     <x-suryacms::import-export-offcanvas />
 
-    <header class="page-header d-flex justify-content-between align-items-center mb-3">
-        <h3 class="fw-bold mb-2">{{ $titlePage }}
-        </h3>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Admin</a></li>
-                <li class="breadcrumb-item"><a href="/admin/menu">Menu</a></li>
-                <li class="breadcrumb-item active">{{ $titlePage }}</li>
-            </ol>
-        </nav>
+    <!-- Header -->
+    <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div>
+            <h3 class="text-2xl font-bold text-gray-900 flex items-center ">
+                <i class="bi bi-list-nested text-blue-600"></i> {{ $titlePage }}
+            </h3>
+            <nav aria-label="breadcrumb">
+                    <ol class="flex gap-2 text-sm text-gray-500 mt-1">
+                        <li><a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition-colors">Admin</a></li>
+                        <li class="before:content-['/'] before:mr-2 text-gray-400"></li>
+                        <li><a href="/admin/menu" class="hover:text-blue-600 transition-colors">Menu</a></li>
+                        <li class="before:content-['/'] before:mr-2 text-gray-400"></li>
+                        <li class="text-gray-700 font-medium">{{ $titlePage }}</li>
+                </ol>
+            </nav>
+        </div>
+
     </header>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card bg-white" x-data="menuForm()">
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Form Section -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="p-4 border-b  border-gray-100 bg-slate-800">
+                    <h5 class="font-bold text-white flex items-center gap-2">
+                        <i class="bi bi-plus-square-dotted text-blue-600"></i> Create New Menu
+                    </h5>
+                </div>
 
-                <div class="card-body">
-                    <x-suryacms::session-status />
+                <div class="p-6">
+                <x-suryacms::session-status />
 
-                    <form wire:submit.prevent="storeMenu">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="category" class="form-label fw-bold">Grup Menu</label>
-                            <div id="category-container">
-                                <template x-if="!isAddingNewCategory">
-                                    <select class="form-select" id="category-select" wire:model.defer="category"
-                                        x-model="selectedCategory" @change="handleCategoryChange">
-                                        <option value="">Select a menu</option>
-                                        @foreach ($categoriesmenu as $cat)
-                                        <option value="{{ $cat }}">{{ $cat }}</option>
+                <form wire:submit.prevent="storeMenu" class="space-y-4" x-data="menuForm()" x-cloak>
+                    @csrf
+
+                    <!-- Menu Group -->
+                    <div>
+                        <label for="category" class="block text-sm font-bold text-gray-900 mb-2">Grup Menu</label>
+                        <div id="category-container">
+                            <template x-if="!isAddingNewCategory">
+                                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" id="category-select" wire:model.defer="category"
+                                    x-model="selectedCategory" @change="handleCategoryChange">
+                                    <option value="">Select a menu</option>
+                                    @foreach ($categoriesmenu as $cat)
+                                    <option value="{{ $cat }}">{{ $cat }}</option>
+                                    @endforeach
+                                    @if ($setting->is_multilingual == 'Yes')
+                                        @foreach ($language as $language )
+                                            <option value="{{ $language->name }}">{{ $language->name }}</option>
                                         @endforeach
-                                        @if ($setting->is_multilingual == 'Yes')
-
-                                            @foreach ($language as $language )
-                                                <option value="{{ $language->name }}">{{ $language->name }}</option>
-
-                                            @endforeach
-                                        @endif
-                                        <option value="new">Add New Menu</option>
-                                    </select>
-                                </template>
-                                <template x-if="isAddingNewCategory">
-                                    <div>
-                                        <input type="text" class="form-control mt-2" id="category-input"
-                                            wire:model.defer="category" x-model="newCategory"
-                                            placeholder="Enter new category">
-                                        <button type="button" class="btn btn-secondary mt-2"
-                                            @click="cancelNewCategory">Cancel</button>
-                                    </div>
-                                </template>
-                            </div>
+                                    @endif
+                                    <option value="new">Add New Menu</option>
+                                </select>
+                            </template>
+                            <template x-if="isAddingNewCategory">
+                                <div class="flex gap-2">
+                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" id="category-input"
+                                       wire:model.defer="category" x-model="newCategory"
+                                        placeholder="Enter new category">
+                                    <button type="button" class="px-3 py-2 bg-gray-100 text-red-600 rounded-lg hover:bg-red-200" @click="cancelNewCategory">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </template>
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="type" class="form-label fw-bold">Type</label>
-                            <select class="form-select" id="type" wire:model.defer="type" x-model="selectedType"
+                    <!-- Type Select -->
+                    <div>
+                        <label for="type" class="block text-sm font-bold text-gray-900 mb-2">Type</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white" id="type" wire:model.defer="type" x-model="selectedType"
                                 @change="toggleLinkInput" required>
-                                <option value="" selected>Select</option>
-                                <option value="post">Post</option>
-                                <option value="page">Page</option>
-                                <option value="categoryPost">Category Post</option>
-                                <option value="custom">Custom</option>
-                            </select>
-                        </div>
+                            <option value="" selected>Select</option>
+                            <option value="post">Post</option>
+                            <option value="page">Page</option>
+                            <option value="categoryPost">Category Post</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
 
-                        <div class="mb-3" id="post-wrapper" x-show="selectedType === 'post'">
-                            <label for="post" class="form-label fw-bold">Select Post</label>
-                            <select class="form-select" id="post" wire:model="link" x-model="selectedPost"
+                    <!-- Post Select -->
+                    <div class="space-y-2" x-show="selectedType === 'post'" x-transition>
+                        <label for="post" class="block text-sm font-bold text-gray-900">Select Post</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white" id="post"
+                            wire:model="link" x-model="selectedPost"
                                 @change="updateLink">
-                                <option value="">Select Post</option>
-                                <template x-for="post in posts" :key="post.id">
+                            <option value="" selected>Select Post</option>
+                            <template x-for="post in posts" :key="post.id">
                                     <option :value="post.link" x-text="post.title"></option>
                                 </template>
-                            </select>
-                        </div>
+                        </select>
+                    </div>
 
-                        <div class="mb-3" id="page-wrapper" x-show="selectedType === 'page'">
-                            <label for="page" class="form-label fw-bold">Select Page</label>
-                            <select class="form-select" id="page" wire:model="link" x-model="selectedPage"
+                    <!-- Page Select -->
+                    <div class="space-y-2" x-show="selectedType === 'page'" x-transition>
+                        <label for="page" class="block text-sm font-bold text-gray-900">Select Page</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white" id="page"
+                            wire:model="link" x-model="selectedPage"
                                 @change="updateLink">
-                                <option value="">Select Page</option>
-                                <template x-for="page in pages" :key="page.id">
+                            <option value="" selected>Select Page</option>
+                            <template x-for="page in pages" :key="page.id">
                                     <option :value="page.link" x-text="page.title"></option>
                                 </template>
-                            </select>
-                        </div>
+                        </select>
+                    </div>
 
-                        <div class="mb-3" id="category-wrapper" x-show="selectedType === 'categoryPost'">
-                            <label for="categoryPost" class="form-label fw-bold">Select Category</label>
-                            <select class="form-select" id="categoryPost" wire:model="link"
+                    <!-- Category Post Select -->
+                    <div class="space-y-2" x-show="selectedType === 'categoryPost'" x-transition>
+                        <label for="categoryPost" class="block text-sm font-bold text-gray-900">Select Category</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white" id="categoryPost"
+                            wire:model="link"
                                 x-model="selectedCategoryPost" @change="updateLink">
-                                <option value="">Select Categories</option>
-                                <template x-for="category in categoryPost" :key="category.id">
+                            <option value="" selected>Select Categories</option>
+                            <template x-for="category in categoryPost" :key="category.id">
                                     <option :value="category.link" x-text="category.name"></option>
                                 </template>
-                            </select>
-                        </div>
+                        </select>
+                    </div>
 
-                        <div class="mb-3" id="link-wrapper">
-                            <label for="link" class="form-label fw-bold">Link</label>
-                            <input type="text" class="form-control" id="link" wire:model="link" x-model="customLink" @input="$wire.link = customLink">
+                    <!-- Link Input (Auto-populated or Manual) -->
+                    <div class="space-y-2">
+                        <label for="link" class="block text-sm font-bold text-gray-900">Link</label>
+                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" id="link" wire:model="link" x-model="customLink" @input="$wire.link = customLink">
 
-                        </div>
+                    </div>
 
-                         <div class="mb-3">
-                             <label for="name" class="form-label fw-bold">Name</label>
-                             <input type="text" class="form-control" id="name" wire:model.defer="name" x-model="getName" required>
-                         </div>
+                    <!-- Menu Name -->
+                    <div class="space-y-2">
+                        <label for="name" class="block text-sm font-bold text-gray-900">Name</label>
+                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" id="name" wire:model="name" x-model="getName" required>
+                    </div>
 
-                        <div class="mb-4">
-                            <label for="parent_id" class="form-label fw-bold">Parent Menu</label>
-                            <select class="form-select" id="parent_id" wire:model.defer="parent_id"
+                    <!-- Parent Menu -->
+                    <div class="space-y-2">
+                        <label for="parent_id" class="block text-sm font-bold text-gray-900">Parent Menu</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white" id="parent_id" wire:model.defer="parent_id"
                                 x-model="selectedParent">
-                                <option value="">No Parent</option>
-                                <template x-for="menu in filteredMenus" :key="menu.id">
-                                    <option :value="menu.id" x-text="menu.name"></option>
-                                </template>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <button type="submit" @click.prevent="syncToLivewireThenSubmit" class="btn btn-primary">Add to Menu</button>
+                            <option value="">No Parent</option>
+                            <template x-for="menu in filteredMenus" :key="menu.id">
+                                <option :value="menu.id" x-text="menu.name"></option>
+                            </template>
+                        </select>
+                    </div>
 
-                        </div>
-
-                    </form>
+                    <button type="submit" @click.prevent="syncToLivewireThenSubmit" class="w-full mt-4 px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2">
+                        <i class="bi bi-plus-lg"></i> Add to Menu
+                    </button>
+                </form>
                 </div>
             </div>
         </div>
-        <div class="col-md-8">
 
-            @if (session()->has('message'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                {{ session('message') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            @endif
+        <div class="lg:col-span-2">
 
-            <div class="card">
-                <div class="card-body">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+
                     <livewire:suryacms::admin.menu.menu-list />
-                </div>
             </div>
-
         </div>
     </div>
 
+    @push('scripts')
     <script>
         function menuForm() {
             return {
@@ -262,4 +279,6 @@
             };
         }
     </script>
+    @endpush
 </div>
+

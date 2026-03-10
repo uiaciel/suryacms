@@ -13,6 +13,8 @@ class MenuList extends Component
 {
     public $menus;
 
+    public $menux;
+
     public $categories;
 
     public $posts = [];
@@ -31,42 +33,40 @@ class MenuList extends Component
 
     public $language;
 
-    public $showModalEdit = false;
+    public $categoriesmenu = ['Primary', 'Secondary'];
+
+    // Modal state - sync dengan Alpine via @entangle
+    public $showEditModal = false;
 
     public $showCopyModal = false;
 
+    // Properties for copying menu group
     public $sourceCategory;
 
     public $newCategory;
 
+    public $newMenuName;
+    public $newMenuType = 'link';
+    public $newMenuLink;
+    public $newMenuCategory;
+    public $newMenuParentId;
+
+    // Properties for dynamic content
     protected $listeners = ['refreshMenus' => 'refreshMenus'];
 
     public function mount()
     {
-        $this->language = Language::select('code', 'name')->get();
+        $this->language = Language::All();
+        // $this->menus = Menu::orderBy('category')->orderBy('order')->get(); // Group menus by category
         $this->menus = Menu::whereNull('parent_id')
             ->with(['children' => function ($query) {
-                $query->orderBy('order');
+                $query->orderBy('order'); // Urutkan children berdasarkan order
             }])
-            ->orderBy('order')
+            ->orderBy('order') // Urutkan parent menu berdasarkan order
             ->get();
 
         // Load default options for modals
         $this->loadEditOptions();
-    }
-
-    public function openModal($category)
-    {
-        $this->showCopyModal = true;
-        $this->sourceCategory = $category;
-
-    }
-
-    public function closeModal()
-    {
-        $this->showModalEdit = false;
-        $this->showCopyModal = false;
-        $this->reset(['editMenuId', 'editName', 'editType', 'editLink', 'editParentId', 'sourceCategory', 'newCategory']);
     }
 
     public function loadEditOptions(): void
@@ -74,7 +74,7 @@ class MenuList extends Component
 
         $this->posts = Post::where('status', 'Publish')->get();
         $this->pages = Page::where('status', 'Publish')->get();
-        $this->categories = Category::select('id', 'name')->get();
+        $this->categories = Category::all();
 
     }
 
@@ -82,9 +82,9 @@ class MenuList extends Component
     {
         $this->menus = Menu::whereNull('parent_id')
             ->with(['children' => function ($query) {
-                $query->orderBy('order');
+                $query->orderBy('order'); // Urutkan children berdasarkan order
             }])
-            ->orderBy('order')
+            ->orderBy('order') // Urutkan parent menu berdasarkan order
             ->get();
     }
 
@@ -96,9 +96,9 @@ class MenuList extends Component
 
         $this->menus = Menu::whereNull('parent_id')
             ->with(['children' => function ($query) {
-                $query->orderBy('order');
+                $query->orderBy('order'); // Urutkan children berdasarkan order
             }])
-            ->orderBy('order')
+            ->orderBy('order') // Urutkan parent menu berdasarkan order
             ->get();
 
         session()->flash('message', 'Menu order updated successfully.');
@@ -110,12 +110,8 @@ class MenuList extends Component
             Menu::where('id', $menuId)->update(['order' => $index + 1]);
         }
 
-        $this->menus = Menu::whereNull('parent_id')
-            ->with(['children' => function ($query) {
-                $query->orderBy('order');
-            }])
-            ->orderBy('order')
-            ->get();
+        // Refresh menus to reflect the updated order
+        $this->refreshMenus();
 
         session()->flash('message', 'Submenu order updated successfully.');
     }
@@ -131,7 +127,7 @@ class MenuList extends Component
                 ->first();
 
             if ($previousMenu) {
-
+                // Swap orders
                 $currentOrder = $menu->order;
                 $menu->update(['order' => $previousMenu->order]);
                 $previousMenu->update(['order' => $currentOrder]);
@@ -152,7 +148,7 @@ class MenuList extends Component
                 ->first();
 
             if ($nextMenu) {
-
+                // Swap orders
                 $currentOrder = $menu->order;
                 $menu->update(['order' => $nextMenu->order]);
                 $nextMenu->update(['order' => $currentOrder]);
@@ -164,8 +160,10 @@ class MenuList extends Component
 
     public function showEditModal($menuId)
     {
+        // 1. Reset data lama agar tidak tercampur
+        $this->reset(['editMenuId', 'editName', 'editType', 'editLink', 'editParentId']);
 
-        $menu = Menu::findOrFail($menuId);
+        $menu = Menu::find($menuId);
 
         if ($menu) {
             $this->editMenuId = $menu->id;
@@ -177,10 +175,19 @@ class MenuList extends Component
             // Pastikan opsi (posts, pages, cat) sudah terisi
             $this->loadEditOptions();
 
-            $this->showModalEdit = true;
+            // Set modal to show
+            $this->showEditModal = true;
 
+            // Debug logging
+            \Log::info('showEditModal', [
+                'editMenuId' => $this->editMenuId,
+                'editName' => $this->editName,
+                'editType' => $this->editType,
+                'editLink' => $this->editLink,
+                'postsCount' => count($this->posts),
+                'pagesCount' => count($this->pages),
+            ]);
         }
-
     }
 
     public function updateMenu()
@@ -194,7 +201,7 @@ class MenuList extends Component
                 'parent_id' => $this->editParentId,
             ]);
             $this->refreshMenus();
-            $this->showModalEdit = false;
+            $this->showEditModal = false;  // Close modal via property
             session()->flash('message', 'Menu updated successfully.');
         }
     }
@@ -204,32 +211,28 @@ class MenuList extends Component
         $menu = Menu::find($menuId);
 
         if ($menu) {
-
+            // Delete all submenus if it's a parent menu
             if ($menu->children()->count() > 0) {
                 $menu->children()->delete();
             }
 
+            // Delete the menu itself
             $menu->delete();
 
+            // Refresh the menu list
             $this->refreshMenus();
 
+            // Flash success message
             session()->flash('message', 'Menu and its submenus deleted successfully.');
         } else {
             session()->flash('message', 'Menu not found.');
         }
     }
 
-    public function deleteMenuGroup($category)
+    public function showCopyModal($category)
     {
-        $menus = Menu::where('category', $category)->get();
-
-        if ($menus->count() > 0) {
-            Menu::where('category', $category)->delete();
-            $this->refreshMenus();
-            session()->flash('message', "Menu group '$category' deleted successfully.");
-        } else {
-            session()->flash('error', 'Menu group not found.');
-        }
+        $this->sourceCategory = $category;
+        $this->showCopyModal = true;
     }
 
     public function copyMenuGroup()
@@ -238,16 +241,18 @@ class MenuList extends Component
             'newCategory' => 'required|string|different:sourceCategory',
         ]);
 
+        // Get all menus from source category
         $sourceMenus = Menu::where('category', $this->sourceCategory)
             ->whereNull('parent_id')
             ->get();
 
         foreach ($sourceMenus as $sourceMenu) {
-
+            // Create a copy of the parent menu
             $newParentMenu = $sourceMenu->replicate();
             $newParentMenu->category = $this->newCategory;
             $newParentMenu->save();
 
+            // Copy children if they exist
             if ($sourceMenu->children->count() > 0) {
                 foreach ($sourceMenu->children as $child) {
                     $newChild = $child->replicate();
@@ -258,10 +263,35 @@ class MenuList extends Component
             }
         }
 
-        $this->showCopyModal = false;
+        $this->showCopyModal = false;  // Close modal via property
         $this->reset(['sourceCategory', 'newCategory']);
         $this->refreshMenus();
         session()->flash('message', 'Menu group copied successfully.');
+    }
+
+    public function addMenu()
+    {
+        $this->validate([
+            'newMenuName' => 'required|string',
+            'newMenuCategory' => 'required|string',
+            'newMenuType' => 'required|string',
+            'newMenuLink' => 'required|string',
+        ]);
+
+        Menu::create([
+            'name' => $this->newMenuName,
+            'category' => $this->newMenuCategory,
+            'type' => $this->newMenuType,
+            'link' => $this->newMenuLink,
+            'parent_id' => $this->newMenuParentId,
+            'order' => Menu::where('parent_id', $this->newMenuParentId)->max('order') + 1,
+        ]);
+
+        $this->reset(['newMenuName', 'newMenuType', 'newMenuLink', 'newMenuCategory', 'newMenuParentId']);
+        $this->newMenuType = 'link';
+        $this->refreshMenus();
+
+        session()->flash('message', 'Menu added successfully.');
     }
 
     public function render()

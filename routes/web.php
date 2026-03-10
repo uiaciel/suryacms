@@ -2,8 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Uiaciel\SuryaCms\Http\Controllers\AboutController;
 use Uiaciel\SuryaCms\Http\Controllers\AdminController;
 use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
+use Uiaciel\SuryaCms\Http\Controllers\DocumentationController;
 use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
 use Uiaciel\SuryaCms\Http\Livewire\Admin;
@@ -37,6 +39,10 @@ Route::prefix('admin')
     ->middleware(['web', 'auth'])
     ->group(function () {
         Route::get('/', Admin::class)->name('admin');
+        Route::get('/', Admin::class)->name('dashboard');
+
+        Route::get('about', [AboutController::class, 'index'])->name('about');
+        Route::get('documentation', [DocumentationController::class, 'index'])->name('documentation');
 
         Route::get('setting', SettingWeb::class)->name('setting');
         Route::get('file-check', FileCheck::class)->name('file-check');

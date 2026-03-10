@@ -1,26 +1,29 @@
-<div class="container-fluid">
+<div class="w-full">
     <x-suryacms::import-export-offcanvas />
 
-    <header class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div class="d-flex flex-wrap align-items-center gap-3">
-            <h3 class="fw-bold mb-0 text-dark">Pages</h3>
-            <a href="{{ route('admin.page.create') }}" class="btn btn-primary rounded-pill px-3 shadow-sm btn-sm btn-md-base">
-                <i class="bi bi-plus-lg me-2"></i>Create New Page
+    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <h3 class="font-bold text-gray-800 text-2xl mb-0">Pages</h3>
+            <a href="{{ route('admin.page.create') }}" class="px-4 py-2 bg-blue-600 text-white rounded-full shadow-sm text-sm hover:bg-blue-700 transition">
+                <i class="fas fa-plus mr-2"></i>Create New Page
             </a>
         </div>
 
-        <nav aria-label="breadcrumb" class="d-none d-sm-block">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Admin</a></li>
-                <li class="breadcrumb-item"><a href="/admin/pages" class="text-decoration-none">Pages</a></li>
-                <li class="breadcrumb-item active">{{ $titlePage }}</li>
+        <nav aria-label="breadcrumb" class="hidden sm:block">
+            <ol class="flex gap-2 text-sm text-gray-600">
+                <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
+                <li>/</li>
+                <li><a href="/admin/pages" class="text-blue-600 hover:text-blue-700">Pages</a></li>
+                <li>/</li>
+                <li class="text-gray-600">{{ $titlePage }}</li>
             </ol>
         </nav>
     </header>
+
     <x-suryacms::session-status />
 
-    <div class="card border-0 shadow rounded">
-        <div class="card-body" x-data="{
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div class="p-6" x-data="{
                 search: '',
                 phpFormat: '{{ get_date_format() ?? 'm/d/Y' }}',
                 format_tanggal(dateString) {
@@ -50,88 +53,85 @@
                 }
             }">
 
-            {{-- Search Section --}}
-            <div class="mb-4">
-                <div class="input-group" style="max-width: 400px;">
-                    <span class="input-group-text border-end-0 bg-transparent"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control border-start-0 ps-1" placeholder="Search pages..." x-model.debounce.300ms="search">
+            <div class="flex justify-between items-center mb-6">
+                <h5 class="font-bold text-lg text-blue-600 mb-0">All Pages</h5>
+            </div>
+
+            {{-- Search and Filter Section --}}
+            <div class="p-4 rounded-lg border border-blue-200 bg-blue-50 mb-6">
+                <div class="max-w-md">
+                    <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <div class="flex items-center border border-gray-300 rounded-lg bg-white">
+                        <span class="px-3 text-gray-400"><i class="fas fa-search"></i></span>
+                        <input type="text" id="search-input" class="w-full px-3 py-2 border-0 focus:outline-none focus:ring-0" placeholder="Search by title or status..." x-model.debounce.300ms="search">
+                    </div>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+            <div class="overflow-x-auto">
+                <table class="w-full">
                     <thead>
-                        <tr>
-                            <th scope="col" style="width: 50px;">#</th>
-                            <th scope="col">Title</th>
+                        <tr class="border-b border-gray-200">
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">#</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">Title</th>
                             @if ($setting->is_multilingual == 'Yes')
-                            <th scope="col" class="text-center">Lang</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-700 text-sm">Lang</th>
                             @endif
-                            <th scope="col" class="text-center">PDF</th>
-                            <th scope="col">Date Publish</th>
-                            <th scope="col">Status</th>
-                            <th scope="col" class="text-end">Actions</th>
+                            <th class="px-4 py-3 text-center font-semibold text-gray-700 text-sm">PDF</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">Date Publish</th>
+                            <th class="px-4 py-3 text-left font-semibold text-gray-700 text-sm">Status</th>
+                            <th class="px-4 py-3 text-right font-semibold text-gray-700 text-sm">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <template x-for="(page, index) in filteredPages()" :key="page.id">
-                            <tr>
-                                <td x-text="index + 1"></td>
-                                <td>
-                                    <div class="fw-bold text-dark" x-text="page.title"></div>
-                                    <small class="text-muted" x-text="'/' + page.slug"></small>
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 text-sm" x-text="index + 1"></td>
+                                <td class="px-4 py-3">
+                                    <div class="font-bold text-gray-800" x-text="page.title"></div>
+                                    <small class="text-gray-500" x-text="'/' + page.slug"></small><a :href="'/' + page.slug" class="ml-2 text-blue-600 hover:text-blue-800 transition" title="View" target="_blank">
+                                        <i class="fa-solid fa-up-right-from-square"></i>
+                                    </a>
                                 </td>
                                 @if ($setting->is_multilingual == 'Yes')
-                                <td class="text-center">
+                                <td class="px-4 py-3 text-center">
                                     <template x-if="page.language_id == 1">
-                                        <img src="/assets/images/id.png" width="20" alt="ID">
+                                        <img src="/assets/images/id.png" width="20" class="inline rounded" alt="ID">
                                     </template>
                                     <template x-if="page.language_id == 2">
-                                        <img src="/assets/images/us.png" width="20" alt="US">
+                                        <img src="/assets/images/us.png" width="20" class="inline rounded" alt="US">
                                     </template>
                                 </td>
                                 @endif
-                                <td class="text-center">
+                                <td class="px-4 py-3 text-center">
                                     <template x-if="page.pdf">
-                                        <a :href="'/storage/' + page.pdf" target="_blank" class="text-danger fs-5">
-                                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                                        <a :href="'/storage/' + page.pdf" target="_blank" class="text-red-600 text-xl">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
                                     </template>
                                     <template x-if="!page.pdf">
-                                        <i class="bi bi-dash text-muted"></i>
+                                        <i class="fas fa-minus text-gray-300"></i>
                                     </template>
                                 </td>
-                                <td x-text="format_tanggal(page.datepublish)"></td>
-                                <td>
-                                    <span :class="page.status === 'Publish' ? 'badge bg-primary' : 'badge bg-secondary'" x-text="page.status"></span>
+                                <td class="px-4 py-3 text-sm text-gray-600" x-text="format_tanggal(page.datepublish)"></td>
+                                <td class="px-4 py-3">
+                                    <span :class="page.status === 'Publish' ? 'px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium' : 'px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium'" x-text="page.status"></span>
                                 </td>
-                                <td class="text-end">
-                                    <div class="btn-group shadow-sm">
-                                        <template x-if="page.title.startsWith('Homepage')">
-                                            <a :href="'/admin/homepage-builder/' + page.slug" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-palette me-1"></i> Builder
-                                            </a>
-                                        </template>
-                                        <template x-if="!page.title.startsWith('Homepage')">
-                                            <div class="d-flex gap-1">
-                                                <a :href="'/admin/pages/edit/' + page.id" class="btn btn-sm btn-outline-primary" title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <a :href="'/' + page.slug" target="_blank" class="btn btn-sm btn-outline-success" title="View">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <button @click="if(confirm('Are you sure?')) $wire.deletePage(page.id)" class="btn btn-sm btn-outline-danger" title="Delete">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </template>
+                                <td class="px-4 py-3 text-right">
+                                    <div class="inline-flex gap-2">
+                                        <a :href="'/admin/pages/edit/' + page.id" class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" title="Edit">
+                                            <i class="fas fa-pencil-alt"></i>
+                                        </a>
+                                        <button @click="if(confirm('Are you sure?')) $wire.deletePage(page.id)" class="p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                         </template>
                         <template x-if="filteredPages().length === 0">
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No pages found.</td>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-500 text-sm">No pages found.</td>
                             </tr>
                         </template>
                     </tbody>
@@ -139,32 +139,4 @@
             </div>
         </div>
     </div>
-    @push('scripts')
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            const modalElement = document.getElementById('importExportModal');
-            const bsModal = new bootstrap.Modal(modalElement, {
-                keyboard: false // Opsional: mencegah penutupan dengan ESC
-            });
-
-            // Listener untuk event Livewire: tampilkan modal
-            @this.on('show-ie-modal', () => {
-                bsModal.show();
-            });
-
-            // Listener untuk event Livewire: sembunyikan modal
-            @this.on('hide-ie-modal', () => {
-                bsModal.hide();
-            });
-
-            // Penting: Memastikan properti Livewire diperbarui ketika modal ditutup
-            // melalui interaksi Bootstrap (klik backdrop atau tombol 'x')
-            modalElement.addEventListener('hidden.bs.modal', function() {
-                @this.call('closeImportExportModal');
-            });
-        });
-
-    </script>
-
-    @endpush
 </div>

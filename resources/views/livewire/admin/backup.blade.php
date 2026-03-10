@@ -1,78 +1,63 @@
 <div>
-
-
-    <ul class="list-group list-group-flush small">
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <!-- Backup Item: Posts -->
-        <li class="list-group-item list-group-item-action py-3 px-4 d-flex justify-content-between align-items-center">
-            <div>
-                <strong class=" me-2">Data Posts:</strong>
-                <span class="text-muted">{{ $postscount }} Posts</span> <!-- Mock Data -->
-
+        <button wire:click="exportPost" wire:loading.attr="disabled" class="group flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-blue-200 hover:shadow-md transition-all duration-200 text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Posts Data</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">{{ $postscount }} Items</p>
+                </div>
             </div>
-            <button wire:click="exportPost" wire:loading.attr="disabled" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                <span wire:loading wire:target="exportPost" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-file-earmark-text me-1"></i> Export
-            </button>
-        </li>
+            <i class="fas fa-download text-gray-300 group-hover:text-blue-500 transition-colors" wire:loading.remove wire:target="exportPost"></i>
+            <i class="fas fa-spinner animate-spin text-blue-500" wire:loading wire:target="exportPost"></i>
+        </button>
 
         <!-- Backup Item: Pages -->
-        <li class="list-group-item list-group-item-action py-3 px-4 d-flex justify-content-between align-items-center">
-            <div>
-                <strong class=" me-2">Data Pages:</strong>
-                <span class="text-muted">{{ $pagescount }} Pages</span> <!-- Mock Data -->
-
+        <button wire:click="exportPage" wire:loading.attr="disabled" class="group flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-indigo-200 hover:shadow-md transition-all duration-200 text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <i class="fas fa-file-word"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Pages Data</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">{{ $pagescount }} Items</p>
+                </div>
             </div>
-            <button wire:click="exportPage" wire:loading.attr="disabled" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                <span wire:loading wire:target="exportPage" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-file-earmark-break me-1"></i> Export
-            </button>
-        </li>
+            <i class="fas fa-download text-gray-300 group-hover:text-indigo-500 transition-colors" wire:loading.remove wire:target="exportPage"></i>
+            <i class="fas fa-spinner animate-spin text-indigo-500" wire:loading wire:target="exportPage"></i>
+        </button>
 
         <!-- Backup Item: Messages -->
-        <li class="list-group-item list-group-item-action py-3 px-4 d-flex justify-content-between align-items-center">
-            <div>
-                <strong class="">Messages:</strong>
+        <button wire:click="exportInbox" wire:loading.attr="disabled" class="group flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-emerald-200 hover:shadow-md transition-all duration-200 text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Messages</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Inbox Export</p>
+                </div>
             </div>
-            <button wire:click="exportInbox" wire:loading.attr="disabled" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                <span wire:loading wire:target="exportInbox" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-inbox me-1"></i> Export
-            </button>
-        </li>
-
-        <!-- Backup Item: Gallery -->
-        <li class="list-group-item list-group-item-action py-3 px-4 d-flex justify-content-between align-items-center">
-            <div>
-                <strong class="">Data Gallery:</strong>
-            </div>
-            <button wire:click="exportGallery" wire:loading.attr="disabled" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                <span wire:loading wire:target="exportGallery" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-images me-1"></i> Export
-            </button>
-        </li>
-
-        <!-- Backup Item: Menu -->
-        <li class="list-group-item list-group-item-action py-3 px-4 d-flex justify-content-between align-items-center">
-            <div>
-                <strong class="">Data Menu:</strong>
-            </div>
-            <button wire:click="exportMenu" wire:loading.attr="disabled" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                <span wire:loading wire:target="exportMenu" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-list-ul me-1"></i> Export
-            </button>
-        </li>
+            <i class="fas fa-download text-gray-300 group-hover:text-emerald-500 transition-colors" wire:loading.remove wire:target="exportInbox"></i>
+            <i class="fas fa-spinner animate-spin text-emerald-500" wire:loading wire:target="exportInbox"></i>
+        </button>
 
         <!-- Backup Item: Settings -->
-        <li class="list-group-item list-group-item-action py-3 px-4 d-flex justify-content-between align-items-center">
-            <div>
-                <strong class="">Settings:</strong>
+        <button wire:click="exportSetting" wire:loading.attr="disabled" class="group flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-orange-200 hover:shadow-md transition-all duration-200 text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-gray-800">Settings</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-wider">Config Backup</p>
+                </div>
             </div>
-            <button wire:click="exportSetting" wire:loading.attr="disabled" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
-                <span wire:loading wire:target="exportSetting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                <i class="bi bi-sliders me-1"></i> Export
-            </button>
-        </li>
-
-    </ul>
-
+            <i class="fas fa-download text-gray-300 group-hover:text-orange-500 transition-colors" wire:loading.remove wire:target="exportSetting"></i>
+            <i class="fas fa-spinner animate-spin text-orange-500" wire:loading wire:target="exportSetting"></i>
+        </button>
+    </div>
 </div>

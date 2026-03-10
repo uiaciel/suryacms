@@ -1,40 +1,70 @@
 <div>
     @if($showModal)
-    <div class="modal-backdrop fade show"></div>
+    <div class="fixed inset-0 z-40 bg-black/50 transition-opacity"></div>
 
-    <div class="modal fade show d-block" tabindex="-1" aria-labelledby="YoutubeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="YoutubeModalLabel">Select Video from Youtube Gallery</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                        wire:click="closeModal"></button>
-                </div>
-                <div class="modal-body">
-                    @if (count($videosFromDb) > 0)
-                    <div class="list-group list-group-flush border rounded-3 p-2 mb-3"
-                        style="max-height: 250px; overflow-y: auto;">
-                        @foreach ($videosFromDb as $video)
-                        <li class="list-group-item d-flex align-items-center justify-content-between">
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="relative w-full max-w-5xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
 
-                            @if (!empty($video['thumbnail_url']))
-                            <img src="{{ $video['thumbnail_url'] }}" alt="{{ $video['title'] }}"
-                                class="img-thumbnail me-3" style="width: 80px; height: 50px; object-fit: cover;">
-                            @endif
-                            <span class="me-auto text-truncate">{{ $video['title'] }}</span>
-                            <button type="button" onclick="copyImageUrlToClipboard('{{ $video['video_url'] }}')"
-                                class="btn btn-success btn-sm ms-2">
-                                Copy URL
-                            </button>
-                        </li>
-                        @endforeach
-                    </div>
-                    @else
-                    <p class="text-muted">No videos found in the database.</p>
-                    @endif
-                </div>
-
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-bold text-gray-800" id="YoutubeModalLabel">
+                    Select Video from Youtube Gallery
+                </h3>
+                <button type="button"
+                    class="text-gray-400 hover:text-gray-600 transition-colors text-2xl"
+                    wire:click="closeModal">
+                    &times;
+                </button>
             </div>
+
+            <div class="p-4 md:p-6 overflow-hidden">
+                @if (count($videosFromDb) > 0)
+                <div class="space-y-1 overflow-y-auto border rounded-lg divide-y divide-gray-100 shadow-sm"
+                     style="max-height: 400px;">
+
+                    @foreach ($videosFromDb as $video)
+                    <div class="flex items-center p-3 hover:bg-gray-50 transition-colors group">
+
+                        @if (!empty($video['thumbnail_url']))
+                        <div class="flex-shrink-0">
+                            <img src="{{ $video['thumbnail_url'] }}" alt="{{ $video['title'] }}"
+                                 class="w-20 h-12 rounded object-cover border border-gray-200">
+                        </div>
+                        @endif
+
+                        <div class="flex-grow mx-4 min-w-0">
+                            <span class="block text-sm font-medium text-gray-700 truncate">
+                                {{ $video['title'] }}
+                            </span>
+                        </div>
+
+                        <div class="flex-shrink-0">
+                            <button type="button"
+                                wire:click="selectVideo({{ $video['id'] }})"
+                                class="inline-flex items-center px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-md transition-all shadow-sm">
+                                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Insert Video
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+
+                </div>
+                @else
+                <div class="text-center py-10 border-2 border-dashed border-gray-200 rounded-lg">
+                    <p class="text-gray-400 italic">No videos found in the database.</p>
+                </div>
+                @endif
+            </div>
+
+            <div class="p-4 border-t bg-gray-50 flex justify-end rounded-b-xl">
+                <button wire:click="closeModal"
+                    class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-100 transition-colors shadow-sm">
+                    Close
+                </button>
+            </div>
+
         </div>
     </div>
     @endif

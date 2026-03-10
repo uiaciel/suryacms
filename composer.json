@@ -16,7 +16,9 @@
     "maatwebsite/excel": "^3.1",
     "spatie/pdf-to-image": "^3.1",
     "barryvdh/laravel-dompdf": "^3.1",
-    "intervention/image-laravel": "^1.5"
+    "intervention/image-laravel": "^1.5",
+    "symfony/dom-crawler": "^7.4",
+    "symfony/http-client": "^7.4"
   },
   "autoload": {
     "files": [
