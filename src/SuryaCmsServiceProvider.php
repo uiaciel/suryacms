@@ -50,27 +50,6 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
         $this->shareViewData();
 
-        // Register admin menu for Themes
-        if (function_exists('register_admin_menupackage')) {
-            register_admin_menupackage('Themes', [
-                [
-                    'label' => 'All Themes',
-                    'icon' => 'bi bi-easel2-fill',
-                    'route' => '/admin/themes',
-                ],
-                [
-                    'label' => 'Editor',
-                    'icon' => 'bi bi-code',
-                    'route' => '/admin/themes/editor',
-                ],
-                [
-                    'label' => 'Generate',
-                    'icon' => 'bi bi-palette2',
-                    'route' => '/admin/themes/generate',
-                ],
-
-            ]);
-        }
     }
 
     public function register(): void {}

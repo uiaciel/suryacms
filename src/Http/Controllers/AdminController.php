@@ -11,6 +11,7 @@ use Intervention\Image\Drivers\Gd\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Laravel\Facades\Image;
 use Uiaciel\SuryaCms\Models\Gallery;
+use Uiaciel\SuryaCms\Models\Page;
 use ZipArchive;
 
 class AdminController extends Controller
@@ -226,5 +227,15 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to update gallery: '.$e->getMessage());
         }
+    }
+
+    public function pagebuilder()
+    {
+        $titlePage = 'Page Builder';
+
+        return view('suryacms::livewire.admin.page-builder.index', [
+            'titlePage' => $titlePage,
+            'pagesbuilder' => Page::whereNotNull('html')->get(),
+        ]);
     }
 }

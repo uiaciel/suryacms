@@ -179,40 +179,166 @@
 
             <!-- Languages Section -->
             <div class="mb-6">
-                <!-- Languages Card -->
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" x-data="{ langOpen: false }">
                     <button @click="langOpen = !langOpen" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
                         <h3 class="text-lg font-bold flex items-center gap-2">
                             <i class="fas fa-language"></i> Languages
                         </h3>
                         <i class="fas fa-chevron-down transition-transform" :class="langOpen && 'rotate-180'"></i>
                     </button>
-                    <div x-show="langOpen" class="p-5">
+
+                    <div x-show="langOpen" x-cloak class="p-5">
                         <div class="grid md:grid-cols-2 gap-8">
                             <div>
                                 <form wire:submit.prevent="{{ $isLanguageEditMode ? 'updateLanguage' : 'saveLanguage' }}">
                                     <label class="block text-sm font-bold text-gray-700 mb-2">{{ $isLanguageEditMode ? 'Edit Language' : 'Add Language' }}</label>
-                                    <div class="space-y-2 mb-2">
-                                        <input type="text" wire:model="languageName" placeholder="Language Name (e.g. English)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <input type="text" wire:model="languageCode" placeholder="Language Code (e.g. en)" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+                                    <div class="space-y-3 mb-4">
+                                        <div>
+                                            <select id="languageSelect"
+                                                    wire:model="languageCode"
+                                                    x-on:change="$wire.set('languageName', $el.options[$el.selectedIndex].text)"
+                                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                                <option value="">-- Select Language --</option>
+
+                                                <optgroup label="Favorites">
+                                                    <option value="id">Indonesian</option>
+                                                    <option value="en">English</option>
+                                                </optgroup>
+
+                                                <optgroup label="All Languages">
+                                                    <option value="af">Afrikaans</option>
+                                                    <option value="sq">Albanian</option>
+                                                    <option value="am">Amharic</option>
+                                                    <option value="ar">Arabic</option>
+                                                    <option value="hy">Armenian</option>
+                                                    <option value="az">Azerbaijani</option>
+                                                    <option value="eu">Basque</option>
+                                                    <option value="be">Belarusian</option>
+                                                    <option value="bn">Bengali</option>
+                                                    <option value="bs">Bosnian</option>
+                                                    <option value="bg">Bulgarian</option>
+                                                    <option value="ca">Catalan</option>
+                                                    <option value="ceb">Cebuano</option>
+                                                    <option value="zh">Chinese (Simplified)</option>
+                                                    <option value="zh-TW">Chinese (Traditional)</option>
+                                                    <option value="hr">Croatian</option>
+                                                    <option value="cs">Czech</option>
+                                                    <option value="da">Danish</option>
+                                                    <option value="nl">Dutch</option>
+                                                    <option value="eo">Esperanto</option>
+                                                    <option value="et">Estonian</option>
+                                                    <option value="tl">Filipino</option>
+                                                    <option value="fi">Finnish</option>
+                                                    <option value="fr">French</option>
+                                                    <option value="gl">Galician</option>
+                                                    <option value="ka">Georgian</option>
+                                                    <option value="de">German</option>
+                                                    <option value="el">Greek</option>
+                                                    <option value="gu">Gujarati</option>
+                                                    <option value="ht">Haitian Creole</option>
+                                                    <option value="ha">Hausa</option>
+                                                    <option value="haw">Hawaiian</option>
+                                                    <option value="iw">Hebrew</option>
+                                                    <option value="hi">Hindi</option>
+                                                    <option value="hmn">Hmong</option>
+                                                    <option value="hu">Hungarian</option>
+                                                    <option value="is">Icelandic</option>
+                                                    <option value="ig">Igbo</option>
+                                                    <option value="id">Indonesian</option>
+                                                    <option value="ga">Irish</option>
+                                                    <option value="it">Italian</option>
+                                                    <option value="ja">Japanese</option>
+                                                    <option value="jw">Javanese</option>
+                                                    <option value="kn">Kannada</option>
+                                                    <option value="kk">Kazakh</option>
+                                                    <option value="km">Khmer</option>
+                                                    <option value="ko">Korean</option>
+                                                    <option value="ku">Kurdish (Kurmanji)</option>
+                                                    <option value="ky">Kyrgyz</option>
+                                                    <option value="lo">Lao</option>
+                                                    <option value="la">Latin</option>
+                                                    <option value="lv">Latvian</option>
+                                                    <option value="lt">Lithuanian</option>
+                                                    <option value="lb">Luxembourgish</option>
+                                                    <option value="mk">Macedonian</option>
+                                                    <option value="mg">Malagasy</option>
+                                                    <option value="ms">Malay</option>
+                                                    <option value="ml">Malayalam</option>
+                                                    <option value="mt">Maltese</option>
+                                                    <option value="mi">Maori</option>
+                                                    <option value="mr">Marathi</option>
+                                                    <option value="mn">Mongolian</option>
+                                                    <option value="my">Myanmar (Burmese)</option>
+                                                    <option value="ne">Nepali</option>
+                                                    <option value="no">Norwegian</option>
+                                                    <option value="ps">Pashto</option>
+                                                    <option value="fa">Persian</option>
+                                                    <option value="pl">Polish</option>
+                                                    <option value="pt">Portuguese</option>
+                                                    <option value="pa">Punjabi</option>
+                                                    <option value="ro">Romanian</option>
+                                                    <option value="ru">Russian</option>
+                                                    <option value="sm">Samoan</option>
+                                                    <option value="gd">Scots Gaelic</option>
+                                                    <option value="sr">Serbian</option>
+                                                    <option value="st">Sesotho</option>
+                                                    <option value="sn">Shona</option>
+                                                    <option value="sd">Sindhi</option>
+                                                    <option value="si">Sinhala</option>
+                                                    <option value="sk">Slovak</option>
+                                                    <option value="sl">Slovenian</option>
+                                                    <option value="so">Somali</option>
+                                                    <option value="es">Spanish</option>
+                                                    <option value="su">Sundanese</option>
+                                                    <option value="sw">Swahili</option>
+                                                    <option value="sv">Swedish</option>
+                                                    <option value="tg">Tajik</option>
+                                                    <option value="ta">Tamil</option>
+                                                    <option value="te">Telugu</option>
+                                                    <option value="th">Thai</option>
+                                                    <option value="tr">Turkish</option>
+                                                    <option value="uk">Ukrainian</option>
+                                                    <option value="ur">Urdu</option>
+                                                    <option value="uz">Uzbek</option>
+                                                    <option value="vi">Vietnamese</option>
+                                                    <option value="cy">Welsh</option>
+                                                    <option value="xh">Xhosa</option>
+                                                    <option value="yi">Yiddish</option>
+                                                    <option value="yo">Yoruba</option>
+                                                    <option value="zu">Zulu</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+
+                                        <input type="hidden" wire:model="languageName">
                                     </div>
-                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"><i class="fas fa-save mr-1"></i> {{ $isLanguageEditMode ? 'Update' : 'Save' }}</button>
-                                    @error('languageName') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                                    @error('languageCode') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+
+                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition">
+                                        <i class="fas fa-save mr-1"></i> {{ $isLanguageEditMode ? 'Update' : 'Save' }}
+                                    </button>
+
+                                    @error('languageName') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    @error('languageCode') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </form>
                             </div>
+
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Language List</label>
-                                <ul class="space-y-2 data-list">
-                                    @foreach ($languages as $language)
-                                        <li class=" flex justify-between items-center px-3 py-2 rounded-lg border border-transparent hover:border-gray-200 transition">
-                                            <span class="font-semibold text-gray-800">{{ $language->name }} <span class="text-gray-500">/ {{ $language->code }}</span></span>
+                                <ul class="space-y-2 data-list max-h-64 overflow-y-auto pr-2">
+                                    @forelse ($languages as $language)
+                                        <li class="flex justify-between items-center px-3 py-2 rounded-lg border border-transparent bg-gray-50 hover:border-gray-200 transition">
+                                            <span class="font-semibold text-gray-800">
+                                                {{ $language->name }} <span class="text-gray-500 font-normal">/ {{ $language->code }}</span>
+                                            </span>
                                             <div class="flex gap-2">
-                                                <button wire:click="editLanguage({{ $language->id }})" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
-                                                <button onclick="confirm('Hapus bahasa ini?') || event.stopImmediatePropagation()" wire:click="deleteLanguage({{ $language->id }})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"><i class="fas fa-trash"></i></button>
+                                                <button wire:click="editLanguage({{ $language->id }})" class="p-2 text-yellow-600 hover:bg-yellow-100 rounded-lg transition"><i class="fas fa-edit"></i></button>
+                                                <button onclick="confirm('Hapus bahasa ini?') || event.stopImmediatePropagation()" wire:click="deleteLanguage({{ $language->id }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"><i class="fas fa-trash"></i></button>
                                             </div>
                                         </li>
-                                    @endforeach
+                                    @empty
+                                        <li class="text-gray-400 text-sm italic">No languages added yet.</li>
+                                    @endforelse
                                 </ul>
                             </div>
                         </div>

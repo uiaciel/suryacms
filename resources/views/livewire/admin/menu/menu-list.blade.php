@@ -382,7 +382,7 @@
                         <label class="mb-1.5 block text-xs font-semibold text-slate-600">
                             Parent Menu <span class="font-normal text-slate-400">(optional)</span>
                         </label>
-                        <select wire:model="editParentId"
+                        <select wire:model.number="editParentId"
                             class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-2 focus:ring-slate-200">
                             <option value="">-- No Parent (top level) --</option>
                             @foreach ($menus as $parentMenu)

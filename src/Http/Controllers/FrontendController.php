@@ -94,7 +94,7 @@ class FrontendController extends Controller
         ]);
     }
 
-    public function category($lang, $slug)
+    public function category($slug, $lang = null)
     {
         $setting = Setting::first();
         $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';

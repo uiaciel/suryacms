@@ -110,12 +110,16 @@ $sections = is_array($themeData) && isset($themeData['sections']) ? $themeData['
         const config = {
             container: '#gjs',
             fromElement: false,
-            height: '600px',
+            height: '100%',
             width: 'auto',
             storageManager: false,
             canvas: {
+                shadowRender: true,
                 styles: themeAssets.styles.map(style => `/frontend/${path_theme}/${style}`),
                 scripts: themeAssets.scripts.map(script => `/frontend/${path_theme}/${script}`),
+            },
+            styleManager: {
+                clearProperties: 1,
             },
         };
 

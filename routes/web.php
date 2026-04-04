@@ -21,6 +21,7 @@ use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageCreate;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageEdit;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageIndex;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\HomepageBuilder;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\IndexPageBuilder;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostCreate;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostEdit;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostIndex;
@@ -92,6 +93,7 @@ Route::prefix('admin')
         Route::get('getmenus/categories', [FrontendController::class, 'getCategories'])->name('menus.getCategories');
 
         Route::get('homepage-builder/{pageSlug}', HomepageBuilder::class)->name('homepage.builder');
+        Route::get('page-builder', IndexPageBuilder::class)->name('page.builder');
 
         Route::get('search', SearchResult::class)->name('search.results');
         Route::get('users', [ProfileController::class, 'index'])->name('users.index');

@@ -5,7 +5,7 @@
         class="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 bg-yellow-500 text-white rounded-full shadow-2xl hover:bg-yellow-600 transition-all transform hover:scale-110 focus:outline-none"
         type="button"
     >
-        <i class="bi bi-question-circle-fill text-2xl"></i>
+        <i class="fa-solid fa-file-import text-2xl"></i>
     </button>
 
     <!-- Backdrop -->
@@ -46,8 +46,9 @@
                             <input type="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 @error('importFile') border-red-500 @enderror" wire:model="importFile" accept=".xls,.xlsx,.csv">
 
                             <button class="w-full mt-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50" type="submit" wire:loading.attr="disabled" wire:target="importFile">
-                                <span wire:loading.remove wire:target="importFile">Upload</span>
-                                <span wire:loading wire:target="importFile"><i class="fas fa-spinner fa-spin mr-2"></i>Uploading</span>
+                                <span wire:loading.remove wire:target="importFile, dataImport">Upload</span>
+                                <span wire:loading wire:target="importFile"><i class="fas fa-spinner fa-spin mr-2"></i>Sedang mengecek file...</span>
+                                <span wire:loading wire:target="dataImport"><i class="fas fa-spinner fa-spin mr-2"></i>Import sekarang...</span>
                             </button>
                         </div>
                         <p class="text-xs text-gray-500 mt-2">Format: xls, xlsx, csv</p>
@@ -77,8 +78,8 @@
 
             <h6 class="text-blue-600 font-bold mb-4 uppercase text-xs tracking-wider">Help & Support</h6>
             <div class="flex flex-col gap-3">
-                <a href="#" class="w-full text-center py-2 px-4 border border-cyan-500 text-cyan-600 rounded-lg hover:bg-cyan-50 transition font-medium">User Documentation</a>
-                <a href="#" class="w-full text-center py-2 px-4 border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition font-medium">Contact Support (Live Chat)</a>
+                <a href="http://localhost:8001/admin/documentation" class="w-full text-center py-2 px-4 border border-cyan-500 text-cyan-600 rounded-lg hover:bg-cyan-50 transition font-medium">User Documentation</a>
+                <a href="https://wa.me/6285693749533?text={{ urlencode('Halo, saya butuh dukungan untuk website ' . ($setting->url ?? '')) }}" target="_blank" class="w-full text-center py-2 px-4 border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition font-medium">Contact Support (Live Chat)</a>
             </div>
         </div>
     </div>
