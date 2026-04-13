@@ -4,11 +4,14 @@ namespace Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder;
 
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 
 class HomepageBuilder extends Component
 {
+    use WithFileUploads;
+
     public $html;
 
     public $css;
@@ -28,6 +31,8 @@ class HomepageBuilder extends Component
     public $pageSlug;
 
     public $blogs;
+
+    public $fileUpload;
 
     public function mount($pageSlug)
     {
@@ -50,6 +55,77 @@ class HomepageBuilder extends Component
     {
         $page = Page::findOrFail($this->pageId);
         return \Maatwebsite\Excel\Facades\Excel::download(new \Uiaciel\SuryaCms\Exports\PageExport($page), 'page-' . $this->slug . '.xlsx');
+    }
+
+    public function exportPageJson()
+    {
+        $page = Page::findOrFail($this->pageId);
+
+        $data = [
+            'title' => $page->title,
+            'slug' => $page->slug,
+            'html' => $page->html,
+            'css' => $page->css,
+        ];
+
+        return response()->streamDownload(
+            fn () => print(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)),
+            'page-' . $this->slug . '.json'
+        );
+    }
+
+    public function exportAllPages()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \Uiaciel\SuryaCms\Exports\PageExport(), 'pages-backup-' . date('Y-m-d-H-i-s') . '.xlsx');
+    }
+
+    public function importPageJson()
+    {
+        $this->validate([
+            'fileUpload' => 'required|file|mimes:json|max:5120', // max 5MB
+        ]);
+
+        try {
+            $content = file_get_contents($this->fileUpload->getRealPath());
+            $data = json_decode($content, true);
+
+            if (!$data || !isset($data['html']) || !isset($data['css'])) {
+                $this->dispatch('swal', [
+                    'icon' => 'error',
+                    'title' => 'Invalid JSON',
+                    'text' => 'JSON file harus berisi field "html" dan "css"',
+                ]);
+                return;
+            }
+
+            $page = Page::find($this->pageId);
+            if ($page) {
+                $page->update([
+                    'html' => $data['html'],
+                    'css' => $data['css'],
+                    'user_id' => Auth::id(),
+                ]);
+
+                $this->html = $data['html'];
+                $this->css = $data['css'];
+                $this->fileUpload = null;
+
+                $this->dispatch('swal', [
+                    'icon' => 'success',
+                    'title' => 'Success',
+                    'text' => 'Page HTML & CSS imported successfully!',
+                ]);
+
+                // Reload halaman setelah 1.5 detik
+                $this->dispatch('reload-page', delay: 1500);
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('swal', [
+                'icon' => 'error',
+                'title' => 'Error',
+                'text' => 'Failed to import JSON: ' . $e->getMessage(),
+            ]);
+        }
     }
 
     public function renderPageHtml($html)
@@ -112,6 +188,6 @@ class HomepageBuilder extends Component
     public function render()
     {
 
-        return view('suryacms::livewire.admin.homepage-builder')->layout('frontend::editor');
+        return view('suryacms::livewire.admin.homepage-builder.index')->layout('frontend::editor');
     }
 }

@@ -220,7 +220,7 @@ class SettingWeb extends Component
             $this->tiktok = $setting->tiktok;
             $this->url = $setting->url;
             $this->themes = $this->getAvailableThemes();
-            $this->active_theme = $setting->active_theme;
+            // $this->active_theme = $setting->active_theme;
             $this->homepage_type = $setting->homepage_type ?? 'index';
             $this->homepage_id = $setting->homepage_id;
             $this->pages = Page::pluck('title', 'id')->toArray();

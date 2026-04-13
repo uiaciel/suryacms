@@ -134,7 +134,7 @@ if (! function_exists('getFirstImage')) {
      * {{ getFirstImage($post) }}
      * {{ getFirstImage($post, 'img-fluid rounded', 'Post: ' . $post->title) }}
      */
-    function getFirstImage($item, string $class = 'img-thumbnail', string $alt = ''): string
+    function getFirstImage($item, string $class = 'img-thumbnail', string $alt = '' , string $style = ''): string
     {
         try {
             // Pastikan item memiliki method gambar()
@@ -161,10 +161,11 @@ if (! function_exists('getFirstImage')) {
 
             // Return HTML img tag
             return sprintf(
-                '<img src="%s" class="%s" alt="%s">',
+                '<img src="%s" class="%s" alt="%s" style="%s">',
                 htmlspecialchars($firstImage, ENT_QUOTES, 'UTF-8'),
                 htmlspecialchars($class, ENT_QUOTES, 'UTF-8'),
-                htmlspecialchars($altText, ENT_QUOTES, 'UTF-8')
+                htmlspecialchars($altText, ENT_QUOTES, 'UTF-8'),
+                htmlspecialchars($style, ENT_QUOTES, 'UTF-8')
             );
         } catch (\Exception $e) {
             Log::error('Error getting first image: '.$e->getMessage());

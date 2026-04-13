@@ -450,6 +450,10 @@ class PostEdit extends Component
                 // 'user_id' tidak perlu diupdate karena ini edit
             ]);
 
+            if($post->status === 'Publish') {
+                event(new \Uiaciel\SuryaCms\Events\PostPublished($post));
+                }
+
             session()->flash('success', 'Post updated successfully.');
             $this->dispatch('swal', [
                 'icon' => 'success',

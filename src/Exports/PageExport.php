@@ -12,8 +12,18 @@ class PageExport implements FromQuery, WithHeadings, WithMapping
 {
     use Exportable;
 
+    private $page = null;
+
+    public function __construct($page = null)
+    {
+        $this->page = $page;
+    }
+
     public function query()
     {
+        if ($this->page) {
+            return Page::query()->where('id', $this->page->id);
+        }
         return Page::query();
     }
 

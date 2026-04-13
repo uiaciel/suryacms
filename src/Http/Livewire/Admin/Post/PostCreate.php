@@ -426,6 +426,10 @@ class PostCreate extends Component
             'user_id' => Auth::id(),
         ]);
 
+        if($post->status === 'Publish') {
+           event(new \Uiaciel\SuryaCms\Events\PostPublished($post));
+        }
+
         session()->flash('success', 'Post created successfully.');
 
         $this->dispatch('swal', [
