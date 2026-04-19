@@ -20,8 +20,8 @@
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         [x-cloak] { display: none !important; }
 
-        .sidebar-scroll::-webkit-scrollbar { width: 3px; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: #40477d; border-radius: 10px; }
+        .sidebar-scroll::-webkit-scrollbar { width: 6px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
         .main-scroll::-webkit-scrollbar { width: 5px; }
         .main-scroll::-webkit-scrollbar-thumb { background: #c7d2e0; border-radius: 10px; }
 
@@ -89,7 +89,7 @@
             <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-sm">S</div>
-                    <span class="text-lg font-black tracking-tight">SURYA<span class="text-blue-400">CMS</span></span>
+                    <span class="text-lg font-black tracking-tight">Admin<span class="text-blue-400">Panel</span></span>
                 </div>
                 <button @click="sidebarOpen = false" class="lg:hidden text-white/60 hover:text-white">
                     <i class="fas fa-times text-xl"></i>
@@ -144,7 +144,7 @@
                         <i class="fas fa-layer-group mr-3 w-4 text-center"></i>
                         <span>All Themes</span>
                     </a>
-                    <a href="/admin/themes/editor" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/editor*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
+                    <a href="/admin/themes/editor" class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/editor*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
                         <i class="fas fa-code mr-3 w-4 text-center"></i>
                         <span>Editor</span>
                     </a>
@@ -164,7 +164,7 @@
                         </button>
                         <div x-show="open" x-collapse x-cloak class="mt-1 space-y-1">
                             @foreach (collect($pages)->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))->take(4) as $page)
-                                <a href="/admin/homepage-builder/{{ $page->slug }}" wire:navigate
+                                <a href="/admin/homepage-builder/{{ $page->slug }}"
                                     class="flex items-center pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition-all {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'text-blue-400 bg-white/5' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
                                     <i class="fas fa-circle text-[6px] mr-3"></i> {{ $page->title }}
                                 </a>
@@ -179,7 +179,7 @@
                     <a href="/admin/menu" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/menu*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
                         <i class="fas fa-bars mr-3 w-4 text-center"></i> Menu
                     </a>
-                    <a href="/admin/setting" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/setting*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
+                    <a href="/admin/setting" class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/setting*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
                         <i class="fas fa-cog mr-3 w-4 text-center"></i> Settings
                     </a>
                 </div>
@@ -256,7 +256,7 @@
                             <a href="{{ route('admin.about') }}" wire:navigate class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
                                 <i class="fas fa-info-circle mr-3 w-4 text-center text-gray-400"></i> About SuryaCMS
                             </a>
-                            <a href="{{ route('admin.documentation') }}" wire:navigate class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
+                            <a href="/admin/guide" wire:navigate class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fas fa-book mr-3 w-4 text-center text-gray-400"></i> Documentation
                             </a>
                             <a href="/admin/setting" wire:navigate class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">

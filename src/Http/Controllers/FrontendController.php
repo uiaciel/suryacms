@@ -27,7 +27,7 @@ class FrontendController extends Controller
 
             if ($page) {
                 return view('frontend::homepage', [
-                    'html'  => $page->html,
+                    'html'  => $this->processShortcodes($page->html),
                     'css'   => $page->css,
                     'title' => $page->title,
                 ]);
@@ -91,6 +91,8 @@ class FrontendController extends Controller
 
         return view('frontend::page.show', [
             'page' => $page,
+            'html' => $this->processShortcodes($page->html),
+            'css' => $page->css,
         ]);
     }
 

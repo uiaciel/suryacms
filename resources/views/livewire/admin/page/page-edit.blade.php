@@ -13,7 +13,7 @@
                         </div>
                         {{ $titlePage }}
                     </h1>
-                    <p class="text-gray-600 mt-2">Edit and update page content with rich multimedia</p>
+
                 </div>
 
                 {{-- Breadcrumb --}}
@@ -31,8 +31,26 @@
 
         <x-suryacms::session-status />
 
-        @if(!empty($html))
-             {{-- Main Form --}}
+        @if($html)
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center hover:shadow-md transition-shadow">
+            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Homepage Builder Content</h2>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                This page was designed using the visual Homepage Builder. Standard editor is disabled to prevent layout conflicts.
+            </p>
+            <a href="{{route('admin.homepage.builder', $slug)}}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
+                <i class="fas fa-magic"></i>
+                Edit with Homepage Builder
+            </a>
+        </div>
+        @else
+
+              {{-- Main Form --}}
         <form wire:submit.prevent="updatePage" x-data="{ languageId: @entangle('language_id') }" class="space-y-6">
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -316,24 +334,6 @@
             </div>
 
         </form>
-
-        @else
-
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center hover:shadow-md transition-shadow">
-            <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                </svg>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Page Builder Content</h2>
-            <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                This page was designed using the visual Page Builder. Standard editor is disabled to prevent layout conflicts.
-            </p>
-            <a href="{{route('admin.homepage.builder', $slug)}}" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
-                <i class="fas fa-magic"></i>
-                Edit with Page Builder
-            </a>
-        </div>
 
         @endif
 

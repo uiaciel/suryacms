@@ -187,6 +187,37 @@
             </div>
         </div>
 
+        <!-- Installed Packages Section -->
+        @if($packages && count($packages) > 0)
+        <div class="p-6 lg:p-8 border-t border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Installed Packages</h2>
+                <a href="{{ route('admin.guide.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                    <i class="fas fa-book"></i>
+                    View All Guides
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach($packages as $packageName => $package)
+                <a href="{{ $package['route'] }}" class="group p-4 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-blue-50 hover:to-blue-100 rounded-lg border border-gray-200 hover:border-blue-300 transition">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition">
+                            <i class="{{ $package['icon'] }}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-gray-900 group-hover:text-blue-600 transition">{{ $package['display_name'] }}</h3>
+                        </div>
+                    </div>
+                    @if($package['description'])
+                    <p class="text-xs text-gray-600 ml-13">{{ $package['description'] }}</p>
+                    @endif
+                </a>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         <!-- Footer -->
         <div class="px-6 lg:px-8 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
             <div class="text-sm text-gray-600">

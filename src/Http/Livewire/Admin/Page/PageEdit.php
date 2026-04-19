@@ -24,6 +24,8 @@ class PageEdit extends Component
 
     public $setting;
 
+    public $html;
+
     public $title;
 
     public $slug;
@@ -72,6 +74,7 @@ class PageEdit extends Component
             $this->translation_id = $page->translation_id;
             $this->pdf = $page->pdf;
             $this->status = $page->status;
+            $this->html = $page->html;
             $this->setting = Setting::first();
             $this->languages = Language::all();
             $this->galleriesPdf = Gallery::where('category', 'PDF')->get();

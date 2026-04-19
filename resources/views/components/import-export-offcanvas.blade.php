@@ -78,7 +78,7 @@
 
             <h6 class="text-blue-600 font-bold mb-4 uppercase text-xs tracking-wider">Help & Support</h6>
             <div class="flex flex-col gap-3">
-                <a href="http://localhost:8001/admin/documentation" class="w-full text-center py-2 px-4 border border-cyan-500 text-cyan-600 rounded-lg hover:bg-cyan-50 transition font-medium">User Documentation</a>
+                <a href="{{ route('admin.guide.index') }}" class="w-full text-center py-2 px-4 border border-cyan-500 text-cyan-600 rounded-lg hover:bg-cyan-50 transition font-medium">Package Guides</a>
                 <a href="https://wa.me/6285693749533?text={{ urlencode('Halo, saya butuh dukungan untuk website ' . ($setting->url ?? '')) }}" target="_blank" class="w-full text-center py-2 px-4 border border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition font-medium">Contact Support (Live Chat)</a>
             </div>
         </div>
