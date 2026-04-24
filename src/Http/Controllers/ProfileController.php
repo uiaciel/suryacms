@@ -52,7 +52,7 @@ class ProfileController extends Controller
         }
 
         // Handle profile update
-        $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
         ], [], [
@@ -60,7 +60,7 @@ class ProfileController extends Controller
             'email' => 'Email Address',
         ]);
 
-        $request->user()->fill($request->validated());
+        $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null;

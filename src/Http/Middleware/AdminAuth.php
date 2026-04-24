@@ -13,6 +13,10 @@ class AdminAuth
             return redirect('/login'); // atau route login khusus admin
         }
 
+        if ($request->is('dashboard') || $request->is('*/dashboard')) {
+            return redirect('/admin');
+        }
+
         return $next($request);
     }
 }

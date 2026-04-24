@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Livewire\Component;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCMS\Models\Menu;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
@@ -127,43 +128,55 @@ class Admin extends Component
     public function generateSitemap()
     {
 
-        $urls = [];
-        $now = Carbon::now()->toAtomString();
+        $urls = collect();
+        $now = now()->toAtomString();
 
-        $urls[] = [
-            'loc' => URL::to('/'),
+        $urls->push([
+            'loc' => url('/'),
             'lastmod' => $now,
             'priority' => '1.0',
-        ];
+        ]);
 
         $pages = Page::where('status', 'Publish')->get();
         foreach ($pages as $page) {
-            $urls[] = [
+            $urls->push([
                 'loc' => URL::to('/'.$page->slug),
                 'lastmod' => Carbon::parse($page->updated_at)->toAtomString(),
                 'priority' => '0.8',
-            ];
+            ]);
         }
 
         $posts = Post::where('status', 'Publish')->get();
         foreach ($posts as $post) {
-            $urls[] = [
+            $urls->push([
                 'loc' => URL::to('/media/'.$post->slug),
                 'lastmod' => Carbon::parse($post->updated_at)->toAtomString(),
                 'priority' => '0.7',
-            ];
+            ]);
         }
 
         $categories = Category::all();
         foreach ($categories as $cat) {
-            $urls[] = [
+            $urls->push([
                 'loc' => URL::to('/category/'.$cat->slug),
                 'lastmod' => $now,
                 'priority' => '0.6',
-            ];
+            ]);
         }
 
-        $xml = view('suryacms::livewire.admin.sitemap', compact('urls'))->render();
+        $menus = Menu::all();
+
+        foreach ($menus as $menu) {
+            $urls->push([
+                'loc' => url($menu->link),
+                'lastmod' => Carbon::parse($menu->updated_at)->toAtomString(),
+                'priority' => '0.5',
+            ]);
+        }
+
+        event(new \Uiaciel\SuryaCms\Events\SitemapGenerating($urls));
+
+        $xml = view('suryacms::livewire.admin.sitemap', ['urls' => $urls->toArray()])->render();
 
         File::put(public_path('sitemap.xml'), $xml);
 

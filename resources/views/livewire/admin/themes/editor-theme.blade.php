@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 py-6 px-4"
-     x-data="{ showVariableModal: false }">
+     x-data="{ showVariableModal: false, mobileSidebar: false, fullscreenEditor: false }">
 
     {{-- HEADER --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -98,10 +98,10 @@
     @endif
 
     {{-- MAIN LAYOUT --}}
-    <div class="flex gap-4 items-start">
+    <div class="flex flex-col lg:flex-row gap-4 items-start relative">
 
         {{-- EDITOR AREA --}}
-        <div class="flex-1 min-w-0">
+        <div class="flex-1 min-w-0 w-full order-1 mb-24 lg:mb-0">
             <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
 
                 {{-- Toolbar --}}
@@ -191,16 +191,16 @@
         </div>
 
         {{-- SIDEBAR --}}
-        <div class="w-56 shrink-0">
-            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm sticky top-6"
-                 style="max-height: calc(100vh - 5rem);">
+        <div class="fixed bottom-0 left-0 right-0 z-40 lg:relative lg:bottom-auto lg:w-56 lg:shrink-0 p-4 lg:p-0 bg-white/80 backdrop-blur-md lg:bg-transparent border-t lg:border-t-0 border-slate-200">
+            <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xl lg:shadow-sm lg:sticky lg:top-6">
 
-                <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50">
+                <div class="hidden lg:flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-slate-50">
                     <i class="fas fa-folder-tree text-amber-500 text-sm"></i>
                     <span class="text-slate-700 text-xs font-semibold">Daftar File</span>
                 </div>
 
-                <div class="overflow-y-auto" style="max-height: calc(100vh - 14rem);">
+                {{-- Desktop List --}}
+                <div class="hidden lg:block overflow-y-auto" style="max-height: calc(100vh - 14rem);">
                     @forelse($files as $file)
                         <button wire:click="selectFile('{{ $file['path'] }}')"
                                 class="w-full text-left px-3 py-2.5 border-b border-slate-50 transition-all border-l-2
@@ -228,10 +228,22 @@
                     @endforelse
                 </div>
 
-                <div class="p-3 border-t border-slate-100 bg-slate-50 space-y-2">
+                {{-- Mobile Select & Actions --}}
+                <div class="p-3 lg:border-t border-slate-100 bg-slate-50 flex flex-row lg:flex-col gap-2 items-center">
+                    <div class="flex-1 lg:hidden">
+                        <select class="w-full text-xs border-slate-200 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                                x-on:change="$wire.selectFile($event.target.value)">
+                            <option value="">-- Pilih File --</option>
+                            @foreach($files as $file)
+                                <option value="{{ $file['path'] }}" {{ $selectedFile === $file['path'] ? 'selected' : '' }}>
+                                    {{ $file['name'] }} ({{ number_format($file['size'] / 1024, 1) }} KB)
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button wire:click="saveFile" wire:loading.attr="disabled"
-                            class="w-full flex items-center justify-center gap-1.5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition-all shadow-sm shadow-emerald-100">
-                        <span wire:loading.remove wire:target="saveFile">
+                            class="lg:w-full flex items-center justify-center gap-1.5 px-4 lg:px-0 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-semibold rounded-lg transition-all shadow-sm shadow-emerald-100">
+                        <span wire:loading.remove wire:target="saveFile" class="flex items-center gap-1">
                             <i class="fas fa-save text-[10px]"></i> Save Changes
                         </span>
                         <span wire:loading wire:target="saveFile" class="flex items-center gap-1.5">
@@ -243,7 +255,7 @@
                         </span>
                     </button>
                     <button onclick="window.location.reload()"
-                            class="w-full flex items-center justify-center gap-1.5 py-2 border border-slate-200 hover:border-slate-300 hover:bg-white text-slate-500 hover:text-slate-700 text-xs font-medium rounded-lg transition-all">
+                            class="lg:w-full flex items-center justify-center gap-1.5 px-3 lg:px-0 py-2 border border-slate-200 hover:border-slate-300 hover:bg-white text-slate-500 hover:text-slate-700 text-xs font-medium rounded-lg transition-all">
                         <i class="fas fa-sync-alt text-[10px]"></i> Refresh
                     </button>
                 </div>

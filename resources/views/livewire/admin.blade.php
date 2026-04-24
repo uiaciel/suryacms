@@ -29,17 +29,15 @@
     </style>
     @endpush
 
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-wrap justify-between items-center mb-6">
         <div class="flex items-center gap-4">
             <img src="{{$setting->logo ?? '/frontend/default/www.png'}}" alt="Site Logo" class="w-12 h-12 rounded-full shadow-sm object-cover">
             <div>
-                <h1 class="text-2xl font-bold text-blue-600">{{ $setting->sitename ?? 'Admin Dashboard' }}</h1>
+                <h1 class="lg:text-2xl text-lg font-bold text-blue-600">{{ $setting->sitename ?? 'Admin Dashboard' }}</h1>
                 <p class="text-xs text-gray-400 mt-1">Selamat datang — {{ now()->format('l, j F Y') }}</p>
             </div>
         </div>
-        <a href="{{$setting->url}}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 transition shadow-sm text-sm font-semibold">
-            <span>{{$setting->url}}</span><i class="fas fa-external-link-alt text-sm"></i>
-        </a>
+
     </div>
 
     <div class="mb-4"> <x-suryacms::session-status /> </div>
@@ -102,245 +100,145 @@
                 </div>
             </div>
 
-            <!-- Maintenance Card -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <i class="fas fa-tools text-blue-600"></i> Site Maintenance
-                    </h3>
-                    <label class="flex items-center cursor-pointer">
-                        <div class="relative">
-                            <input type="checkbox" wire:model.live="site_maintenance" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <!-- Maintenance Mode Card -->
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+                <div class="px-6 py-5 flex justify-between items-center border-b border-gray-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 {{ $site_maintenance ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600' }} rounded-xl flex items-center justify-center transition-colors duration-300">
+                            <i class="fas {{ $site_maintenance ? 'fa-tools' : 'fa-globe' }} text-lg"></i>
                         </div>
-                        <span class="ml-3 text-sm font-medium text-gray-700">@if ($site_maintenance) <span class="px-3 py-1 text-xs font-bold bg-yellow-100 text-yellow-800 rounded-full">Active</span> @else <span class="px-3 py-1 text-xs font-bold bg-green-100 text-green-800 rounded-full">Inactive</span> @endif</span>
-                    </label>
+                        <div>
+                            <h3 class="text-base font-bold text-gray-900">Maintenance Mode</h3>
+                            <p class="text-xs text-gray-500">Manage public access to your website</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs font-bold uppercase tracking-wider {{ $site_maintenance ? 'text-amber-600' : 'text-emerald-600' }}">
+                            {{ $site_maintenance ? 'Enabled' : 'Live' }}
+                        </span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model.live="site_maintenance" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
                 </div>
-                <p class="text-sm text-gray-600 mb-3">Kontrol ketersediaan website Anda kepada pengunjung.</p>
-                @if ($site_maintenance)
-                    <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>Website Anda sedang dalam mode maintenance. Pengunjung akan melihat halaman maintenance.
-                    </div>
-                @else
-                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800">
-                        <i class="fas fa-check-circle mr-2"></i>Website Anda sedang aktif. Pengunjung dapat mengakses website dengan normal.
-                    </div>
-                @endif
+                <div class="px-6 py-4 bg-gray-50/50">
+                    @if ($site_maintenance)
+                        <div class="flex items-start gap-3 text-amber-800">
+                            <i class="fas fa-exclamation-triangle mt-0.5"></i>
+                            <p class="text-sm leading-relaxed"><strong>System Notice:</strong> The website is currently restricted. Visitors will be redirected to the maintenance landing page while administrative access remains active.</p>
+                        </div>
+                    @else
+                        <div class="flex items-start gap-3 text-emerald-800">
+                            <i class="fas fa-check-circle mt-0.5"></i>
+                            <p class="text-sm leading-relaxed"><strong>System Status:</strong> Your website is fully operational and accessible to the public. All features are performing as expected.</p>
+                        </div>
+                    @endif
+                </div>
             </div>
 
-            <!-- Categories Section -->
             <div class="mb-6">
                 <!-- Categories Card -->
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <button @click="open = !open" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
                         <h3 class="text-lg font-bold flex items-center gap-2">
-                            <i class="fas fa-tags"></i> Categories
+                            <i class="fas fa-tags"></i> Categories & Languages
                         </h3>
                         <i class="fas fa-chevron-down transition-transform" :class="open && 'rotate-180'"></i>
                     </button>
-                    <div x-show="open" class="p-5">
-                        <div class="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <form wire:submit.prevent="{{ $isEditMode ? 'updateCategory' : 'saveCategory' }}">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ $isEditMode ? 'Edit Category' : 'New Category' }}</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" wire:model="categoryName" placeholder="Category Name" class="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition"><i class="fas fa-save mr-1"></i> {{ $isEditMode ? 'Update' : 'Save' }}</button>
-                                    </div>
-                                    @error('categoryName') <span class="text-red-600 text-xs mt-1">{{ $message }}</span> @enderror
-                                </form>
+                    <div x-show="open" class="p-5 gap-3">
+                        <form wire:submit.prevent="{{ $isEditMode ? 'updateCategory' : 'saveCategory' }}" class="mb-6">
+                            <div class="flex gap-2">
+                                <input type="text" wire:model="categoryName" placeholder="Enter category name..." class="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                <button type="submit" class="px-2 py-1 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold transition shadow-sm flex items-center gap-2">
+                                    <i class="fas {{ $isEditMode ? 'fa-check' : 'fa-plus' }}"></i>
+                                    {{ $isEditMode ? 'Update' : 'Add' }}
+                                </button>
                             </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Category List</label>
-                                <ul class="space-y-2 data-list">
+                            @error('categoryName') <span class="text-red-600 text-xs mt-2 block ml-1">{{ $message }}</span> @enderror
+                        </form>
+
+                        <div class="overflow-hidden border border-gray-100 rounded-xl">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-gray-50 text-gray-600 font-semibold">
+                                    <tr>
+                                        <th class="px-4 py-3">Name</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50">
                                     @foreach ($categories as $category)
-                                        <li class=" flex justify-between items-center px-3 py-2 rounded-lg border border-transparent hover:border-gray-200 transition">
-                                            <div class="flex items-center gap-3">
-                                                <span class="font-semibold text-gray-800">{{ $category->name }}</span>
+                                        <tr class="hover:bg-gray-50/50 transition">
+                                            <td class="px-4 py-3 font-medium text-gray-800">{{ $category->name }}</td>
+                                            <td class="px-4 py-3">
                                                 @if ($category->status == 'Publish')
-                                                    <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">Published</span>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">Published</span>
                                                 @else
-                                                    <span class="px-2 py-1 text-xs font-semibold bg-yellow-100 text-yellow-800 rounded-full">Draft</span>
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Draft</span>
                                                 @endif
-                                            </div>
-                                            <div class="flex gap-2">
+                                            </td>
+                                            <td class="px-4 py-3 text-right flex justify-end gap-1">
                                                 <button wire:click="editCategory({{ $category->id }})" class="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
                                                 <button wire:click="changeStatus({{ $category->id }})" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fas fa-toggle-off"></i></button>
                                                 <button onclick="confirm('Hapus kategori ini?') || event.stopImmediatePropagation()" wire:click="deleteCategory({{ $category->id }})" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"><i class="fas fa-trash"></i></button>
-                                            </div>
-                                        </li>
+                                            </td>
+                                        </tr>
                                     @endforeach
-                                </ul>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                </div>
-            </div>
+                        <hr class="my-6 border-gray-200">
 
-            <!-- Languages Section -->
-            <div class="mb-6">
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden" x-data="{ langOpen: false }">
-                    <button @click="langOpen = !langOpen" class="w-full px-5 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white flex justify-between items-center hover:shadow-lg transition">
-                        <h3 class="text-lg font-bold flex items-center gap-2">
-                            <i class="fas fa-language"></i> Languages
-                        </h3>
-                        <i class="fas fa-chevron-down transition-transform" :class="langOpen && 'rotate-180'"></i>
-                    </button>
+                        <h3 class="text-lg text-bold my-4">Add Languages</h3>
 
-                    <div x-show="langOpen" x-cloak class="p-5">
-                        <div class="grid md:grid-cols-2 gap-8">
-                            <div>
-                                <form wire:submit.prevent="{{ $isLanguageEditMode ? 'updateLanguage' : 'saveLanguage' }}">
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">{{ $isLanguageEditMode ? 'Edit Language' : 'Add Language' }}</label>
-
-                                    <div class="space-y-3 mb-4">
-                                        <div>
-                                            <select id="languageSelect"
-                                                    wire:model="languageCode"
-                                                    x-on:change="$wire.set('languageName', $el.options[$el.selectedIndex].text)"
-                                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                                                <option value="">-- Select Language --</option>
-
-                                                <optgroup label="Favorites">
-                                                    <option value="id">Indonesian</option>
-                                                    <option value="en">English</option>
-                                                </optgroup>
-
-                                                <optgroup label="All Languages">
-                                                    <option value="af">Afrikaans</option>
-                                                    <option value="sq">Albanian</option>
-                                                    <option value="am">Amharic</option>
-                                                    <option value="ar">Arabic</option>
-                                                    <option value="hy">Armenian</option>
-                                                    <option value="az">Azerbaijani</option>
-                                                    <option value="eu">Basque</option>
-                                                    <option value="be">Belarusian</option>
-                                                    <option value="bn">Bengali</option>
-                                                    <option value="bs">Bosnian</option>
-                                                    <option value="bg">Bulgarian</option>
-                                                    <option value="ca">Catalan</option>
-                                                    <option value="ceb">Cebuano</option>
-                                                    <option value="zh">Chinese (Simplified)</option>
-                                                    <option value="zh-TW">Chinese (Traditional)</option>
-                                                    <option value="hr">Croatian</option>
-                                                    <option value="cs">Czech</option>
-                                                    <option value="da">Danish</option>
-                                                    <option value="nl">Dutch</option>
-                                                    <option value="eo">Esperanto</option>
-                                                    <option value="et">Estonian</option>
-                                                    <option value="tl">Filipino</option>
-                                                    <option value="fi">Finnish</option>
-                                                    <option value="fr">French</option>
-                                                    <option value="gl">Galician</option>
-                                                    <option value="ka">Georgian</option>
-                                                    <option value="de">German</option>
-                                                    <option value="el">Greek</option>
-                                                    <option value="gu">Gujarati</option>
-                                                    <option value="ht">Haitian Creole</option>
-                                                    <option value="ha">Hausa</option>
-                                                    <option value="haw">Hawaiian</option>
-                                                    <option value="iw">Hebrew</option>
-                                                    <option value="hi">Hindi</option>
-                                                    <option value="hmn">Hmong</option>
-                                                    <option value="hu">Hungarian</option>
-                                                    <option value="is">Icelandic</option>
-                                                    <option value="ig">Igbo</option>
-                                                    <option value="id">Indonesian</option>
-                                                    <option value="ga">Irish</option>
-                                                    <option value="it">Italian</option>
-                                                    <option value="ja">Japanese</option>
-                                                    <option value="jw">Javanese</option>
-                                                    <option value="kn">Kannada</option>
-                                                    <option value="kk">Kazakh</option>
-                                                    <option value="km">Khmer</option>
-                                                    <option value="ko">Korean</option>
-                                                    <option value="ku">Kurdish (Kurmanji)</option>
-                                                    <option value="ky">Kyrgyz</option>
-                                                    <option value="lo">Lao</option>
-                                                    <option value="la">Latin</option>
-                                                    <option value="lv">Latvian</option>
-                                                    <option value="lt">Lithuanian</option>
-                                                    <option value="lb">Luxembourgish</option>
-                                                    <option value="mk">Macedonian</option>
-                                                    <option value="mg">Malagasy</option>
-                                                    <option value="ms">Malay</option>
-                                                    <option value="ml">Malayalam</option>
-                                                    <option value="mt">Maltese</option>
-                                                    <option value="mi">Maori</option>
-                                                    <option value="mr">Marathi</option>
-                                                    <option value="mn">Mongolian</option>
-                                                    <option value="my">Myanmar (Burmese)</option>
-                                                    <option value="ne">Nepali</option>
-                                                    <option value="no">Norwegian</option>
-                                                    <option value="ps">Pashto</option>
-                                                    <option value="fa">Persian</option>
-                                                    <option value="pl">Polish</option>
-                                                    <option value="pt">Portuguese</option>
-                                                    <option value="pa">Punjabi</option>
-                                                    <option value="ro">Romanian</option>
-                                                    <option value="ru">Russian</option>
-                                                    <option value="sm">Samoan</option>
-                                                    <option value="gd">Scots Gaelic</option>
-                                                    <option value="sr">Serbian</option>
-                                                    <option value="st">Sesotho</option>
-                                                    <option value="sn">Shona</option>
-                                                    <option value="sd">Sindhi</option>
-                                                    <option value="si">Sinhala</option>
-                                                    <option value="sk">Slovak</option>
-                                                    <option value="sl">Slovenian</option>
-                                                    <option value="so">Somali</option>
-                                                    <option value="es">Spanish</option>
-                                                    <option value="su">Sundanese</option>
-                                                    <option value="sw">Swahili</option>
-                                                    <option value="sv">Swedish</option>
-                                                    <option value="tg">Tajik</option>
-                                                    <option value="ta">Tamil</option>
-                                                    <option value="te">Telugu</option>
-                                                    <option value="th">Thai</option>
-                                                    <option value="tr">Turkish</option>
-                                                    <option value="uk">Ukrainian</option>
-                                                    <option value="ur">Urdu</option>
-                                                    <option value="uz">Uzbek</option>
-                                                    <option value="vi">Vietnamese</option>
-                                                    <option value="cy">Welsh</option>
-                                                    <option value="xh">Xhosa</option>
-                                                    <option value="yi">Yiddish</option>
-                                                    <option value="yo">Yoruba</option>
-                                                    <option value="zu">Zulu</option>
-                                                </optgroup>
-                                            </select>
-                                        </div>
-
-                                        <input type="hidden" wire:model="languageName">
-                                    </div>
-
-                                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition">
-                                        <i class="fas fa-save mr-1"></i> {{ $isLanguageEditMode ? 'Update' : 'Save' }}
-                                    </button>
-
-                                    @error('languageName') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                    @error('languageCode') <span class="text-red-600 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </form>
+                        <form wire:submit.prevent="{{ $isLanguageEditMode ? 'updateLanguage' : 'saveLanguage' }}" class="mb-6">
+                            <div class="flex gap-2">
+                                <select id="languageSelect"
+                                        wire:model="languageCode"
+                                        x-on:change="$wire.set('languageName', $el.options[$el.selectedIndex].text)"
+                                        class="flex-1 px-2 py-1 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                    <option value="">-- Select Language --</option>
+                                    <optgroup label="Favorites">
+                                        <option value="id">Indonesian</option>
+                                        <option value="en">English</option>
+                                    </optgroup>
+                                    <optgroup label="All Languages">
+                                        <option value="fr">French</option>
+                                        <option value="de">German</option>
+                                        <option value="ja">Japanese</option>
+                                        <option value="ko">Korean</option>
+                                        <option value="zh">Chinese</option>
+                                        <option value="ar">Arabic</option>
+                                        <!-- ... other options ... -->
+                                    </optgroup>
+                                </select>
+                                <input type="hidden" wire:model="languageName">
+                                <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold transition shadow-sm flex items-center gap-2">
+                                    <i class="fas {{ $isLanguageEditMode ? 'fa-check' : 'fa-plus' }}"></i>
+                                    {{ $isLanguageEditMode ? 'Update' : 'Add' }}
+                                </button>
                             </div>
+                            @error('languageCode') <span class="text-red-600 text-xs mt-2 block ml-1">{{ $message }}</span> @enderror
+                        </form>
 
-                            <div>
-                                <label class="block text-sm font-bold text-gray-700 mb-2">Language List</label>
-                                <ul class="space-y-2 data-list max-h-64 overflow-y-auto pr-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                     @forelse ($languages as $language)
-                                        <li class="flex justify-between items-center px-3 py-2 rounded-lg border border-transparent bg-gray-50 hover:border-gray-200 transition">
-                                            <span class="font-semibold text-gray-800">
-                                                {{ $language->name }} <span class="text-gray-500 font-normal">/ {{ $language->code }}</span>
-                                            </span>
-                                            <div class="flex gap-2">
-                                                <button wire:click="editLanguage({{ $language->id }})" class="p-2 text-yellow-600 hover:bg-yellow-100 rounded-lg transition"><i class="fas fa-edit"></i></button>
-                                                <button onclick="confirm('Hapus bahasa ini?') || event.stopImmediatePropagation()" wire:click="deleteLanguage({{ $language->id }})" class="p-2 text-red-600 hover:bg-red-100 rounded-lg transition"><i class="fas fa-trash"></i></button>
+                                        <div class="flex justify-between items-center p-3 rounded-xl border border-gray-100 bg-gray-50/30 hover:bg-white hover:shadow-sm transition group">
+                                            <div class="flex flex-col">
+                                                <span class="font-bold text-gray-800 text-sm">{{ $language->name }}</span>
+                                                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">{{ $language->code }}</span>
                                             </div>
-                                        </li>
+                                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button wire:click="editLanguage({{ $language->id }})" class="p-1.5 text-yellow-600 hover:bg-yellow-50 rounded-lg"><i class="fas fa-edit text-xs"></i></button>
+                                                <button onclick="confirm('Hapus bahasa ini?') || event.stopImmediatePropagation()" wire:click="deleteLanguage({{ $language->id }})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg"><i class="fas fa-trash text-xs"></i></button>
+                                            </div>
+                                        </div>
                                     @empty
-                                        <li class="text-gray-400 text-sm italic">No languages added yet.</li>
+                                        <div class="col-span-full py-8 text-center text-gray-400 text-sm italic border-2 border-dashed border-gray-100 rounded-xl">
+                                            No languages added yet.
+                                        </div>
                                     @endforelse
-                                </ul>
-                            </div>
                         </div>
                     </div>
                 </div>

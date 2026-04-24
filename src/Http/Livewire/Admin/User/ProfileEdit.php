@@ -76,14 +76,14 @@ class ProfileEdit extends Component
     public function updateProfile()
     {
 
-        $this->validate([
+        $validated = $this->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,'.Auth::id(),
         ]);
 
         $user = User::find(Auth::id());
-        $user->name = $this->name;
-        $user->email = $this->email;
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
         $user->save();
 
         session()->flash('success', 'Profile updated successfully.');
