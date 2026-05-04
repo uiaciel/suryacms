@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Uiaciel\SuryaCms\Models\Setting;
 
 if (! function_exists('register_admin_menupackage')) {
@@ -17,6 +19,229 @@ if (! function_exists('register_admin_menupackage')) {
 
         // Simpan kembali
         app()->instance('suryacms.admin.menus', $registered);
+    }
+}
+
+if (! function_exists('get_cms_setting')) {
+    /**
+     * Get CMS setting dengan caching yang aman
+     */
+    function get_cms_setting()
+    {
+        return cache()->remember('cms_settings', 3600, function () {
+            try {
+                if (Schema::hasTable('settings')) {
+                    return Setting::first();
+                }
+            } catch (\Exception $e) {
+                Log::error('Error fetching CMS settings: ' . $e->getMessage());
+            }
+            return null;
+        });
+    }
+}
+
+if (! function_exists('active_languages')) {
+    /**
+     * Get all active language codes
+     */
+    function active_languages()
+    {
+        return cache()->rememberForever('active_languages', function () {
+            try {
+                return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')
+                    ->pluck('code')
+                    ->toArray();
+            } catch (\Exception $e) {
+                Log::error('Error fetching active languages: ' . $e->getMessage());
+                return [];
+            }
+        });
+    }
+}
+
+if (! function_exists('default_locale')) {
+    /**
+     * Get default locale from config or settings
+     */
+    function default_locale()
+    {
+        $setting = get_cms_setting();
+        return $setting->language ?? config('app.locale', 'id');
+    }
+}
+
+if (! function_exists('is_multilingual')) {
+    /**
+     * Check if multilingual mode is enabled
+     */
+    function is_multilingual()
+    {
+        $setting = get_cms_setting();
+        return $setting && $setting->is_multilingual === 'Yes';
+    }
+}
+
+if (! function_exists('current_locale')) {
+    /**
+     * Get current locale dari session atau app atau config
+     */
+    function current_locale()
+    {
+        return session('locale') ?? app()->getLocale() ?? default_locale();
+    }
+}
+
+if (! function_exists('lang_route')) {
+    /**
+     * Generate route URL dengan SEO-friendly language handling
+     *
+     * Default language: tanpa prefix (eg: /page, /category/slug)
+     * Non-default languages: dengan prefix (eg: /en/page, /en/category/slug)
+     *
+     * @param string $name Route name
+     * @param array|string $params Route parameters
+     * @return string Route URL
+     *
+     * @example
+     * lang_route('frontend.post.show', 'my-article')      // /media/my-article (id) atau /en/media/my-article (en)
+     * lang_route('frontend.category.show', ['slug' => 'tech'])
+     * lang_route('frontend.contact')
+     */
+    function lang_route($name, $params = [])
+    {
+        // Jika parameter tunggal (string slug), ubah jadi array
+        if (is_string($params)) {
+            $params = ['slug' => $params];
+        }
+
+        if (!is_array($params)) {
+            $params = [];
+        }
+
+        $locale = current_locale();
+        $defaultLocale = default_locale();
+
+        // Jika multilingual aktif
+        if (is_multilingual()) {
+            // Jika current locale == default locale, jangan tambah lang parameter (SEO-friendly)
+            if ($locale === $defaultLocale) {
+                try {
+                    return route($name, $params);
+                } catch (\Exception $e) {
+                    Log::warning("Route not found: {$name}");
+                    return url('/');
+                }
+            } else {
+                // Jika bukan default, tambahkan lang parameter
+                $params['lang'] = $locale;
+                try {
+                    return route($name, $params);
+                } catch (\Exception $e) {
+                    Log::warning("Route not found: {$name}");
+                    return url('/');
+                }
+            }
+        }
+
+        // Jika single language, gunakan route biasa
+        try {
+            return route($name, $params);
+        } catch (\Exception $e) {
+            Log::warning("Route not found: {$name}");
+            return url('/');
+        }
+    }
+}
+
+if (! function_exists('url_with_lang')) {
+    /**
+     * Generate URL dengan SEO-friendly language handling
+     *
+     * Default language: tanpa prefix
+     * Non-default: dengan prefix
+     *
+     * @param string $path Path tanpa language prefix (misal: '/about', 'contact')
+     * @param string|null $lang Language code, default dari session/config
+     * @return string Full URL dengan atau tanpa prefix
+     *
+     * @example
+     * url_with_lang('/about')        // /about (id) atau /en/about (en)
+     * url_with_lang('contact', 'en') // /en/contact
+     */
+    function url_with_lang($path = '', $lang = null)
+    {
+        if (!is_multilingual()) {
+            return url($path);
+        }
+
+        $lang = $lang ?? current_locale();
+        $defaultLocale = default_locale();
+        $path = ltrim($path, '/');
+
+        // Jika default locale, jangan tambah prefix (SEO-friendly)
+        if ($lang === $defaultLocale) {
+            return url("/{$path}");
+        }
+
+        // Jika bukan default, tambahkan prefix
+        if (empty($path)) {
+            return url("/{$lang}");
+        }
+
+        return url("/{$lang}/{$path}");
+    }
+}
+
+if (! function_exists('switch_locale_url')) {
+    /**
+     * Generate URL untuk switching locale, maintain current path
+     *
+     * SEO-friendly: default language tanpa prefix, non-default dengan prefix
+     *
+     * @param string $newLocale Language code untuk switch ke
+     * @return string URL dengan locale baru
+     *
+     * @example
+     * // Current: /en/about -> switch_locale_url('id') -> /about
+     * // Current: /about -> switch_locale_url('en') -> /en/about
+     */
+    function switch_locale_url($newLocale)
+    {
+        if (!is_multilingual()) {
+            return url()->current();
+        }
+
+        $currentUrl = request()->path();
+        $currentLocale = current_locale();
+        $defaultLocale = default_locale();
+
+        // Extract path tanpa language prefix
+        if ($currentLocale !== $defaultLocale && str_starts_with($currentUrl, $currentLocale . '/')) {
+            // Current locale punya prefix: /en/about -> extract path /about
+            $path = substr($currentUrl, strlen($currentLocale) + 1);
+        } elseif ($currentLocale !== $defaultLocale && $currentUrl === $currentLocale) {
+            // Current locale adalah prefix saja: /en -> path kosong
+            $path = '';
+        } else {
+            // Default locale atau sudah tidak punya prefix
+            $path = $currentUrl;
+        }
+
+        // Build new URL
+        if ($newLocale === $defaultLocale) {
+            // Switch ke default language: jangan tambah prefix
+            if (empty($path)) {
+                return url('/');
+            }
+            return url("/{$path}");
+        } else {
+            // Switch ke non-default language: tambah prefix
+            if (empty($path)) {
+                return url("/{$newLocale}");
+            }
+            return url("/{$newLocale}/{$path}");
+        }
     }
 }
 
@@ -202,104 +427,6 @@ if (! function_exists('getFirstImageUrl')) {
 
             return null;
         }
-    }
-}
-
-if (! function_exists('locale_url')) {
-    /**
-     * Generate URL with locale prefix if multilingual is enabled
-     *
-     * @param  string  $path
-     * @param  string|null  $locale
-     * @return string
-     */
-    function locale_url($path = '', $locale = null)
-    {
-        $setting = Setting::first();
-        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
-
-        if (! $isMultilingual) {
-            return url($path);
-        }
-
-        // Use provided locale or get from session
-        $locale = $locale ?? session('locale', $setting->language ?? 'id');
-
-        // Remove leading slash from path
-        $path = ltrim($path, '/');
-
-        // Build URL with locale prefix
-        if (empty($path)) {
-            return url($locale);
-        }
-
-        return url($locale.'/'.$path);
-    }
-}
-
-if (! function_exists('current_locale')) {
-    /**
-     * Get current locale from session or default
-     *
-     * @return string
-     */
-    function current_locale()
-    {
-        $setting = Setting::first();
-        $defaultLocale = $setting->language ?? config('app.locale', 'id');
-
-        return session('locale', $defaultLocale);
-    }
-}
-
-if (! function_exists('switch_locale_url')) {
-    /**
-     * Generate URL for switching locale, maintaining current path
-     *
-     * @param  string  $newLocale
-     * @return string
-     */
-    function switch_locale_url($newLocale)
-    {
-        $setting = Setting::first();
-        $isMultilingual = $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
-
-        if (! $isMultilingual) {
-            return url()->current();
-        }
-
-        $currentLocale = session('locale', $setting->language ?? 'id');
-        $currentUrl = request()->path();
-
-        // Remove current locale from path
-        if (str_starts_with($currentUrl, $currentLocale.'/')) {
-            $path = substr($currentUrl, strlen($currentLocale) + 1);
-        } elseif ($currentUrl === $currentLocale) {
-            $path = '';
-        } else {
-            $path = $currentUrl;
-        }
-
-        // Build new URL with new locale
-        if (empty($path)) {
-            return url($newLocale);
-        }
-
-        return url($newLocale.'/'.$path);
-    }
-}
-
-if (! function_exists('is_multilingual')) {
-    /**
-     * Check if multilingual mode is enabled
-     *
-     * @return bool
-     */
-    function is_multilingual()
-    {
-        $setting = Setting::first();
-
-        return $setting && isset($setting->is_multilingual) && $setting->is_multilingual === 'Yes';
     }
 }
 

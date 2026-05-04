@@ -2,11 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 use Uiaciel\SuryaCms\Http\Controllers\AboutController;
 use Uiaciel\SuryaCms\Http\Controllers\AdminController;
 use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
 use Uiaciel\SuryaCms\Http\Controllers\GuideController;
-use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
 use Uiaciel\SuryaCms\Http\Livewire\Admin;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Backup;
@@ -131,71 +131,8 @@ Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(fun
     } catch (\Exception $e) {
         $setting = null;
     }
+});
 
-    /*
-    |--------------------------------------------------------------------------
-    | HOMEPAGE (MULTILINGUAL ONLY HERE)
-    |--------------------------------------------------------------------------
-    */
-
-    $setting = Schema::hasTable('settings') ? \Uiaciel\SuryaCms\Models\Setting::first() : null;
-    $isMultilingual = ($setting->is_multilingual ?? 'No') === 'Yes';
-    $defaultLang = $setting->language ?? 'id';
-
-    if ($isMultilingual) {
-
-    Route::get('/', function () use ($defaultLang) {
-            return redirect()->to('/' . session('locale', $defaultLang));
-        });
-
-        Route::get('{lang}', [FrontendController::class, 'index'])
-            ->where('lang', '[a-z]{2}')
-            ->name('homepage');
-    } else {
-        Route::get('/', [FrontendController::class, 'index'])->name('homepage.single');
-
-        Route::get('{lang}', function () { return redirect()->to('/'); })->where('lang', '[a-z]{2}');
-
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | CONTENT ROUTES (NO MULTILINGUAL PREFIX)
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('category', [FrontendController::class, 'categoryIndex'])
-        ->name('frontend.category.index');
-
-    Route::get('category/{slug}', [FrontendController::class, 'category'])
-        ->where('slug', '[a-zA-Z0-9\-_]+')
-        ->name('frontend.category.show');
-
-    Route::get('media/{slug}', [FrontendController::class, 'postshow'])
-        ->where('slug', '[a-zA-Z0-9\-_]+')
-        ->name('frontend.post.show');
-
-    Route::get('{slug}', [FrontendController::class, 'pageshow'])
-        ->where('slug', '^(?!login|register|password|email|logout|contact-us|homepage-builder|suryacms|api|_debugbar|horizon|telescope).*$')
-        ->name('frontend.page.show');
-
-    /*
-    |--------------------------------------------------------------------------
-    | CONTACT
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('contact-us', [FrontendController::class, 'contact'])
-        ->name('frontend.contact');
-
-    Route::post('contact-us/send', [FrontendController::class, 'sendcontact'])
-        ->name('sendcontact');
-
-    /*
-    |--------------------------------------------------------------------------
-    | TEST
-    |--------------------------------------------------------------------------
-    */
+    require __DIR__.'/frontend.php';
 
     Route::get('suryacms/test', fn () => 'SuryaCMS aktif!');
-});

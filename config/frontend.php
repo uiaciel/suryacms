@@ -13,6 +13,7 @@ return [
     */
     'active' => env('FRONTEND_THEME', 'default'),
     'url' => env('APP_URL', null),
+    'default_locale' => 'id',
 
     /*
     |--------------------------------------------------------------------------

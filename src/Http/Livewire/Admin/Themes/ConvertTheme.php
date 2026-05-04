@@ -401,6 +401,72 @@ class ConvertTheme extends Component
      */
 
     /**
+     * Create theme structure directories and files based on SuryaCMS default structure
+     * Supports corporation preset with additional files
+     */
+    private function createThemeStructure()
+    {
+        $basePath = $this->tempPath;
+
+        // Create directories
+        $directories = [
+            'category',
+            'page',
+            'plugin'
+        ];
+
+        foreach ($directories as $dir) {
+            $this->ensureDirectoryExists("{$basePath}/{$dir}");
+        }
+
+        // Create category files
+        $this->createBladeFile("{$basePath}/category/index.blade.php", '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Category Index</h1> @endsection');
+        $this->createBladeFile("{$basePath}/category/show.blade.php", '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Category Show</h1> @endsection');
+
+        // Create page files (base + corporation specific)
+        $pageFiles = [
+            'category.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Page Category</h1> @endsection',
+            'maintenance.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Maintenance Page</h1> @endsection',
+            'post.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Post Page</h1> @endsection',
+            'show.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Page Show</h1> @endsection',
+            // Corporation specific
+            'acc.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Accounting Page</h1> @endsection',
+            'announcement.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Announcement Page</h1> @endsection',
+            'announcements.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Announcements Page</h1> @endsection',
+            'financial.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Financial Page</h1> @endsection',
+            'share.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Share Page</h1> @endsection',
+        ];
+
+        foreach ($pageFiles as $file => $content) {
+            $this->createBladeFile("{$basePath}/page/{$file}", $content);
+        }
+
+        // Create plugin files (base + corporation specific)
+        $pluginFiles = [
+            'blog.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Blog Plugin</h1> @endsection',
+            'slider.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Slider Plugin</h1> @endsection',
+            'gallery.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Gallery Plugin</h1> @endsection',
+            // Corporation specific
+            'announcement.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Announcement Plugin</h1> @endsection',
+            'report.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Report Plugin</h1> @endsection',
+            'stock.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Stock Plugin</h1> @endsection',
+        ];
+
+        foreach ($pluginFiles as $file => $content) {
+            $this->createBladeFile("{$basePath}/plugin/{$file}", $content);
+        }
+    }
+
+    /**
+     * Helper: Create a blade file with content
+     */
+    private function createBladeFile($filePath, $content)
+    {
+        $this->ensureDirectoryExists(dirname($filePath));
+        file_put_contents($filePath, $content);
+    }
+
+    /**
      * Prepare directory and extract ZIP
      */
     private function prepareDirectory($tempPath)
