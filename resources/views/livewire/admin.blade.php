@@ -109,7 +109,11 @@
                         </div>
                         <div>
                             <h3 class="text-base font-bold text-gray-900">Maintenance Mode</h3>
-                            <p class="text-xs text-gray-500">Manage public access to your website</p>
+                            @if ($site_maintenance)
+                            <p class="text-xs text-red-500">Visitors will be redirected to the maintenance landing page</p>
+                            @else
+                            <p class="text-xs text-gray-500">Your website is currently live and accessible to visitors</p>
+                            @endif
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
@@ -122,19 +126,7 @@
                         </label>
                     </div>
                 </div>
-                <div class="px-6 py-4 bg-gray-50/50">
-                    @if ($site_maintenance)
-                        <div class="flex items-start gap-3 text-amber-800">
-                            <i class="fas fa-exclamation-triangle mt-0.5"></i>
-                            <p class="text-sm leading-relaxed"><strong>System Notice:</strong> The website is currently restricted. Visitors will be redirected to the maintenance landing page while administrative access remains active.</p>
-                        </div>
-                    @else
-                        <div class="flex items-start gap-3 text-emerald-800">
-                            <i class="fas fa-check-circle mt-0.5"></i>
-                            <p class="text-sm leading-relaxed"><strong>System Status:</strong> Your website is fully operational and accessible to the public. All features are performing as expected.</p>
-                        </div>
-                    @endif
-                </div>
+
             </div>
 
             <div class="mb-6">
@@ -248,7 +240,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <div class="mb-6 pb-6 border-b border-gray-200">
                     <label class="block text-sm font-bold text-gray-800 mb-3">
-                        <i class="fas fa-google text-blue-500 mr-2"></i> Google Search Result Preview
+                        <i class="fa-brands fa-google text-blue-500 mr-2"></i> Google Search Result Preview
                     </label>
                     <div class="border border-gray-200 p-4 rounded-lg bg-gray-50">
                         <h4 class="text-blue-600 font-semibold mb-1">{{ $setting->sitename }} - {{ $setting->tagline }}</h4>

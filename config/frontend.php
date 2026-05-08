@@ -36,4 +36,6 @@ return [
     'available_themes' => [
         'default',
     ],
+
+    'registration_enabled' => env('FRONTEND_REGISTRATION_ENABLED', true),
 ];

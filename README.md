@@ -37,8 +37,9 @@ composer require uiaciel/suryacms
 
 ### 2. Publish Configuration & Assets
 ```bash
-php artisan vendor:publish --tag=suryacms-config
-php artisan vendor:publish --tag=suryacms-assets
+php artisan vendor:publish --tag=suryacms-frontend-config
+php artisan vendor:publish --tag=suryacms-frontend-views
+php artisan vendor:publish --tag=suryacms-frontend-assets
 ```
 
 ### 3. Jalankan Migration
@@ -160,9 +161,9 @@ php artisan migrate
 
 ## 🧑‍💻 Author
 
-**Uia Ciel**  
-Entrepreneur, Web Developer, Trainer  
-Owner of **Kaoskeren.id**  
+**Uia Ciel**
+Entrepreneur, Web Developer, Trainer
+Owner of **Kaoskeren.id**
 
 📧 Email: **uiaciel@gmail.com**
 

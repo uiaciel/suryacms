@@ -187,6 +187,53 @@ class FrontendController extends Controller
         return redirect()->back()->with('success', __('Success! Your message has been sent.'));
     }
 
+    public function getPosts()
+    {
+        $posts = Post::where('status', 'Publish')
+            ->get(['id', 'title', 'slug'])
+            ->map(function ($post) {
+                return [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'slug' => $post->slug,
+                    'link' => '/media/'.$post->slug,
+                ];
+            });
+
+        return response()->json($posts);
+    }
+
+    public function getCategories()
+    {
+        $categories = Category::all(['id', 'name', 'slug'])
+            ->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'link' => '/category/'.$category->slug,
+                ];
+            });
+
+        return response()->json($categories);
+    }
+
+    public function getPages()
+    {
+        $pages = Page::where('status', 'Publish')
+            ->get(['id', 'title', 'slug'])
+            ->map(function ($page) {
+                return [
+                    'id' => $page->id,
+                    'title' => $page->title,
+                    'slug' => $page->slug,
+                    'link' => '/'.$page->slug,
+                ];
+            });
+
+        return response()->json($pages);
+    }
+
     // --- Private Helpers ---
 
     private function getSetting(): ?Setting

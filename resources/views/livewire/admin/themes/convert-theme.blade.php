@@ -419,37 +419,103 @@
             editorStats: { lines: 0, chars: 0 }, updateDebounce: null,
 
             init(content = '', themeName = '') {
-                this.content = content; this.themeName = themeName;
-                this.$nextTick(() => this.initEditor());
+                console.log('themeEditor.init() called with content length:', content?.length, 'themeName:', themeName);
+                this.content = content;
+                this.themeName = themeName;
+
+                // Register event listener early
+                Livewire.on('theme-loaded', (data) => {
+                    console.log('theme-loaded event received:', data);
+                    if (data && data.content) {
+                        this.loadThemeContent(data.content, data.themeName);
+                    }
+                });
+
+                this.$nextTick(() => {
+                    console.log('Calling initEditor()');
+                    this.initEditor();
+                });
             },
 
             initEditor() {
                 try {
                     const textarea = this.$refs.htmlEditor;
-                    if (!textarea) return;
-                    if (this.editor) { this.editor.toTextArea(); }
+                    console.log('textarea ref found:', !!textarea);
+                    if (!textarea) {
+                        console.error('textarea ref not found!');
+                        return;
+                    }
+
+                    if (this.editor) {
+                        this.editor.toTextArea();
+                    }
+
                     this.editor = CodeMirror.fromTextArea(textarea, {
-                        theme: 'monokai', lineNumbers: true, lineWrapping: true,
-                        tabSize: 4, indentUnit: 4, indentWithTabs: false,
-                        extraKeys: { 'Ctrl-S': () => this.save(), 'Cmd-S': () => this.save() },
+                        mode: 'htmlmixed',
+                        theme: 'monokai',
+                        lineNumbers: true,
+                        lineWrapping: true,
+                        tabSize: 4,
+                        indentUnit: 4,
+                        indentWithTabs: false,
+                        extraKeys: {
+                            'Ctrl-S': () => this.save(),
+                            'Cmd-S': () => this.save()
+                        },
                         viewportMargin: Infinity,
                     });
-                    if (this.content) { this.editor.setValue(this.content); }
-                    this.updateStats(); this.bindChanges();
-                    setTimeout(() => this.editor.refresh(), 50);
-                    setTimeout(() => this.editor.refresh(), 200);
-                    Livewire.on('theme-loaded', (data) => {
-                        if (data && data.content) { this.loadThemeContent(data.content, data.themeName); }
-                    });
-                } catch (e) { console.error('Failed to initialize CodeMirror:', e); }
+
+                    console.log('CodeMirror instance created:', !!this.editor);
+
+                    // Set initial content if available
+                    if (this.content && this.content.trim()) {
+                        console.log('Setting initial content, length:', this.content.length);
+                        this.editor.setValue(this.content);
+                    } else {
+                        console.warn('No initial content available');
+                    }
+
+                    this.updateStats();
+                    this.bindChanges();
+
+                    // Refresh CodeMirror with delays
+                    setTimeout(() => {
+                        if (this.editor) {
+                            this.editor.refresh();
+                            console.log('CodeMirror refreshed (1st)');
+                        }
+                    }, 50);
+
+                    setTimeout(() => {
+                        if (this.editor) {
+                            this.editor.refresh();
+                            console.log('CodeMirror refreshed (2nd)');
+                        }
+                    }, 200);
+
+                } catch (e) {
+                    console.error('Failed to initialize CodeMirror:', e);
+                }
             },
 
             loadThemeContent(content, themeName) {
+                console.log('loadThemeContent() called with content length:', content?.length, 'themeName:', themeName);
                 if (this.editor) {
-                    this.editor.setValue(content); this.content = content;
-                    this.themeName = themeName; this.updateStats();
-                    setTimeout(() => this.editor.refresh(), 50);
-                    this.editor.focus();
+                    this.editor.setValue(content);
+                    this.content = content;
+                    this.themeName = themeName;
+                    this.updateStats();
+                    setTimeout(() => {
+                        if (this.editor) {
+                            this.editor.refresh();
+                            this.editor.focus();
+                            console.log('CodeMirror refreshed and focused');
+                        }
+                    }, 50);
+                } else {
+                    console.warn('Editor not yet initialized, storing content for later');
+                    this.content = content;
+                    this.themeName = themeName;
                 }
             },
 

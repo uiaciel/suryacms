@@ -16,16 +16,25 @@ use Illuminate\Support\Facades\Schema;
 | This approach is SEO-friendly as default language has no prefix
 */
 
-// Get settings
-$setting = cache()->rememberForever('cms_settings', function () {
-    try {
-        return Schema::hasTable('settings')
+try {
+
+    // Get settings
+    $setting = cache()->rememberForever('cms_settings', function () {
+        try {
+            return Schema::hasTable('settings')
+                ? \Uiaciel\SuryaCms\Models\Setting::first()
+                : null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    });
+
+} catch (\Exception $e) {
+
+    $setting = Schema::hasTable('settings')
             ? \Uiaciel\SuryaCms\Models\Setting::first()
             : null;
-    } catch (\Exception $e) {
-        return null;
-    }
-});
+}
 
 $isMultilingual = ($setting && $setting->is_multilingual === 'Yes');
 $defaultLang = $setting->language ?? 'id';

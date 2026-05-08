@@ -12,6 +12,7 @@ use Illuminate\Support\ServiceProvider;
 use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
 use Uiaciel\SuryaCms\Http\Middleware\CheckMaintenance;
+use Uiaciel\SuryaCms\Http\Middleware\CheckRegistrationStatus;
 use Uiaciel\SuryaCms\Http\Middleware\SetLocaleFromUrl; // ← TAMBAHKAN INI
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Contact;
@@ -28,6 +29,9 @@ class SuryaCmsServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrapFive();
+
+        $router = $this->app['router'];
+        $router->pushMiddlewareToGroup('web', CheckRegistrationStatus::class);
 
         $helperPath = __DIR__.'/helpers.php';
         if (file_exists($helperPath)) {
