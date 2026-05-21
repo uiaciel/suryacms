@@ -22,22 +22,42 @@ if (! function_exists('register_admin_menupackage')) {
     }
 }
 
+if (! function_exists('setting')) {
+
+    /**
+     * Helper untuk mengambil setting dengan caching yang aman
+     */
+    function setting()
+    {
+        // PRIORITAS CONTEXT AKTIF
+        if (app()->bound('current.setting')) {
+            return app('current.setting');
+        }
+
+        try {
+            return Schema::hasTable('settings')
+                ? \Uiaciel\SuryaCms\Models\Setting::first()
+                : null;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+}
+
 if (! function_exists('get_cms_setting')) {
     /**
      * Get CMS setting dengan caching yang aman
      */
     function get_cms_setting()
     {
-        return cache()->remember('cms_settings', 3600, function () {
-            try {
-                if (Schema::hasTable('settings')) {
-                    return Setting::first();
-                }
-            } catch (\Exception $e) {
-                Log::error('Error fetching CMS settings: ' . $e->getMessage());
+        try {
+            if (Schema::hasTable('settings')) {
+                return Setting::first();
             }
-            return null;
-        });
+        } catch (\Exception $e) {
+            Log::error('Error fetching CMS settings: ' . $e->getMessage());
+        }
+        return null;
     }
 }
 
@@ -47,16 +67,14 @@ if (! function_exists('active_languages')) {
      */
     function active_languages()
     {
-        return cache()->rememberForever('active_languages', function () {
-            try {
-                return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')
-                    ->pluck('code')
-                    ->toArray();
-            } catch (\Exception $e) {
-                Log::error('Error fetching active languages: ' . $e->getMessage());
-                return [];
-            }
-        });
+        try {
+            return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')
+                ->pluck('code')
+                ->toArray();
+        } catch (\Exception $e) {
+            Log::error('Error fetching active languages: ' . $e->getMessage());
+            return [];
+        }
     }
 }
 
@@ -249,10 +267,7 @@ if (! function_exists('get_date_format')) {
 
     function get_date_format()
     {
-
-        return cache()->rememberForever('app_date_format', function () {
-            return Setting::first()->date_format ?? 'd/m/Y';
-        });
+        return Setting::first()->date_format ?? 'd/m/Y';
     }
 }
 
@@ -298,26 +313,138 @@ if (! function_exists('text')) {
     }
 }
 
-if (! function_exists('getActiveTheme')) {
+// list helpers untuk tema
+
+if (! function_exists('get_active_theme')) {
     /**
-     * Get the active frontend theme
+     * Mengambil nama folder tema yang sedang aktif dari database/model Setting.
+     * Menggunakan fallback 'default' jika data belum diset atau error.
+     *
+     * @return string
      */
-    function getActiveTheme(): string
+    function get_active_theme(): string
     {
-        return cache()->remember('active_frontend_theme', 3600, function () {
-            try {
-                if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
-                    $theme = Setting::value('active_theme');
-                    if ($theme) {
-                        return $theme;
-                    }
-                }
-            } catch (\Exception $e) {
-                // Silently fail
+        static $activeTheme = null;
+
+        // Gunakan static variable agar tidak query berulang kali dalam satu request
+        if ($activeTheme !== null) {
+            return $activeTheme;
+        }
+
+        try {
+            // Pastikan table settings/settings ada sebelum query
+            // Sesuaikan nama tabel 'settings' dan field sesuai schema Anda
+            if (Schema::hasTable('settings')) {
+                $setting = DB::table('settings')->where('key', 'theme_active')->first();
+                $activeTheme = $setting ? $setting->value : 'default';
+            } else {
+                $activeTheme = 'default';
+            }
+        } catch (\Exception $e) {
+            $activeTheme = 'default';
+        }
+
+        return $activeTheme;
+    }
+}
+
+if (! function_exists('theme_view')) {
+    /**
+     * Memanggil view berdasarkan tema yang sedang aktif.
+     * Contoh penggunaan: theme_view('homepage') atau theme_view('page.show')
+     *
+     * @param string $view
+     * @param array $data
+     * @param array $mergeData
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
+     */
+    function theme_view(string $view, array $data = [], array $mergeData = [])
+    {
+        $theme = get_active_theme();
+        $themeViewPath = "frontend.{$theme}.{$view}";
+
+        // Fallback ke tema default jika view di tema aktif tidak ditemukan
+        if (! view()->exists($themeViewPath)) {
+            return view("frontend.default.{$view}", $data, $mergeData);
+        }
+
+        return view($themeViewPath, $data, $mergeData);
+    }
+}
+
+if (! function_exists('theme_asset')) {
+    /**
+     * Menghasilkan URL untuk public asset milik tema yang aktif.
+     * Contoh penggunaan: theme_asset('css/style.css')
+     *
+     * @param string $path
+     * @param bool|null $secure
+     * @return string
+     */
+    function theme_asset(string $path, $secure = null): string
+    {
+        $theme = get_active_theme();
+
+        // Membersihkan slash di awal jika user sengaja/tidak sengaja menulisnya (misal: '/css/style.css')
+        $cleanPath = ltrim($path, '/');
+
+        return asset("frontend/{$theme}/{$cleanPath}", $secure);
+    }
+}
+
+if (! function_exists('get_theme_config')) {
+    /**
+     * Mengambil file konfigurasi theme.php dari tema aktif atau data spesifik di dalamnya.
+     * Contoh: get_theme_config('assets.styles')
+     *
+     * @param string|null $key
+     * @return mixed
+     */
+    function get_theme_config(?string $key = null)
+    {
+        $theme = get_active_theme();
+        $configPath = resource_path("views/frontend/{$theme}/theme.php");
+
+        if (! file_exists($configPath)) {
+            // Fallback ke config default jika file tidak ada di tema aktif
+            $configPath = resource_path("views/frontend/default/theme.php");
+        }
+
+        if (file_exists($configPath)) {
+            $config = include $configPath;
+
+            if ($key) {
+                return data_get($config, $key);
             }
 
-            return config('frontend.active', 'default');
-        });
+            return $config;
+        }
+
+        return null;
+    }
+}
+
+if (! function_exists('getActiveTheme')) {
+
+    function getActiveTheme(): string
+    {
+        // PRIORITAS DEMO CONTEXT
+        if (app()->bound('currentTheme')) {
+            return app('currentTheme');
+        }
+
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                $theme = Setting::value('active_theme');
+                if ($theme) {
+                    return $theme;
+                }
+            }
+        } catch (\Exception $e) {
+            //
+        }
+
+        return config('frontend.active', 'default');
     }
 }
 
@@ -342,6 +469,70 @@ if (! function_exists('themePath')) {
         $theme = getActiveTheme();
 
         return resource_path(config('frontend.themes_path').'/'.$theme);
+    }
+}
+
+if (! function_exists('theme_css')) {
+    /**
+     * Generate HTML link tag for theme CSS files
+     *
+     * @param string $path Path to CSS file relative to theme's css directory
+     * @param array $attributes Additional HTML attributes
+     * @return string
+     */
+    function theme_css(string $path, array $attributes = []): string
+    {
+        $url = themeAsset('css/' . ltrim($path, '/'));
+
+        $attrs = '';
+        foreach ($attributes as $key => $value) {
+            $attrs .= " {$key}=\"{$value}\"";
+        }
+
+        return '<link rel="stylesheet" href="' . $url . '"' . $attrs . '>';
+    }
+}
+
+if (! function_exists('theme_js')) {
+    /**
+     * Generate HTML script tag for theme JS files
+     *
+     * @param string $path Path to JS file relative to theme's js directory
+     * @param array $attributes Additional HTML attributes
+     * @return string
+     */
+    function theme_js(string $path, array $attributes = []): string
+    {
+        $url = themeAsset('js/' . ltrim($path, '/'));
+
+        $attrs = '';
+        foreach ($attributes as $key => $value) {
+            $attrs .= " {$key}=\"{$value}\"";
+        }
+
+        return '<script src="' . $url . '"' . $attrs . '></script>';
+    }
+}
+
+if (! function_exists('getAvailableThemes')) {
+    /**
+     * Get list of available themes from the themes directory
+     *
+     * @return array
+     */
+    function getAvailableThemes(): array
+    {
+        $themesPath = resource_path('views/' . config('frontend.themes_path', 'frontend'));
+        $themes = [];
+
+        if (is_dir($themesPath)) {
+            $directories = array_filter(glob($themesPath . '/*'), 'is_dir');
+            foreach ($directories as $dir) {
+                $themeName = basename($dir);
+                $themes[$themeName] = ucfirst($themeName);
+            }
+        }
+        return $themes ?: ['default' => 'Default'];
     }
 }
 

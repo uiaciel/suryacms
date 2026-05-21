@@ -26,11 +26,15 @@ class FrontendController extends Controller
         if (($setting->homepage_type ?? 'index') === 'homepage') {
             $slug = "homepage-{$locale}";
 
-            $page = Cache::remember("page.static.{$slug}", $this->cacheTtl, function () use ($slug) {
-                return Page::where('slug', $slug)
+            // $page = Cache::remember("page.static.{$slug}", $this->cacheTtl, function () use ($slug) {
+            //     return Page::where('slug', $slug)
+            //         ->where('status', 'Publish')
+            //         ->first();
+            // });
+
+            $page = Page::where('slug', $slug)
                     ->where('status', 'Publish')
                     ->first();
-            });
 
             if ($page) {
                 return view('frontend::homepage', [

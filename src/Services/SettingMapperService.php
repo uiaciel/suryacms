@@ -44,15 +44,17 @@ class SettingMapperService
 
         $html = $this->dom->saveHTML();
 
-        // Replace text content mapping using str_replace (safer than preg_replace)
+        // Replace text content mapping using preg_replace with SKIP/FAIL verbs (safe from HTML attributes/scripts/styles)
         foreach ($this->dataMap as $placeholder => $replacement) {
             // Skip link attributes mapping (handled separately)
             if (in_array($placeholder, ['facebook', 'twitter', 'instagram', 'linkedin', 'youtube', 'tiktok'])) {
                 continue;
             }
 
-            // Simple string replacement - safer approach
-            $html = str_replace($placeholder, $replacement, $html);
+            // Matches <script>...</script>, <style>...</style>, and any tag <...>, skipping them,
+            // while matching the placeholder only as a whole word outside of them.
+            $pattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b' . preg_quote($placeholder, '~') . '\b~is';
+            $html = preg_replace($pattern, $replacement, $html);
         }
 
         // Replace href attributes mapping
@@ -94,7 +96,8 @@ class SettingMapperService
         $autoMappings = $this->detectCommonPatterns($html);
 
         foreach ($autoMappings as $pattern => $replacement) {
-            $html = str_replace($pattern, $replacement, $html);
+            $regexPattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b' . preg_quote($pattern, '~') . '\b~is';
+            $html = preg_replace($regexPattern, $replacement, $html);
         }
 
         return $html;

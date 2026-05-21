@@ -16,28 +16,8 @@ use Illuminate\Support\Facades\Schema;
 | This approach is SEO-friendly as default language has no prefix
 */
 
-try {
-
-    // Get settings
-    $setting = cache()->rememberForever('cms_settings', function () {
-        try {
-            return Schema::hasTable('settings')
-                ? \Uiaciel\SuryaCms\Models\Setting::first()
-                : null;
-        } catch (\Exception $e) {
-            return null;
-        }
-    });
-
-} catch (\Exception $e) {
-
-    $setting = Schema::hasTable('settings')
-            ? \Uiaciel\SuryaCms\Models\Setting::first()
-            : null;
-}
-
-$isMultilingual = ($setting && $setting->is_multilingual === 'Yes');
-$defaultLang = $setting->language ?? 'id';
+// $isMultilingual = ($setting && $setting->is_multilingual === 'Yes');
+// $defaultLang = $setting->language ?? 'id';
 
 // Define route middleware
 $routeMiddleware = ['web', 'suryacms.locale'];
@@ -46,7 +26,7 @@ $routeMiddleware = ['web', 'suryacms.locale'];
 $excludedSlugs = ['login', 'register', 'password', 'email', 'logout', 'contact-us', 'homepage-builder', 'suryacms', 'api', '_debugbar', 'horizon', 'telescope', 'category', 'media'];
 
 // Jika multilingual, exclude language codes juga
-if ($isMultilingual) {
+if (is_multilingual()) {
     $activeLangs = active_languages();
     $excludedSlugs = array_merge($excludedSlugs, $activeLangs);
 }
@@ -69,7 +49,7 @@ $registerFrontendRoutes = function() use ($excludedPattern) {
         ->name('frontend.page.show');
 };
 
-if ($isMultilingual) {
+if (is_multilingual()) {
     /*
     |--------------------------------------------------------------------------
     | DEFAULT LANGUAGE ROUTES (No Prefix) - SEO Friendly

@@ -1,4 +1,4 @@
-@extends('frontend::app')
+@extends(theme_view('app'))
 @section('content')
 <section id="home">
     <header class="bg-dark py-5">

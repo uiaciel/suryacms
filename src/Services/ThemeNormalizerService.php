@@ -14,11 +14,14 @@ class ThemeNormalizerService
 
     private $htmlContent;
 
+    private $themeName;
+
     private $usedIds = []; // Track used IDs to avoid duplicates
 
-    public function __construct($htmlContent)
+    public function __construct($htmlContent, $themeName = null)
     {
         $this->htmlContent = $htmlContent;
+        $this->themeName = $themeName;
         $this->loadHTML($htmlContent);
     }
 
@@ -57,6 +60,9 @@ class ThemeNormalizerService
             $this->normalizeNavigation();
             $this->normalizeFooter();
             $this->normalizeSections();
+            if ($this->themeName) {
+                $this->normalizeAssets();
+            }
         } catch (\Exception $e) {
             // Jika normalisasi gagal, return HTML original
             return $this->htmlContent;
@@ -259,7 +265,28 @@ class ThemeNormalizerService
 
     private function getHTML()
     {
-        return $this->dom->saveHTML();
+        $html = $this->dom->saveHTML();
+
+        // Fix 1: Kembalikan HTML Entities bawaan Blade ke karakter aslinya
+        $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
+            // Ubah &gt; kembali menjadi > dan &lt; menjadi < di dalam {{ }}
+            $cleanContent = htmlspecialchars_decode($matches[1], ENT_QUOTES);
+            return '{{' . $cleanContent . '}}';
+        }, $html);
+
+        // Fix 2: Perbaiki double curly braces yang rusak akibat parsing (jika ada)
+        $html = preg_replace('/\}\}\}\}/', '}}', $html);
+
+        // Fix 3: Ubah %20 kembali menjadi spasi untuk path asset internal
+        // Hanya mengubah %20 yang ada di dalam path /frontend/themeName/...
+        if ($this->themeName) {
+            $escapedTheme = preg_quote($this->themeName, '/');
+            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
+                return urldecode($matches[1]);
+            }, $html);
+        }
+
+        return $html;
     }
 
     public function getStatistics()
@@ -298,5 +325,63 @@ class ThemeNormalizerService
         }
 
         return $list;
+    }
+
+    private function normalizeAssets()
+    {
+        if (!$this->themeName) {
+            return;
+        }
+
+        // Normalize <img> src
+        $images = $this->xpath->query('//img[@src]');
+        if ($images instanceof \DOMNodeList) {
+            foreach ($images as $img) {
+                $src = $img->getAttribute('src');
+                $newSrc = $this->normalizeAssetPath($src);
+                if ($newSrc !== $src) {
+                    $img->setAttribute('src', $newSrc);
+                }
+            }
+        }
+
+        // Normalize <source> srcset
+        $sources = $this->xpath->query('//source[@srcset]');
+        if ($sources instanceof \DOMNodeList) {
+            foreach ($sources as $source) {
+                $srcset = $source->getAttribute('srcset');
+                $newSrcset = $this->normalizeAssetPath($srcset);
+                if ($newSrcset !== $srcset) {
+                    $source->setAttribute('srcset', $newSrcset);
+                }
+            }
+        }
+    }
+
+    private function normalizeAssetPath($path)
+    {
+        $path = trim($path);
+
+        // Skip empty, external, root-relative, data URIs, javascript, anchors, and Blade variables
+        if (
+            empty($path) ||
+            preg_match('/^(https?:)?\/\//i', $path) ||
+            strpos($path, '/') === 0 ||
+            strpos($path, 'data:') === 0 ||
+            strpos($path, 'javascript:') === 0 ||
+            strpos($path, '#') === 0 ||
+            strpos($path, '{{') !== false
+        ) {
+            return $path;
+        }
+
+        // Clean leading "./" or "../" if present
+        if (strpos($path, './') === 0) {
+            $path = substr($path, 2);
+        } elseif (strpos($path, '../') === 0) {
+            $path = substr($path, 3);
+        }
+
+        return "/frontend/{$this->themeName}/{$path}";
     }
 }

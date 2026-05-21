@@ -256,18 +256,29 @@ class SuryaCmsServiceProvider extends ServiceProvider
                     'pages' => $pages,
                     'setting' => null,
                     'lang' => $lang,
-                    'categories' => $categories,
+
                     'gallery' => $galleries,
                     'contacts' => $contact,
                 ];
 
                 // Get settings if table exists
-                if (Schema::hasTable('settings')) {
-                    try {
-                        $sharedData['setting'] = Setting::first();
-                    } catch (\Exception $e) {
-                        // Silently fail if settings cannot be fetched
+                // PENGECUALIAN DATA SETTING
+                // Hanya ambil dari table settings jika BUKAN halaman demo
+                if (!request()->is('demo/preview*')) {
+                    if (Schema::hasTable('settings')) {
+                        try {
+                            $sharedData['setting'] = Setting::first();
+                        } catch (\Exception $e) {
+                            // Silently fail if settings cannot be fetched
+                        }
                     }
+                } else {
+                    /**
+                     * Jika halaman demo, kita biarkan 'setting' tetap null di sini.
+                     * Dengan begitu, data yang Anda kirim lewat Controller atau
+                     * View::share('setting', $demo) tidak akan tertimpa.
+                     */
+                    unset($sharedData['setting']);
                 }
 
                 $view->with($sharedData);

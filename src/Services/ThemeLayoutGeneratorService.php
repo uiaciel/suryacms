@@ -42,7 +42,6 @@ class ThemeLayoutGeneratorService
 
             // Extract bagian-bagian utama
             $headContent = $this->extractHead($xpath);
-            $navigationHtml = $this->extractNavigation($xpath);
             $mainContent = $this->extractMainContent($xpath);
             $footerHtml = $this->extractFooter($xpath);
             $scriptsHtml = $this->extractScripts($xpath);
@@ -50,7 +49,6 @@ class ThemeLayoutGeneratorService
             // Build Blade template
             $bladeTemplate = $this->buildBladeTemplate(
                 $headContent,
-                $navigationHtml,
                 $mainContent,
                 $footerHtml,
                 $scriptsHtml
@@ -59,6 +57,24 @@ class ThemeLayoutGeneratorService
             return $bladeTemplate;
         } catch (\Exception $e) {
             throw new \Exception('Error generating app.blade.php: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Generate navigation.blade.php dari normalized HTML
+     *
+     * @return string Blade template content
+     */
+    public function generateNavigation()
+    {
+        try {
+            $dom = new DOMDocument;
+            @$dom->loadHTML('<?xml encoding="UTF-8">'.$this->htmlContent);
+            $xpath = new DOMXPath($dom);
+
+            return $this->extractNavigation($xpath);
+        } catch (\Exception $e) {
+            throw new \Exception('Error generating navigation.blade.php: '.$e->getMessage());
         }
     }
 
@@ -117,70 +133,533 @@ class ThemeLayoutGeneratorService
      */
     private function generateBladeNavigation($navHtml)
     {
-        // Extract struktur navbar dari original HTML
-        // Gunakan pattern Bootstrap navbar-collapse dengan navbar-nav
-        $navigationTemplate = <<<'BLADE'
-<div class="collapse navbar-collapse" id="navbarCollapse">
-    <div class="navbar-nav ms-auto">
-        @if (session('locale', 'id') === 'id')
-        @foreach ($menus->where('category', 'Indonesia') as $menu)
-        @if ($menu->children->count())
-        <div class="nav-item dropdown">
-            <a href="{{ $menu->link ?? '#' }}" class="nav-link dropdown-toggle text-white"
-                @if($menu->children->count()) data-bs-toggle="dropdown" @endif>{{ $menu->name }}</a>
-            @if ($menu->children->count())
-            <div class="dropdown-menu bg-light rounded-0 m-0">
-                @foreach ($menu->children as $submenu)
-                <a href="{{ $submenu->link ?? '#' }}" class="dropdown-item">{{ $submenu->name }}</a>
-                @endforeach
-            </div>
-            @endif
-        </div>
-        @else
-        <a href="{{ $menu->link ?? '/' }}" class="nav-item nav-link text-white">{{ $menu->name }}</a>
-        @endif
-        @endforeach
-        @elseif (session('locale', 'id') === 'en')
-        @foreach ($menus->where('category', 'English') as $menu)
-        @if ($menu->children->count())
-        <div class="nav-item dropdown">
-            <a href="{{ $menu->link ?? '#' }}" class="nav-link dropdown-toggle text-white"
-                @if($menu->children->count()) data-bs-toggle="dropdown" @endif>{{ $menu->name }}</a>
-            @if ($menu->children->count())
-            <div class="dropdown-menu bg-light rounded-0 m-0">
-                @foreach ($menu->children as $submenu)
-                <a href="{{ $submenu->link ?? '#' }}" class="dropdown-item">{{ $submenu->name }}</a>
-                @endforeach
-            </div>
-            @endif
-        </div>
-        @else
-        <a href="{{ $menu->link ?? '/' }}" class="nav-item nav-link text-white">{{ $menu->name }}</a>
-        @endif
-        @endforeach
-        @endif
-        @if($setting->is_multilingual === 'Yes')
-        <div class="nav-item dropdown">
-            <a href="#" class="nav-link dropdown-toggle text-white" data-bs-toggle="dropdown">
-                @if (session('locale', 'id') === 'id')
-                <img src="/frontend/sge/images/id.png" alt="Indonesia" width="20" class="align-middle me-1">
-                @else
-                <img src="/frontend/sge/images/us.png" alt="English" width="20" class="align-middle me-1">
-                @endif
-            </a>
-            <div class="dropdown-menu bg-light rounded-0 m-0">
-                <a href="{{ url('/id/') }}" class="dropdown-item"><img src="/frontend/sge/images/id.png"
-                        alt="Indonesia" width="20" class="align-middle me-1">Indonesia</a>
-                <a href="{{ url('/en/') }}" class="dropdown-item"><img src="/frontend/sge/images/us.png"
-                        alt="English" width="20" class="align-middle me-1">English</a>
-            </div>
-        </div>
-        @endif
-    </div>
-</div>
-BLADE;
+        $dom = new DOMDocument;
+        // Load the navigation fragment safely with UTF-8 encoding
+        @$dom->loadHTML('<?xml encoding="UTF-8"><div>' . $navHtml . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $xpath = new DOMXPath($dom);
 
-        return $navigationTemplate;
+        $container = null;
+
+        // 1. Try to find <ul> elements
+        $ulNodes = $xpath->query('//ul');
+        if ($ulNodes->length > 0) {
+            foreach ($ulNodes as $node) {
+                $class = $node->getAttribute('class');
+                if (preg_match('/(nav|menu|navbar)/i', $class)) {
+                    $container = $node;
+                    break;
+                }
+            }
+            if (!$container) {
+                $container = $ulNodes->item(0);
+            }
+        }
+
+        // 2. Try to find <div> with class containing navbar-nav or menu
+        if (!$container) {
+            $divNodes = $xpath->query('//div');
+            foreach ($divNodes as $node) {
+                $class = $node->getAttribute('class');
+                if (preg_match('/(navbar-nav|menu-container|main-menu)/i', $class)) {
+                    $anchors = $xpath->query('.//a', $node);
+                    if ($anchors->length > 0) {
+                        $container = $node;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 3. Fallback: If no specific container, use the first child div of our loaded fragment
+        if (!$container) {
+            $container = $xpath->query('//div')->item(0);
+        }
+
+        if (!$container) {
+            return $navHtml;
+        }
+
+        $regularItem = null;
+        $dropdownItem = null;
+        $isLiBased = false;
+
+        // Identify if it's <li> based
+        $liNodes = $xpath->query('.//li', $container);
+        if ($liNodes->length > 0) {
+            $isLiBased = true;
+            foreach ($liNodes as $li) {
+                if ($li->parentNode !== $container) {
+                    continue;
+                }
+
+                $hasDropdownClass = false;
+                $class = $li->getAttribute('class');
+                if (preg_match('/(dropdown|has-children|menu-item-has-children)/i', $class)) {
+                    $hasDropdownClass = true;
+                }
+
+                $nestedUl = $xpath->query('.//ul', $li);
+                $hasNestedUl = $nestedUl->length > 0;
+
+                if ($hasDropdownClass || $hasNestedUl) {
+                    if (!$dropdownItem) {
+                        $dropdownItem = $li;
+                    }
+                } else {
+                    if (!$regularItem) {
+                        $anchors = $xpath->query('.//a', $li);
+                        if ($anchors->length > 0) {
+                            $regularItem = $li;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Div/A-based navigation
+            $anchorNodes = $xpath->query('./a', $container);
+            if ($anchorNodes->length > 0) {
+                foreach ($anchorNodes as $a) {
+                    if (!$regularItem) {
+                        $regularItem = $a;
+                    }
+                }
+            }
+
+            // Check for dropdown divs
+            $dropdownDivs = $xpath->query('./div', $container);
+            foreach ($dropdownDivs as $div) {
+                $class = $div->getAttribute('class');
+                if (preg_match('/(dropdown|nav-item)/i', $class)) {
+                    if (!$dropdownItem) {
+                        $dropdownItem = $div;
+                    }
+                }
+            }
+        }
+
+        // If we didn't find a regular item, search recursively for any anchor tag
+        if (!$regularItem) {
+            $anyAnchor = $xpath->query('.//a', $container)->item(0);
+            if ($anyAnchor) {
+                $parent = $anyAnchor->parentNode;
+                while ($parent && $parent !== $container) {
+                    if (strtolower($parent->nodeName) === 'li') {
+                        $regularItem = $parent;
+                        $isLiBased = true;
+                        break;
+                    }
+                    $parent = $parent->parentNode;
+                }
+                if (!$regularItem) {
+                    $regularItem = $anyAnchor;
+                }
+            }
+        }
+
+        // Synthesize dropdown item if not found but we have a regular item
+        if (!$dropdownItem && $regularItem) {
+            $dropdownItem = $this->synthesizeDropdownItem($dom, $regularItem, $isLiBased);
+        }
+
+        if (!$regularItem) {
+            return $navHtml;
+        }
+
+        // Clear all existing children of $container
+        while ($container->firstChild) {
+            $container->removeChild($container->firstChild);
+        }
+
+        // Build the dynamic structures as DOM nodes
+        $this->buildDynamicMenuNodes($dom, $container, $regularItem, $dropdownItem, $isLiBased);
+
+        $html = $dom->saveHTML();
+
+        // Strip the wrapper <?xml> and <div> tags
+        $html = preg_replace('/<\?xml[^>]*\?>/', '', $html);
+        $html = preg_replace('/^.*?<div>/s', '', $html);
+        $html = preg_replace('/<\/div>\s*$/s', '', $html);
+
+        // FIX: Decode syntax blade Indonesia/English Loop dan Lang Switch yang rusak karena saveHTML
+        $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
+            return '{{' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '}}';
+        }, $html);
+
+        $html = preg_replace('/\}\}\}\}/', '}}', $html);
+
+        // FIX: Bersihkan %20 pada link asset gambar bendera (id.png / us.png) di menu multilanguage
+        if ($this->themeName) {
+            $escapedTheme = preg_quote($this->themeName, '/');
+            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
+                return urldecode($matches[1]);
+            }, $html);
+        }
+
+        return trim($html);
+    }
+
+    private function synthesizeDropdownItem($dom, $regularItem, $isLiBased)
+    {
+        $dropdownItem = $regularItem->cloneNode(true);
+        if ($isLiBased) {
+            $class = $dropdownItem->getAttribute('class');
+            $dropdownItem->setAttribute('class', trim($class . ' dropdown'));
+
+            $anchor = $dropdownItem->getElementsByTagName('a')->item(0);
+            if ($anchor) {
+                $aClass = $anchor->getAttribute('class');
+                $anchor->setAttribute('class', trim($aClass . ' dropdown-toggle'));
+                $anchor->setAttribute('data-bs-toggle', 'dropdown');
+                $anchor->setAttribute('href', '#');
+            }
+
+            $subUl = $dom->createElement('ul');
+            $subUl->setAttribute('class', 'dropdown-menu');
+
+            $subLi = $regularItem->cloneNode(true);
+            $subAnchor = $subLi->getElementsByTagName('a')->item(0);
+            if ($subAnchor) {
+                $subAnchor->setAttribute('class', 'dropdown-item');
+            }
+            $subUl->appendChild($subLi);
+            $dropdownItem->appendChild($subUl);
+        } else {
+            $dropdownItem = $dom->createElement('div');
+            $dropdownItem->setAttribute('class', 'nav-item dropdown');
+
+            $toggle = $regularItem->cloneNode(true);
+            $tClass = $toggle->getAttribute('class');
+            $toggle->setAttribute('class', trim($tClass . ' dropdown-toggle'));
+            $toggle->setAttribute('data-bs-toggle', 'dropdown');
+            $toggle->setAttribute('href', '#');
+
+            $menu = $dom->createElement('div');
+            $menu->setAttribute('class', 'dropdown-menu');
+
+            $subItem = $regularItem->cloneNode(true);
+            $subItem->setAttribute('class', 'dropdown-item');
+            $menu->appendChild($subItem);
+
+            $dropdownItem->appendChild($toggle);
+            $dropdownItem->appendChild($menu);
+        }
+
+        return $dropdownItem;
+    }
+
+    private function buildDynamicMenuNodes($dom, $container, $regularItem, $dropdownItem, $isLiBased)
+    {
+        // Indonesian Loop
+        $container->appendChild($dom->createTextNode("\n        @if (session('locale', 'id') === 'id')\n"));
+        $container->appendChild($dom->createTextNode("        @foreach (\$menus->where('category', 'Indonesia') as \$menu)\n"));
+        $container->appendChild($dom->createTextNode("        @if (\$menu->children->count())\n"));
+
+        if ($dropdownItem) {
+            $idDropdown = $this->prepareDropdownNode($dom, $dropdownItem, '$menu', '$submenu', $isLiBased);
+            $container->appendChild($idDropdown);
+            $container->appendChild($dom->createTextNode("\n"));
+        }
+
+        $container->appendChild($dom->createTextNode("        @else\n"));
+
+        $idRegular = $this->prepareRegularNode($dom, $regularItem, '$menu');
+        $container->appendChild($idRegular);
+        $container->appendChild($dom->createTextNode("\n"));
+
+        $container->appendChild($dom->createTextNode("        @endif\n"));
+        $container->appendChild($dom->createTextNode("        @endforeach\n"));
+
+        // English Loop
+        $container->appendChild($dom->createTextNode("        @elseif (session('locale', 'id') === 'en')\n"));
+        $container->appendChild($dom->createTextNode("        @foreach (\$menus->where('category', 'English') as \$menu)\n"));
+        $container->appendChild($dom->createTextNode("        @if (\$menu->children->count())\n"));
+
+        if ($dropdownItem) {
+            $enDropdown = $this->prepareDropdownNode($dom, $dropdownItem, '$menu', '$submenu', $isLiBased);
+            $container->appendChild($enDropdown);
+            $container->appendChild($dom->createTextNode("\n"));
+        }
+
+        $container->appendChild($dom->createTextNode("        @else\n"));
+
+        $enRegular = $this->prepareRegularNode($dom, $regularItem, '$menu');
+        $container->appendChild($enRegular);
+        $container->appendChild($dom->createTextNode("\n"));
+
+        $container->appendChild($dom->createTextNode("        @endif\n"));
+        $container->appendChild($dom->createTextNode("        @endforeach\n"));
+        $container->appendChild($dom->createTextNode("        @endif\n"));
+
+        // Multilingual switch
+        $container->appendChild($dom->createTextNode("        @if(\$setting->is_multilingual === 'Yes')\n"));
+
+        if ($dropdownItem) {
+            $langDropdown = $this->prepareLangDropdownNode($dom, $dropdownItem, $isLiBased);
+            $container->appendChild($langDropdown);
+            $container->appendChild($dom->createTextNode("\n"));
+        }
+
+        $container->appendChild($dom->createTextNode("        @endif\n"));
+    }
+
+    private function prepareRegularNode($dom, $regularItem, $varName)
+    {
+        $node = $regularItem->cloneNode(true);
+        $this->stripActiveAttributes($node);
+
+        $anchor = null;
+        if (strtolower($node->nodeName) === 'a') {
+            $anchor = $node;
+        } else {
+            $anchor = $node->getElementsByTagName('a')->item(0);
+        }
+
+        if ($anchor) {
+            $anchor->setAttribute('href', '{{ ' . $varName . '->link ?? \'/\' }}');
+            $this->replaceAnchorText($anchor, '{{ ' . $varName . '->name }}');
+        }
+
+        return $node;
+    }
+
+    private function prepareDropdownNode($dom, $dropdownItem, $parentVar, $childVar, $isLiBased)
+    {
+        $node = $dropdownItem->cloneNode(true);
+        $this->stripActiveAttributes($node);
+
+        $toggleAnchor = $node->getElementsByTagName('a')->item(0);
+        if ($toggleAnchor) {
+            $toggleAnchor->setAttribute('href', '{{ ' . $parentVar . '->link ?? \'#\' }}');
+            $this->replaceAnchorText($toggleAnchor, '{{ ' . $parentVar . '->name }}');
+        }
+
+        $submenuContainer = null;
+        $subnodes = $node->getElementsByTagName('*');
+        foreach ($subnodes as $sub) {
+            $class = $sub->getAttribute('class');
+            if (preg_match('/(dropdown-menu|submenu|sub-menu|dropdown-content)/i', $class) || strtolower($sub->nodeName) === 'ul') {
+                if ($sub !== $node) {
+                    $submenuContainer = $sub;
+                    break;
+                }
+            }
+        }
+
+        if (!$submenuContainer) {
+            foreach (array_reverse(iterator_to_array($node->childNodes)) as $child) {
+                if ($child->nodeType === 1 && in_array(strtolower($child->nodeName), ['ul', 'div'])) {
+                    $submenuContainer = $child;
+                    break;
+                }
+            }
+        }
+
+        if ($submenuContainer) {
+            $subItemTemplate = null;
+            $anchors = $submenuContainer->getElementsByTagName('a');
+            if ($anchors->length > 0) {
+                $firstAnchor = $anchors->item(0);
+                $parent = $firstAnchor->parentNode;
+                if ($parent && $parent !== $submenuContainer && strtolower($parent->nodeName) === 'li') {
+                    $subItemTemplate = $parent;
+                } else {
+                    $subItemTemplate = $firstAnchor;
+                }
+            }
+
+            if (!$subItemTemplate && $submenuContainer->firstElementChild) {
+                $subItemTemplate = $submenuContainer->firstElementChild;
+            }
+
+            if ($subItemTemplate) {
+                $clonedSubItem = $subItemTemplate->cloneNode(true);
+                $this->stripActiveAttributes($clonedSubItem);
+
+                while ($submenuContainer->firstChild) {
+                    $submenuContainer->removeChild($submenuContainer->firstChild);
+                }
+
+                $subAnchor = null;
+                if (strtolower($clonedSubItem->nodeName) === 'a') {
+                    $subAnchor = $clonedSubItem;
+                } else {
+                    $subAnchor = $clonedSubItem->getElementsByTagName('a')->item(0);
+                }
+
+                if ($subAnchor) {
+                    $subAnchor->setAttribute('href', '{{ ' . $childVar . '->link ?? \'#\' }}');
+                    $this->replaceAnchorText($subAnchor, '{{ ' . $childVar . '->name }}');
+                }
+
+                $submenuContainer->appendChild($dom->createTextNode("\n                @foreach (" . $parentVar . "->children as " . $childVar . ")\n                "));
+                $submenuContainer->appendChild($clonedSubItem);
+                $submenuContainer->appendChild($dom->createTextNode("\n                @endforeach\n            "));
+            }
+        }
+
+        return $node;
+    }
+
+    private function prepareLangDropdownNode($dom, $dropdownItem, $isLiBased)
+    {
+        $node = $dropdownItem->cloneNode(true);
+        $this->stripActiveAttributes($node);
+
+        $toggleAnchor = $node->getElementsByTagName('a')->item(0);
+        if ($toggleAnchor) {
+            $toggleAnchor->setAttribute('href', '#');
+            $toggleAnchor->setAttribute('data-bs-toggle', 'dropdown');
+
+            while ($toggleAnchor->firstChild) {
+                $toggleAnchor->removeChild($toggleAnchor->firstChild);
+            }
+
+            $toggleAnchor->appendChild($dom->createTextNode("@if (session('locale', 'id') === 'id')\n"));
+            $idImg = $dom->createElement('img');
+            $idImg->setAttribute('src', '/frontend/sge/images/id.png');
+            $idImg->setAttribute('alt', 'Indonesia');
+            $idImg->setAttribute('width', '20');
+            $idImg->setAttribute('class', 'align-middle me-1');
+            $toggleAnchor->appendChild($idImg);
+            $toggleAnchor->appendChild($dom->createTextNode("\n@else\n"));
+            $usImg = $dom->createElement('img');
+            $usImg->setAttribute('src', '/frontend/sge/images/us.png');
+            $usImg->setAttribute('alt', 'English');
+            $usImg->setAttribute('width', '20');
+            $usImg->setAttribute('class', 'align-middle me-1');
+            $toggleAnchor->appendChild($usImg);
+            $toggleAnchor->appendChild($dom->createTextNode("\n@endif\n"));
+        }
+
+        $submenuContainer = null;
+        $subnodes = $node->getElementsByTagName('*');
+        foreach ($subnodes as $sub) {
+            $class = $sub->getAttribute('class');
+            if (preg_match('/(dropdown-menu|submenu|sub-menu|dropdown-content)/i', $class) || strtolower($sub->nodeName) === 'ul') {
+                if ($sub !== $node) {
+                    $submenuContainer = $sub;
+                    break;
+                }
+            }
+        }
+
+        if (!$submenuContainer) {
+            foreach (array_reverse(iterator_to_array($node->childNodes)) as $child) {
+                if ($child->nodeType === 1 && in_array(strtolower($child->nodeName), ['ul', 'div'])) {
+                    $submenuContainer = $child;
+                    break;
+                }
+            }
+        }
+
+        if ($submenuContainer) {
+            $subItemTemplate = null;
+            $anchors = $submenuContainer->getElementsByTagName('a');
+            if ($anchors->length > 0) {
+                $firstAnchor = $anchors->item(0);
+                $parent = $firstAnchor->parentNode;
+                if ($parent && $parent !== $submenuContainer && strtolower($parent->nodeName) === 'li') {
+                    $subItemTemplate = $parent;
+                } else {
+                    $subItemTemplate = $firstAnchor;
+                }
+            }
+
+            if (!$subItemTemplate && $submenuContainer->firstElementChild) {
+                $subItemTemplate = $submenuContainer->firstElementChild;
+            }
+
+            if ($subItemTemplate) {
+                while ($submenuContainer->firstChild) {
+                    $submenuContainer->removeChild($submenuContainer->firstChild);
+                }
+
+                $idItem = $subItemTemplate->cloneNode(true);
+                $this->stripActiveAttributes($idItem);
+                $idAnchor = (strtolower($idItem->nodeName) === 'a') ? $idItem : $idItem->getElementsByTagName('a')->item(0);
+                if ($idAnchor) {
+                    $idAnchor->setAttribute('href', '{{ url(\'/id/\') }}');
+                    while ($idAnchor->firstChild) {
+                        $idAnchor->removeChild($idAnchor->firstChild);
+                    }
+                    $idIcon = $dom->createElement('img');
+                    $idIcon->setAttribute('src', '/frontend/sge/images/id.png');
+                    $idIcon->setAttribute('alt', 'Indonesia');
+                    $idIcon->setAttribute('width', '20');
+                    $idIcon->setAttribute('class', 'align-middle me-1');
+                    $idAnchor->appendChild($idIcon);
+                    $idAnchor->appendChild($dom->createTextNode(' Indonesia'));
+                }
+
+                $enItem = $subItemTemplate->cloneNode(true);
+                $this->stripActiveAttributes($enItem);
+                $enAnchor = (strtolower($enItem->nodeName) === 'a') ? $enItem : $enItem->getElementsByTagName('a')->item(0);
+                if ($enAnchor) {
+                    $enAnchor->setAttribute('href', '{{ url(\'/en/\') }}');
+                    while ($enAnchor->firstChild) {
+                        $enAnchor->removeChild($enAnchor->firstChild);
+                    }
+                    $enIcon = $dom->createElement('img');
+                    $enIcon->setAttribute('src', '/frontend/sge/images/us.png');
+                    $enIcon->setAttribute('alt', 'English');
+                    $enIcon->setAttribute('width', '20');
+                    $enIcon->setAttribute('class', 'align-middle me-1');
+                    $enAnchor->appendChild($enIcon);
+                    $enAnchor->appendChild($dom->createTextNode(' English'));
+                }
+
+                $submenuContainer->appendChild($idItem);
+                $submenuContainer->appendChild($dom->createTextNode("\n"));
+                $submenuContainer->appendChild($enItem);
+            }
+        }
+
+        return $node;
+    }
+
+    private function replaceAnchorText($anchorNode, $replacementText)
+    {
+        $xpath = new DOMXPath($anchorNode->ownerDocument);
+        $textNodes = $xpath->query('.//text()', $anchorNode);
+
+        $replaced = false;
+        if ($textNodes instanceof \DOMNodeList) {
+            foreach ($textNodes as $textNode) {
+                $val = $textNode->nodeValue;
+                if (trim($val) !== '') {
+                    preg_match('/^(\s*).*?(\s*)$/u', $val, $spaces);
+                    $leading = $spaces[1] ?? '';
+                    $trailing = $spaces[2] ?? '';
+                    $textNode->nodeValue = $leading . $replacementText . $trailing;
+                    $replaced = true;
+                    break;
+                }
+            }
+        }
+
+        if (!$replaced) {
+            $anchorNode->appendChild($anchorNode->ownerDocument->createTextNode($replacementText));
+        }
+    }
+
+    private function stripActiveAttributes($node)
+    {
+        if ($node->nodeType !== 1) {
+            return;
+        }
+
+        $class = $node->getAttribute('class');
+        if (!empty($class)) {
+            $classes = explode(' ', $class);
+            $classes = array_filter($classes, function($c) {
+                return strtolower($c) !== 'active';
+            });
+            $node->setAttribute('class', implode(' ', $classes));
+        }
+
+        foreach ($node->childNodes as $child) {
+            $this->stripActiveAttributes($child);
+        }
     }
 
     /**
@@ -261,7 +740,7 @@ BLADE;
     /**
      * Build Blade template dengan struktur lengkap
      */
-    private function buildBladeTemplate($head, $nav, $main, $footer, $scripts)
+    private function buildBladeTemplate($head, $main, $footer, $scripts)
     {
         $template = <<<'BLADE'
 <!DOCTYPE html>
@@ -276,16 +755,7 @@ BLADE;
         $template .= <<<'BLADE'
 <body>
     <!-- Navigation -->
-BLADE;
-
-        // Add navigation
-        if (! empty($nav) && $nav !== '<!-- Navigation -->') {
-            $template .= "\n    ".str_replace("\n", "\n    ", trim($nav))."\n";
-        } else {
-            $template .= "\n    <!-- Navigation Placeholder -->\n";
-        }
-
-        $template .= <<<'BLADE'
+    @include('frontend::navigation')
 
     <!-- Main Content Area -->
     <main>
@@ -338,6 +808,26 @@ BLADE;
         $html = preg_replace('/<\?xml[^>]*\?>/', '', $html);
         $html = preg_replace('/<(!DOCTYPE|html|body)[^>]*>/', '', $html);
         $html = preg_replace('/<\/(html|body)>/', '', $html);
+
+        // FIX: Kembalikan HTML Entities di dalam sintaks Blade/Kurung Kurawal ke aslinya
+        $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
+            return '{{' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '}}';
+        }, $html);
+
+        $html = preg_replace_callback('/\{!!(.*?)!!\}/s', function ($matches) {
+            return '{!!' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '!!}';
+        }, $html);
+
+        // FIX: Bersihkan double curly braces yang rusak akibat parsing DOM (jika ada)
+        $html = preg_replace('/\}\}\}\}/', '}}', $html);
+
+        // FIX: Kembalikan %20 menjadi spasi untuk asset/url internal tema
+        if ($this->themeName) {
+            $escapedTheme = preg_quote($this->themeName, '/');
+            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
+                return urldecode($matches[1]);
+            }, $html);
+        }
 
         return trim($html);
     }

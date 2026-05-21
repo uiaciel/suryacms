@@ -85,7 +85,15 @@
                                 <label class="block text-slate-700 text-sm font-semibold mb-2">File ZIP</label>
                                 <input type="file" wire:model="indexFile" accept=".zip"
                                        class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 file:cursor-pointer cursor-pointer border @error('indexFile') border-rose-400 @else border-slate-200 @enderror rounded-xl p-2 bg-white focus:outline-none focus:border-indigo-400">
-                                @error('indexFile') <p class="text-rose-500 text-xs mt-1.5">{{ $message }}</p> @enderror
+                                @error('indexFile')
+                                    <p class="text-rose-500 text-xs mt-1.5">{{ $message }}</p>
+                                @enderror
+                                @if ($indexFile)
+                                    <p class="text-slate-500 text-xs mt-1.5">
+                                        📦 File: <span class="font-semibold">{{ $indexFile->getClientOriginalName() }}</span>
+                                        ({{ number_format($indexFile->getSize() / 1024 / 1024, 2) }} MB)
+                                    </p>
+                                @endif
                             </div>
 
                             <div x-show="uploading" class="mb-4">
@@ -124,7 +132,8 @@
                                 <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> File harus memiliki <strong class="text-slate-700">index.html</strong></li>
                                 <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Semua aset (CSS, JS, images) harus ada</li>
                                 <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Nama tema hanya alfanumerik dan dash (-)</li>
-                                <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Ukuran maksimal file: <strong class="text-slate-700">10 MB</strong></li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Ukuran maksimal file: <strong class="text-slate-700">20 MB</strong></li>
+                                <li class="flex items-start gap-2"><span class="text-indigo-400 mt-0.5">•</span> Format: ZIP harus valid dan dapat diekstrak</li>
                             </ul>
                         </div>
                     </div>
@@ -238,6 +247,10 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button @click="initEditor()" title="Muat ulang editor"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-semibold rounded-lg transition-all">
+                                <i class="fa-solid fa-rotate"></i> Refresh
+                            </button>
                             <button @click="save()" title="Ctrl+S"
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition-all shadow-sm shadow-emerald-200">
                                 <i class="fa-solid fa-check-circle"></i> Simpan

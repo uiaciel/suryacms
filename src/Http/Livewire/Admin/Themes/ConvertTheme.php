@@ -70,8 +70,19 @@ class ConvertTheme extends Component
 
     protected $rules = [
         'themeName' => 'required|string|max:50|alpha_dash',
-        'indexFile' => 'required|file|mimes:zip|max:10120',
+        'indexFile' => 'required|file|mimes:zip|max:20480', // 20MB in KB
     ];
+
+    /**
+     * Configure Livewire file uploads
+     */
+    protected function configureFileValidation()
+    {
+        return [
+            'maxFileSize' => 20480, // 20MB in KB
+            'maxUploadTime' => 60, // seconds
+        ];
+    }
 
     /**
      * =====================================================================
@@ -156,16 +167,49 @@ class ConvertTheme extends Component
      */
     public function uploadAndPrepareEditor()
     {
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation error on file upload', [
+                'errors' => $e->errors(),
+                'file_size' => $this->indexFile ? $this->indexFile->getSize() : 'No file',
+            ]);
+            throw $e;
+        }
         $this->reset(['validationErrors']);
 
         try {
+            // Validate file exists
+            if (!$this->indexFile) {
+                throw new \Exception('File tidak ditemukan atau gagal diupload');
+            }
+
+            // Validate file is actually a file
+            $filePath = $this->indexFile->getRealPath();
+            if (!file_exists($filePath)) {
+                throw new \Exception('Path file tidak valid: ' . $filePath);
+            }
+
+            $fileSize = $this->indexFile->getSize();
+            Log::info('File uploaded successfully', [
+                'filename' => $this->indexFile->getClientOriginalName(),
+                'size' => $fileSize,
+                'real_path' => $filePath,
+            ]);
+
             // 1. Create new session
             $sessionId = (string) Str::uuid();
-            $tempPath = storage_path("app/temp/themes/{$sessionId}");
+            $tempPath = storage_path("app" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR . "themes" . DIRECTORY_SEPARATOR . $sessionId);
             $this->sessionId = $sessionId;
             $this->tempPath = $tempPath;
             $this->currentThemeName = (string) $this->themeName;
+
+            Log::debug('Starting theme upload process', [
+                'sessionId' => $sessionId,
+                'themeName' => $this->currentThemeName,
+                'tempPath' => $tempPath,
+                'file_size' => $fileSize,
+            ]);
 
             // 2. Setup Directory & Extract
             $this->prepareDirectory($tempPath);
@@ -177,13 +221,13 @@ class ConvertTheme extends Component
             // 4. Save to storage
             $this->htmlEdited = (string) $finalHtml;
             $this->ensureDirectoryExists($tempPath);
-            file_put_contents("{$tempPath}/index.html", $finalHtml);
+            file_put_contents($tempPath . DIRECTORY_SEPARATOR . "index.html", $finalHtml);
 
             // 5. Save to cache
             $this->saveToCache($sessionId, $finalHtml);
 
             // 6. Clear form
-            $this->reset(['indexFile', 'themeName']);
+            // $this->reset(['indexFile', 'themeName']);
 
             // 7. Switch to editor mode
             $this->mode = 'editor';
@@ -198,6 +242,11 @@ class ConvertTheme extends Component
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Theme upload and prepare failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'themeName' => $this->themeName
+            ]);
             $this->validationErrors = [(string) $e->getMessage()];
             session()->flash('error', 'Gagal: '.$e->getMessage());
         }
@@ -292,6 +341,7 @@ class ConvertTheme extends Component
             // Save generated blade files to temp storage
             $this->ensureDirectoryExists($this->tempPath);
             file_put_contents("{$this->tempPath}/app.blade.php", $generator->generate());
+            file_put_contents("{$this->tempPath}/navigation.blade.php", $generator->generateNavigation());
             file_put_contents("{$this->tempPath}/editor.blade.php", $generator->generateEditor());
             file_put_contents("{$this->tempPath}/homepage.blade.php", $generator->generateHomepage());
             file_put_contents("{$this->tempPath}/index.blade.php", $generator->generateIndex());
@@ -471,9 +521,27 @@ class ConvertTheme extends Component
      */
     private function prepareDirectory($tempPath)
     {
+        // Ensure directory exists
         $this->ensureDirectoryExists($tempPath);
-        $zipContent = file_get_contents($this->indexFile->getRealPath());
-        file_put_contents("{$tempPath}/theme.zip", $zipContent);
+
+        // Get the uploaded file path
+        $uploadedFilePath = $this->indexFile->getRealPath();
+
+        if (!file_exists($uploadedFilePath)) {
+            throw new \Exception('File uploaded tidak ditemukan di: ' . $uploadedFilePath);
+        }
+
+        // Copy ZIP file to temp directory
+        $zipDestPath = "{$tempPath}/theme.zip";
+        if (!copy($uploadedFilePath, $zipDestPath)) {
+            throw new \Exception('Gagal menyalin file ZIP ke storage');
+        }
+
+        Log::info('ZIP file copied successfully', [
+            'source' => $uploadedFilePath,
+            'destination' => $zipDestPath,
+            'size' => filesize($zipDestPath),
+        ]);
     }
 
     /**
@@ -711,6 +779,7 @@ class ConvertTheme extends Component
             // List of blade files to copy
             $bladeFiles = [
                 'app.blade.php',
+                'navigation.blade.php',
                 'editor.blade.php',
                 'homepage.blade.php',
                 'index.blade.php',
@@ -785,8 +854,11 @@ class ConvertTheme extends Component
      */
     private function ensureDirectoryExists($path)
     {
-        if (! file_exists($path)) {
-            mkdir($path, 0755, true);
+        if (!file_exists($path)) {
+            if (!mkdir($path, 0755, true)) {
+                throw new \Exception('Gagal membuat direktori: ' . $path);
+            }
+            Log::debug('Directory created', ['path' => $path]);
         }
     }
 
