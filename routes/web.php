@@ -13,6 +13,7 @@ use Uiaciel\SuryaCms\Http\Livewire\Admin\Backup;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\SettingTheme;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\ConvertTheme;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\EditorTheme;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\BuilderTheme;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Contact;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\FileCheck;
 use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\MenuCreate;
@@ -112,8 +113,9 @@ Route::prefix('admin')
             ->name('themes.')
             ->group(function () {
                 Route::get('/', SettingTheme::class)->name('index');
-                 Route::get('/generate', ConvertTheme::class)->name('convert.theme');
+                Route::get('/generate', ConvertTheme::class)->name('convert.theme');
                 Route::get('/editor', EditorTheme::class)->name('admin.theme.editor');
+                Route::get('/builder', BuilderTheme::class)->name('builder');
             });
     });
 

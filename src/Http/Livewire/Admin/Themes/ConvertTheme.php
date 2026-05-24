@@ -644,25 +644,17 @@ class ConvertTheme extends Component
             $this->ensureDirectoryExists("{$tempPath}/page");
             $this->ensureDirectoryExists("{$tempPath}/plugin");
 
-            // 2. Copy simple pages
-            $simplePages = [
-                'share.blade.php',
-                'acc.blade.php',
-                'financial.blade.php',
-                'maintenance.blade.php',
-                'post.blade.php',
-                'category.blade.php',
-                'contact.blade.php',
-                'show.blade.php',
-            ];
+            // 2. Generate simple pages using the theme layout generator to match the theme's hero style
+            $generator = new ThemeLayoutGeneratorService($this->htmlEdited, $this->currentThemeName);
 
-            foreach ($simplePages as $page) {
-                $sourcePath = "{$defaultThemePath}/page/{$page}";
-                if (File::exists($sourcePath)) {
-                    $content = File::get($sourcePath);
-                    file_put_contents("{$tempPath}/page/{$page}", $content);
-                }
-            }
+            file_put_contents("{$tempPath}/page/show.blade.php", $generator->generatePageShow());
+            file_put_contents("{$tempPath}/page/post.blade.php", $generator->generatePagePost());
+            file_put_contents("{$tempPath}/page/category.blade.php", $generator->generatePageCategory());
+            file_put_contents("{$tempPath}/page/contact.blade.php", $generator->generatePageContact());
+            file_put_contents("{$tempPath}/page/acc.blade.php", $generator->generatePageReport('Accounting Reports'));
+            file_put_contents("{$tempPath}/page/financial.blade.php", $generator->generatePageReport('Financial Reports'));
+            file_put_contents("{$tempPath}/page/share.blade.php", $generator->generatePageReport('Share Reports'));
+            file_put_contents("{$tempPath}/page/maintenance.blade.php", $generator->generatePageMaintenance());
 
             // 3. Copy simple plugins
             $simplePlugins = [

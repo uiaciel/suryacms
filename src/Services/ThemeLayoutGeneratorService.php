@@ -54,7 +54,7 @@ class ThemeLayoutGeneratorService
                 $scriptsHtml
             );
 
-            return $bladeTemplate;
+            return $this->cleanBladeSyntax($bladeTemplate);
         } catch (\Exception $e) {
             throw new \Exception('Error generating app.blade.php: '.$e->getMessage());
         }
@@ -72,7 +72,7 @@ class ThemeLayoutGeneratorService
             @$dom->loadHTML('<?xml encoding="UTF-8">'.$this->htmlContent);
             $xpath = new DOMXPath($dom);
 
-            return $this->extractNavigation($xpath);
+            return $this->cleanBladeSyntax($this->extractNavigation($xpath));
         } catch (\Exception $e) {
             throw new \Exception('Error generating navigation.blade.php: '.$e->getMessage());
         }
@@ -852,7 +852,7 @@ BLADE;
             // Build editor Blade template
             $editorTemplate = $this->buildEditorBladeTemplate($headContent, $scriptsHtml);
 
-            return $editorTemplate;
+            return $this->cleanBladeSyntax($editorTemplate);
         } catch (\Exception $e) {
             throw new \Exception('Error generating editor.blade.php: '.$e->getMessage());
         }
@@ -934,7 +934,7 @@ BLADE;
 @endsection
 BLADE;
 
-        return $template;
+        return $this->cleanBladeSyntax($template);
     }
 
     /**
@@ -967,7 +967,7 @@ BLADE;
 @endsection
 BLADE;
 
-            return $template;
+            return $this->cleanBladeSyntax($template);
         } catch (\Exception $e) {
             throw new \Exception('Error generating index.blade.php: '.$e->getMessage());
         }
@@ -1227,4 +1227,369 @@ BLADE;
             'scripts_found' => ! empty($this->extractScripts(new DOMXPath(new DOMDocument))),
         ];
     }
+
+    /**
+     * Clean HTML entity encodings and URL-escaped spaces in Blade files
+     */
+    private function cleanBladeSyntax($html)
+    {
+        // Decode HTML entities globally (restores -> and other characters)
+        $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        
+        // Ensure standard -> operator is restored
+        $html = str_replace('-&gt;', '->', $html);
+
+        // Decode URL-encoded characters (like %20, %2D%3E) inside Blade brackets
+        $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function($matches) {
+            return '{{' . urldecode($matches[1]) . '}}';
+        }, $html);
+
+        $html = preg_replace_callback('/\{!!(.*?)!!\}/s', function($matches) {
+            return '{!!' . urldecode($matches[1]) . '!!}';
+        }, $html);
+
+        return $html;
+    }
+
+    /**
+     * Extract hero/banner section to use as general page header
+     */
+    private function extractHeroSection($xpath)
+    {
+        $patterns = [
+            '//section[contains(@id, "hero") or contains(@id, "banner") or contains(@class, "hero") or contains(@class, "banner")]',
+            '//div[contains(@id, "hero") or contains(@id, "banner") or contains(@class, "hero") or contains(@class, "banner")]',
+            '//header',
+            '//body/section'
+        ];
+        
+        foreach ($patterns as $pattern) {
+            $nodes = $xpath->query($pattern);
+            if ($nodes->length > 0) {
+                $node = $nodes->item(0);
+                if ($node->getAttribute('id') !== 'navigation' && !preg_match('/(nav|menu)/i', $node->getAttribute('class'))) {
+                    return $node;
+                }
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Generate dynamic page header markup based on theme's hero section style
+     */
+    private function generatePageHeaderHtml()
+    {
+        $dom = new DOMDocument;
+        @$dom->loadHTML('<?xml encoding="UTF-8">'.$this->htmlContent);
+        $xpath = new DOMXPath($dom);
+        
+        $heroNode = $this->extractHeroSection($xpath);
+        if (!$heroNode) {
+            // Fallback header
+            return <<<HTML
+<section class="py-5 bg-dark text-white text-center">
+    <div class="container">
+        <h1 class="display-4">@yield('page_title', 'Halaman')</h1>
+    </div>
+</section>
+HTML;
+        }
+        
+        // Clone the hero node
+        $doc = new DOMDocument('1.0', 'UTF-8');
+        $cloned = $doc->importNode($heroNode, true);
+        $doc->appendChild($cloned);
+        $clonedXpath = new DOMXPath($doc);
+        
+        // Find main headings
+        $headings = $clonedXpath->query('.//h1|.//h2|.//h3');
+        if ($headings->length > 0) {
+            $mainHeading = $headings->item(0);
+            while ($mainHeading->firstChild) {
+                $mainHeading->removeChild($mainHeading->firstChild);
+            }
+            $mainHeading->appendChild($doc->createTextNode("@yield('page_title', 'Halaman')"));
+        }
+        
+        // Remove button, input, form, and anchor button elements to keep it clean
+        $elementsToRemove = $clonedXpath->query('.//button|.//input|.//form|.//a[contains(@class, "btn")]');
+        foreach ($elementsToRemove as $el) {
+            $el->parentNode->removeChild($el);
+        }
+        
+        $html = $doc->saveHTML();
+        $html = preg_replace('/<\?xml[^>]*\?>/', '', $html);
+        return trim($html);
+    }
+
+    public function generatePageShow()
+    {
+        $pageHeader = $this->generatePageHeaderHtml();
+        $template = <<<BLADE
+@extends('frontend::app')
+@section('seo')
+@php
+\$seo = (object)[
+    'title' => \$page->title,
+    'keyword' => \$page->keyword,
+    'description' => \Illuminate\Support\Str::limit(strip_tags(\$page->content), 155, ''),
+    'image' => \$page->thumbnail ?? (\$page->gambar()[0] ?? null),
+    'url' => url()->current(),
+];
+@endphp
+@endsection
+
+@section('page_title', \$page->title)
+
+@section('content')
+    {$pageHeader}
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="mb-4">
+                    {!! \$page->content !!}
+                </div>
+
+                @if (\$page->pdf)
+                <p>
+                    <a class="btn btn-primary" data-bs-toggle="collapse" href="#contentId" role="button"
+                        aria-expanded="false" aria-controls="contentId">
+                        Tampilkan PDF
+                    </a>
+                </p>
+                <div class="collapse" id="contentId">
+                    <div class="card card-body">
+                        <div class="ratio ratio-1x1">
+                            <iframe src="/storage/{{ \$page->pdf }}"></iframe>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@endsection
+BLADE;
+        return $this->cleanBladeSyntax($template);
+    }
+
+    public function generatePagePost()
+    {
+        $pageHeader = $this->generatePageHeaderHtml();
+        $template = <<<BLADE
+@extends('frontend::app')
+@section('seo')
+@php
+\$seo = (object)[
+    'title' => \$post->title,
+    'keyword' => \$post->keyword,
+    'description' => \Illuminate\Support\Str::limit(strip_tags(\$post->content), 155, ''),
+    'image' => \$post->thumbnail ?? (\$post->gambar()[0] ?? null),
+    'url' => url()->current(),
+];
+@endphp
+@endsection
+
+@section('page_title', \$post->title)
+
+@section('content')
+    {$pageHeader}
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                @if(\$post->thumbnail)
+                <img src="/storage/{{ \$post->thumbnail }}" class="img-fluid rounded mb-4" alt="{{ \$post->title }}">
+                @endif
+                
+                <div class="mb-4">
+                    {!! \$post->content !!}
+                </div>
+                
+                @if(\$post->tags)
+                <div class="mt-4 mb-4">
+                    <strong>Tags:</strong>
+                    @foreach(explode(',', \$post->tags) as \$tag)
+                    <span class="badge bg-secondary me-1">{{ trim(\$tag) }}</span>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">Latest Posts</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            @foreach(\$latestposts->take(5) as \$lp)
+                            <li class="mb-2">
+                                <a href="/post/{{ \$lp->slug }}">{{ \$lp->title }}</a>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+BLADE;
+        return $this->cleanBladeSyntax($template);
+    }
+
+    public function generatePageCategory()
+    {
+        $pageHeader = $this->generatePageHeaderHtml();
+        $template = <<<BLADE
+@extends('frontend::app')
+@section('page_title', \$category->name ?? 'Category')
+
+@section('content')
+    {$pageHeader}
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                @if(isset(\$posts) && \$posts->count() > 0)
+                <div class="row">
+                    @foreach(\$posts as \$post)
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            @if(\$post->thumbnail)
+                            <img src="/storage/{{ \$post->thumbnail }}" class="card-img-top" alt="{{ \$post->title }}">
+                            @endif
+                            <div class="card-body">
+                                <h5 class="card-title">{{ \$post->title }}</h5>
+                                <p class="card-text">{{ \Illuminate\Support\Str::limit(strip_tags(\$post->content), 100) }}</p>
+                                <a href="/post/{{ \$post->slug }}" class="btn btn-primary btn-sm">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @else
+                <p>No posts found in this category.</p>
+                @endif
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">Categories</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            @foreach(\$categories as \$cat)
+                            <li class="mb-2">
+                                <a href="/category/{{ \$cat->slug }}">{{ \$cat->name }}</a>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
+BLADE;
+        return $this->cleanBladeSyntax($template);
+    }
+
+    public function generatePageContact()
+    {
+        $pageHeader = $this->generatePageHeaderHtml();
+        $template = <<<BLADE
+@extends('frontend::app')
+@section('page_title', 'Contact Us')
+
+@section('content')
+    {$pageHeader}
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <h3>Get In Touch</h3>
+                <form action="/contact" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+            
+            <div class="col-lg-6">
+                <h3>Contact Info</h3>
+                <p><strong>Address:</strong> {{ \$setting->address }}</p>
+                <p><strong>Email:</strong> {{ \$setting->email }}</p>
+                <p><strong>Phone:</strong> {{ \$setting->phone }}</p>
+                @if(\$setting->whatsapp)
+                <p><strong>WhatsApp:</strong> <a href="https://wa.me/{{ \$setting->whatsapp }}">{{ \$setting->whatsapp }}</a></p>
+                @endif
+            </div>
+        </div>
+    </div>
+@endsection
+BLADE;
+        return $this->cleanBladeSyntax($template);
+    }
+
+    public function generatePageReport($title = 'Report')
+    {
+        $pageHeader = $this->generatePageHeaderHtml();
+        $template = <<<BLADE
+@extends('frontend::app')
+@section('page_title', \$page->title ?? '{$title}')
+
+@section('content')
+    {$pageHeader}
+    
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="mb-4">
+                    {!! \$page->content !!}
+                </div>
+                @if (\$page->pdf)
+                <div class="ratio ratio-1x1 mt-4">
+                    <iframe src="/storage/{{ \$page->pdf }}"></iframe>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@endsection
+BLADE;
+        return $this->cleanBladeSyntax($template);
+    }
+
+    public function generatePageMaintenance()
+    {
+        $template = <<<BLADE
+@extends('frontend::app')
+@section('page_title', 'Under Maintenance')
+
+@section('content')
+    <div class="container py-5 text-center">
+        <h1 class="display-1">🛠️</h1>
+        <h1 class="display-4">Under Maintenance</h1>
+        <p class="lead">We will be back shortly. Thank you for your patience.</p>
+    </div>
+@endsection
+BLADE;
+        return $this->cleanBladeSyntax($template);
+    }
 }
+
