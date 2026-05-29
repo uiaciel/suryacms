@@ -33,7 +33,7 @@ class BuilderTheme extends Component
     public $selectorHero = '';
 
     // Step 3: Variables & Placeholder Mapping
-    public $mappings = []; // array of ['original' => ..., 'replacement' => ..., 'enabled' => bool]
+    public $mappings = []; // array of ['original' => ..., 'replacement' => ..., 'type' => 'text|link|logo|etc', 'enabled' => bool]
 
     // Step 4: Section Configurator
     public $sections = []; // array of ['id' => ..., 'label' => ..., 'type' => 'homepage'|'block'|'skip', 'content' => ...]
@@ -49,6 +49,11 @@ class BuilderTheme extends Component
     public $htmlOriginalContent = ''; // Original HTML before any modifications
     public $htmlSourcePreview = ''; // Original HTML for Step 5 reference
     public $allHtmlFiles = []; // All HTML files from ZIP: ['filename' => 'content']
+
+    // Step 2: HTML Structure Indexing
+    public $htmlStructureIndex = []; // Structure elements for indexing
+    public $htmlLines = []; // HTML split by lines for scroll reference
+    public $selectedIndexItem = null; // Track clicked index item
 
     // Validation Errors list
     public $validationErrors = [];
@@ -110,6 +115,32 @@ class BuilderTheme extends Component
     {
         if ($this->step > 1) {
             $this->step--;
+        }
+    }
+
+    /**
+     * Toggle all mappings enabled/disabled
+     */
+    public function toggleAllMappings($checked)
+    {
+        foreach ($this->mappings as $index => $mapping) {
+            $this->mappings[$index]['enabled'] = $checked;
+        }
+    }
+
+    /**
+     * Add manual mapping for custom variable with type
+     */
+    public function addManualMapping($original, $replacement, $type = 'text')
+    {
+        if (!empty($original) && !empty($replacement)) {
+            $this->mappings[] = [
+                'original' => $original,
+                'replacement' => $replacement,
+                'type' => $type,
+                'enabled' => true,
+            ];
+            session()->flash('message', "✅ Variabel tipe '{$type}' ditambahkan.");
         }
     }
 
@@ -197,6 +228,9 @@ class BuilderTheme extends Component
             // Auto detect selectors
             $this->detectSelectors();
 
+            // Generate structure index for Step 2
+            $this->generateHtmlStructureIndex();
+
         } catch (\Exception $e) {
             Log::error('Builder Upload failed: ' . $e->getMessage());
             $this->validationErrors = [$e->getMessage()];
@@ -244,6 +278,116 @@ class BuilderTheme extends Component
     }
 
     /**
+     * Generate HTML structure index for Step 2 navigation
+     * Extracts head, header, nav, sections, footer with line numbers
+     */
+    private function generateHtmlStructureIndex()
+    {
+        $lines = explode("\n", $this->htmlOriginalContent);
+        $this->htmlLines = $lines;
+        $this->htmlStructureIndex = [];
+
+        $dom = new \DOMDocument;
+        libxml_use_internal_errors(true);
+        @$dom->loadHTML(
+            mb_convert_encoding($this->htmlOriginalContent, 'HTML-ENTITIES', 'UTF-8'),
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+        $xpath = new \DOMXPath($dom);
+
+        // 1. HEAD section
+        $headNode = $xpath->query('//head')->item(0);
+        if ($headNode) {
+            $this->htmlStructureIndex[] = [
+                'type' => 'head',
+                'label' => '<head>',
+                'line' => $this->findLineInHtml('<head', $lines),
+            ];
+        }
+
+        // 2. HEADER elements
+        $headerNodes = $xpath->query('//header | //*[@id="header"] | //*[contains(@class, "header")]');
+        if ($headerNodes !== false) {
+            foreach ($headerNodes as $node) {
+                $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
+                $label = 'header' . ($id ? "#$id" : '');
+                $this->htmlStructureIndex[] = [
+                    'type' => 'header',
+                    'label' => $label,
+                    'line' => $this->findLineInHtml($node->nodeName, $lines),
+                ];
+            }
+        }
+
+        // 3. NAVIGATION elements
+        $navNodes = $xpath->query('//nav | //*[@id="nav"] | //*[@id="navigation"] | //*[contains(@class, "nav")] | //*[contains(@class, "navigation")]');
+        if ($navNodes !== false) {
+            foreach ($navNodes as $node) {
+                $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
+                $class = $node->hasAttribute('class') ? explode(' ', $node->getAttribute('class'))[0] : '';
+                $label = 'nav' . ($id ? "#$id" : ($class ? ".$class" : ''));
+                $this->htmlStructureIndex[] = [
+                    'type' => 'nav',
+                    'label' => $label,
+                    'line' => $this->findLineInHtml($node->nodeName, $lines),
+                ];
+            }
+        }
+
+        // 4. SECTION elements
+        $sectionNodes = $xpath->query('//section | //*[@id*="section"] | //*[contains(@class, "section")]');
+        if ($sectionNodes !== false) {
+            foreach ($sectionNodes as $node) {
+                $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
+                $class = $node->hasAttribute('class') ? explode(' ', $node->getAttribute('class'))[0] : '';
+                $label = 'section' . ($id ? "#$id" : ($class ? ".$class" : ''));
+                $this->htmlStructureIndex[] = [
+                    'type' => 'section',
+                    'label' => $label,
+                    'line' => $this->findLineInHtml($node->nodeName, $lines),
+                ];
+            }
+        }
+
+        // 5. FOOTER elements
+        $footerNodes = $xpath->query('//footer | //*[@id="footer"] | //*[contains(@class, "footer")]');
+        if ($footerNodes !== false) {
+            foreach ($footerNodes as $node) {
+                $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
+                $class = $node->hasAttribute('class') ? explode(' ', $node->getAttribute('class'))[0] : '';
+                $label = 'footer' . ($id ? "#$id" : ($class ? ".$class" : ''));
+                $this->htmlStructureIndex[] = [
+                    'type' => 'footer',
+                    'label' => $label,
+                    'line' => $this->findLineInHtml($node->nodeName, $lines),
+                ];
+            }
+        }
+    }
+
+    /**
+     * Find approximate line number of HTML element
+     */
+    private function findLineInHtml($search, $lines)
+    {
+        foreach ($lines as $lineNum => $line) {
+            if (stripos($line, $search) !== false) {
+                return $lineNum + 1; // 1-based line number
+            }
+        }
+        return 1;
+    }
+
+    /**
+     * Livewire action to set selected index item
+     */
+    public function selectIndexItem($lineNum)
+    {
+        $this->selectedIndexItem = $lineNum;
+    }
+
+    /**
      * Step 2: Inject IDs to matched elements & load placeholders
      */
     private function processSelectors()
@@ -260,13 +404,13 @@ class BuilderTheme extends Component
 
             // Mark Navigation
             $navNodes = $xpath->query($this->cssToXpath($this->selectorNav));
-            if ($navNodes->length > 0) {
+            if ($navNodes !== false && $navNodes->length > 0) {
                 $navNodes->item(0)->setAttribute('id', 'navigation');
             }
 
             // Mark Footer
             $footerNodes = $xpath->query($this->cssToXpath($this->selectorFooter));
-            if ($footerNodes->length > 0) {
+            if ($footerNodes !== false && $footerNodes->length > 0) {
                 $footerNodes->item(0)->setAttribute('id', 'footer');
             }
 
@@ -351,9 +495,23 @@ class BuilderTheme extends Component
 
         $formatted = [];
         foreach ($placeholders as $original => $replacement) {
+            // Auto-detect type based on content
+            $type = 'text';
+            if (filter_var($original, FILTER_VALIDATE_EMAIL)) {
+                $type = 'email';
+            } elseif (filter_var($original, FILTER_VALIDATE_URL) || strpos($original, 'http') === 0) {
+                $type = 'link';
+            } elseif (stripos($original, 'logo') !== false || stripos($original, 'icon') !== false) {
+                $type = 'logo';
+            } elseif (stripos($original, 'phone') !== false || preg_match('/\+?\d{1,3}[\s.-]?\d+/', $original)) {
+                $type = 'phone';
+            } elseif (stripos($original, 'social') !== false || stripos($original, 'facebook') !== false || stripos($original, 'twitter') !== false) {
+                $type = 'social';
+            }
             $formatted[] = [
                 'original' => $original,
                 'replacement' => $replacement,
+                'type' => $type,
                 'enabled' => true,
             ];
         }
@@ -420,7 +578,7 @@ class BuilderTheme extends Component
 
         $elementsNodes = $xpath->query($query);
 
-        if ($elementsNodes->length > 0) {
+        if ($elementsNodes !== false && $elementsNodes->length > 0) {
             foreach ($elementsNodes as $element) {
                 $elementId = $element->getAttribute('id');
 
@@ -457,15 +615,67 @@ class BuilderTheme extends Component
                 $nodeDom->appendChild($nodeDom->importNode($element, true));
                 $content = preg_replace('/<\?xml[^>]*\?>/', '', $nodeDom->saveHTML());
 
+                // Convert div to section if needed
+                $tagName = $element->nodeName;
+                $contentForConfig = trim($content);
+                if ($tagName === 'div') {
+                    // Replace div with section tags in content
+                    $contentForConfig = preg_replace('/<div(\s[^>]*)?>/', '<section$1>', $contentForConfig, 1);
+                    $contentForConfig = str_replace('</div>', '</section>', $contentForConfig);
+                }
+
                 $this->sections[] = [
                     'id' => $id,
                     'label' => $title,
                     'type' => 'homepage', // 'homepage' | 'block' | 'skip'
-                    'content' => trim($content),
+                    'content' => $contentForConfig,
                 ];
                 $counter++;
             }
         }
+    }
+
+    /**
+     * Build theme config based on selected section types
+     */
+    private function buildThemeConfig()
+    {
+        $homepageSections = [];
+        $blockSections = [];
+
+        foreach ($this->sections as $section) {
+            if ($section['type'] === 'homepage') {
+                $homepageSections[] = $section['id'];
+            } elseif ($section['type'] === 'block') {
+                $blockSections[] = $section['id'];
+            }
+            // 'skip' sections are not included
+        }
+
+        $config = "<?php\n\nreturn [\n";
+        $config .= "    'homepage_sections' => [" . implode(", ", array_map(fn($s) => "'{$s}'", $homepageSections)) . "],\n";
+        $config .= "    'block_sections' => [" . implode(", ", array_map(fn($s) => "'{$s}'", $blockSections)) . "],\n";
+        $config .= "];";
+
+        return $config;
+    }
+
+    /**
+     * Generate index.blade.php with only homepage sections
+     */
+    private function generateIndexBlade()
+    {
+        $content = "@extends('suryacms::layouts.app')\n\n@section('content')\n";
+
+        foreach ($this->sections as $section) {
+            if ($section['type'] === 'homepage') {
+                $content .= "<!-- Section: {$section['label']} -->\n";
+                $content .= $section['content'] . "\n\n";
+            }
+        }
+
+        $content .= "@endsection";
+        return $content;
     }
 
     /**
@@ -490,12 +700,18 @@ class BuilderTheme extends Component
             // Generate Layout files using configurations
             $generator = new ThemeLayoutGeneratorService($this->htmlNormalized, $this->themeName);
 
+            // Build theme config based on section types
+            $themeConfig = $this->buildThemeConfig();
+
+            // Generate index.blade.php content with homepage sections only
+            $indexContent = $this->generateIndexBlade();
+
             $this->generatedFiles = [
                 'app.blade.php' => $generator->generate(),
                 'navigation.blade.php' => $generator->generateNavigation(),
                 'editor.blade.php' => $generator->generateEditor(),
                 'homepage.blade.php' => $generator->generateHomepage(),
-                'index.blade.php' => $generator->generateIndex(),
+                'index.blade.php' => $indexContent,
                 'page/show.blade.php' => $generator->generatePageShow(),
                 'page/post.blade.php' => $generator->generatePagePost(),
                 'page/category.blade.php' => $generator->generatePageCategory(),
@@ -504,7 +720,7 @@ class BuilderTheme extends Component
                 'page/financial.blade.php' => $generator->generatePageReport('Financial Reports'),
                 'page/share.blade.php' => $generator->generatePageReport('Share Reports'),
                 'page/maintenance.blade.php' => $generator->generatePageMaintenance(),
-                'theme.php' => "<?php\n\nreturn " . $generator->generateThemeConfig() . ';'
+                'theme.php' => $themeConfig
             ];
 
         } catch (\Exception $e) {

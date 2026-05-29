@@ -64,7 +64,7 @@
 
 </head>
 
-<body class="bg-[#f0f3fb] text-slate-700 flex overflow-hidden h-screen" x-data="{ sidebarOpen: false }">
+<body class="bg-[#f0f3fb] text-slate-700 flex overflow-hidden h-screen" x-data="{ sidebarOpen: false, sidebarMinimized: false }">
     <div class="flex h-screen w-full relative">
         <!-- Overlay for mobile -->
         <div
@@ -82,14 +82,14 @@
 
         <!-- SIDEBAR -->
         <aside
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-            class="w-64 bg-[#1e2356] text-white fixed lg:static inset-y-0 left-0 z-50 flex-shrink-0 flex flex-col shadow-2xl overflow-hidden transition-transform duration-300 ease-in-out">
+            :class="[sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0', sidebarMinimized ? 'lg:w-20' : 'lg:w-64']"
+            class="w-64 bg-[#1e2356] text-white fixed lg:static inset-y-0 left-0 z-50 flex-shrink-0 flex flex-col shadow-2xl overflow-hidden transition-all duration-300 ease-in-out">
 
             <!-- Sidebar Header -->
             <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-sm">S</div>
-                    <span class="text-lg font-black tracking-tight">Admin<span class="text-blue-400">Panel</span></span>
+                    <span x-show="!sidebarMinimized" class="text-lg font-black tracking-tight">Admin<span class="text-blue-400">Panel</span></span>
                 </div>
                 <button @click="sidebarOpen = false" class="lg:hidden text-white/60 hover:text-white">
                     <i class="fas fa-times text-xl"></i>
@@ -100,22 +100,22 @@
             <nav class="flex-1 px-3 py-4 overflow-y-auto sidebar-scroll space-y-2 gap-3">
             <div>
 
-                <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">Main Menu</p>
-                <a href="/admin" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin') && !Request::is('admin/*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                    <i class="fas fa-th-large mr-3 w-4 text-center"></i> Dashboard
+                <p x-show="!sidebarMinimized" class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">Main Menu</p>
+                <a href="/admin" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin') && !Request::is('admin/*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                    <i class="fas fa-th-large w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Dashboard</span>
                 </a>
-                <a href="/admin/posts" wire:navigate class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/posts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                    <span class="flex items-center"><i class="fas fa-file-alt mr-3 w-4 text-center"></i> Posts</span>
-                    <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{$posts->count()}}</span>
+                <a href="/admin/posts" wire:navigate class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/posts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                    <span class="flex items-center"><i class="fas fa-file-alt w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Posts</span></span>
+                    <span x-show="!sidebarMinimized" class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{$posts->count()}}</span>
                 </a>
-                <a href="/admin/pages" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/pages*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                    <i class="fas fa-copy mr-3 w-4 text-center"></i> Pages
+                <a href="/admin/pages" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/pages*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                    <i class="fas fa-copy w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Pages</span>
                 </a>
-                <a href="/admin/galleries" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/galleries*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                    <i class="fas fa-photo-video mr-3 w-4 text-center"></i> Media
+                <a href="/admin/galleries" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/galleries*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                    <i class="fas fa-photo-video w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Media</span>
                 </a>
-                <a href="/admin/contacts" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/contacts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                    <i class="fas fa-envelope mr-3 w-4 text-center"></i> Inbox
+                <a href="/admin/contacts" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/contacts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                    <i class="fas fa-envelope w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Inbox</span>
                 </a>
             </div>
 
@@ -126,12 +126,12 @@
                 @if (!empty($packageMenus))
                     @foreach ($packageMenus as $packageName => $menus)
                     <div>
-                        <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">{{ $packageName }}</p>
+                        <p x-show="!sidebarMinimized" class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">{{ $packageName }}</p>
 
                         @foreach ($menus as $menu)
-                            <a href="{{ $menu['route'] }}" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is(ltrim($menu['route'], '/')) ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                                <i class="{{ $menu['icon'] }} mr-3 w-4 text-center"></i>
-                                <span>{{ $menu['label'] }}</span>
+                            <a href="{{ $menu['route'] }}" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is(ltrim($menu['route'], '/')) ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                                <i class="{{ $menu['icon'] }} w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                                <span x-show="!sidebarMinimized">{{ $menu['label'] }}</span>
                             </a>
                         @endforeach
                     </div>
@@ -139,30 +139,30 @@
                 @endif
 
                 <div>
-                    <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Themes</p>
-                    <a href="/admin/themes" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                        <i class="fas fa-layer-group mr-3 w-4 text-center"></i>
-                        <span>All Themes</span>
+                    <p x-show="!sidebarMinimized" class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Themes</p>
+                    <a href="/admin/themes" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                        <i class="fas fa-layer-group w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">All Themes</span>
                     </a>
-                    <a href="/admin/themes/editor" class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/editor*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                        <i class="fas fa-code mr-3 w-4 text-center"></i>
-                        <span>Editor</span>
+                    <a href="/admin/themes/editor" class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/editor*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                        <i class="fas fa-code w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Editor</span>
                     </a>
-                    <a href="/admin/themes/generate" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/generate*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                        <i class="fas fa-magic mr-3 w-4 text-center"></i>
-                        <span>Generate</span>
+                    <a href="/admin/themes/generate" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/generate*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                        <i class="fas fa-magic w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Generate</span>
                     </a>
                 </div>
 
                 @if (isset($setting) && $setting->homepage_type == 'homepage')
                 <div>
-                    <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Homepage Builder</p>
+                    <p x-show="!sidebarMinimized" class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Homepage Builder</p>
                     <div x-data="{ open: {{ Request::is('admin/homepage-builder*') ? 'true' : 'false' }} }">
-                        <button @click="open = !open" class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/homepage-builder*') ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                            <span class="flex items-center"><i class="fas fa-palette mr-3 w-4 text-center"></i> Builder</span>
-                            <i class="fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                        <button @click="open = !open" class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/homepage-builder*') ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                            <span class="flex items-center"><i class="fas fa-palette w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Builder</span></span>
+                            <i x-show="!sidebarMinimized" class="fas fa-chevron-down text-[10px] transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
                         </button>
-                        <div x-show="open" x-collapse x-cloak class="mt-1 space-y-1">
+                        <div x-show="open && !sidebarMinimized" x-collapse x-cloak class="mt-1 space-y-1">
                             @foreach (collect($pages)->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))->take(4) as $page)
                                 <a href="/admin/homepage-builder/{{ $page->slug }}"
                                     class="flex items-center pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition-all {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'text-blue-400 bg-white/5' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
@@ -175,12 +175,12 @@
                 @endif
 
                 <div>
-                    <p class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Tools & Settings</p>
-                    <a href="/admin/menu" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/menu*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                        <i class="fas fa-bars mr-3 w-4 text-center"></i> Menu
+                    <p x-show="!sidebarMinimized" class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Tools & Settings</p>
+                    <a href="/admin/menu" wire:navigate class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/menu*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                        <i class="fas fa-bars w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Menu</span>
                     </a>
-                    <a href="/admin/setting" class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/setting*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}">
-                        <i class="fas fa-cog mr-3 w-4 text-center"></i> Settings
+                    <a href="/admin/setting" class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/setting*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}" :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                        <i class="fas fa-cog w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span x-show="!sidebarMinimized">Settings</span>
                     </a>
                 </div>
 
@@ -193,12 +193,12 @@
             <!-- Sidebar Footer -->
             <div class="p-4 border-t border-white/10">
                 <div class="flex items-center gap-3 px-2">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">{{ substr(Auth::user()->name ?? 'AS', 0, 2) }}</div>
-                    <div class="flex-1 min-w-0">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold">{{ substr(Auth::user()->name ?? 'AS', 0, 2) }}</div>
+                    <div x-show="!sidebarMinimized" class="flex-1 min-w-0">
                         <p class="text-xs font-bold text-white truncate">{{ Auth::user()->name ?? 'Admin' }}</p>
                         <p class="text-[10px] text-white/40 truncate">Administrator</p>
                     </div>
-                    <form method="POST" action="{{ route('logout') }}" class="inline" onclick="this.submit(); return false;">
+                    <form x-show="!sidebarMinimized" method="POST" action="{{ route('logout') }}" class="inline" onclick="this.submit(); return false;">
                         @csrf
                         <button type="button" class="text-white/40 hover:text-red-400 transition"><i class="fas fa-sign-out-alt text-sm"></i></button>
                     </form>
@@ -214,6 +214,11 @@
                 <!-- Mobile Menu Toggle -->
                 <button @click="sidebarOpen = true" class="lg:hidden mr-4 text-gray-500 hover:text-blue-600 transition-colors">
                     <i class="fas fa-bars text-xl"></i>
+                </button>
+
+                <!-- Desktop Sidebar Toggle -->
+                <button @click="sidebarMinimized = !sidebarMinimized" class="hidden lg:flex mr-4 text-gray-400 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-outdent text-lg transition-transform" :class="sidebarMinimized ? 'rotate-180' : ''"></i>
                 </button>
 
                 <div class="flex items-center gap-4">

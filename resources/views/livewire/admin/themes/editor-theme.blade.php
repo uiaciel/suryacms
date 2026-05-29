@@ -352,7 +352,7 @@
                             ] as [$var, $label])
                             <div class="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50/70 transition-colors group">
                                 <div>
-                                    <code class="text-indigo-600 text-xs font-mono">@{{ {{ $var }} }}</code>
+                                    <code class="text-indigo-600 text-xs font-mono">@{{  $var  }}</code>
                                     <span class="text-slate-400 text-xs ml-2">— {{ $label }}</span>
                                 </div>
                                 <button onclick="copyVar(this, '@{{ {{ $var }} }}')"
