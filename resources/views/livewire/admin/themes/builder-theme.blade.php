@@ -431,7 +431,7 @@
                         <p class="text-slate-400 text-xs mt-1">Kiri: Original HTML untuk referensi. Kanan: File generated yang bisa di-edit sebelum install.</p>
                     </div>
 
-                    <div class="space-y-6" x-data="{ selectedHtmlFile: 'index.html', selectedGenFile: 'navigation.blade.php', loadingCode: false }">
+                    <div class="space-y-6" x-data="{ selectedHtmlFile: 'index.html', selectedGenFile: 'index.blade.php', loadingCode: false }">
 
                         {{-- ROW 1: Original HTML Source Code --}}
                         <div class="flex flex-col lg:flex-row gap-4 h-[400px]">

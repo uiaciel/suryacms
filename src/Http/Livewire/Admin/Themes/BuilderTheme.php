@@ -9,6 +9,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Uiaciel\SuryaCms\Services\FooterNormalizerService;
 use Uiaciel\SuryaCms\Services\HeadNormalizerService;
+use Uiaciel\SuryaCms\Services\PlaceholderMappingService;
 use Uiaciel\SuryaCms\Services\ThemeLayoutGeneratorService;
 use Uiaciel\SuryaCms\Services\ThemeNormalizerService;
 use ZipArchive;
@@ -40,7 +41,7 @@ class BuilderTheme extends Component
 
     // Step 5: Preview & Compile
     public $generatedFiles = []; // array of ['path' => ..., 'content' => ...]
-    public $activePreviewFile = 'navigation.blade.php';
+    public $activePreviewFile = 'index.blade.php';
     public $editingFileContent = ''; // Current file being edited
 
     // HTML Contents
@@ -388,7 +389,7 @@ class BuilderTheme extends Component
     }
 
     /**
-     * Step 2: Inject IDs to matched elements & load placeholders
+     * Step 2: Inject IDs to matched elements & load placeholders using PlaceholderMappingService
      */
     private function processSelectors()
     {
@@ -416,8 +417,13 @@ class BuilderTheme extends Component
 
             $this->htmlNormalized = $dom->saveHTML();
 
-            // Detect variable mappings inside text nodes
-            $this->mappings = $this->scanPlaceholders($this->htmlNormalized);
+            // Normalize HTML: remove <main> tags dan ganti <div class="section"> dengan <section>
+            $tempService = new PlaceholderMappingService($this->htmlNormalized, $this->themeName);
+            $this->htmlNormalized = $tempService->prepareIndexHtml();
+
+            // Detect variable mappings menggunakan PlaceholderMappingService
+            $mappingService = new PlaceholderMappingService($this->htmlNormalized, $this->themeName);
+            $this->mappings = $mappingService->getScanResults();
 
         } catch (\Exception $e) {
             Log::error('Builder Selector process failed: ' . $e->getMessage());
@@ -442,97 +448,15 @@ class BuilderTheme extends Component
     }
 
     /**
-     * Scan HTML text nodes for customizable placeholders
-     */
-    private function scanPlaceholders($html)
-    {
-        $placeholders = [];
-
-        // Scan for email addresses
-        if (preg_match_all('/[\w\.-]+@[\w\.-]+\.\w+/', $html, $matches)) {
-            foreach (array_unique($matches[0]) as $match) {
-                $placeholders[$match] = '{{ $setting->email }}';
-            }
-        }
-
-        // Scan for social links
-        $socials = [
-            'facebook.com' => '{{ $setting->facebook }}',
-            'twitter.com' => '{{ $setting->twitter }}',
-            'x.com' => '{{ $setting->twitter }}',
-            'instagram.com' => '{{ $setting->instagram }}',
-            'linkedin.com' => '{{ $setting->linkedin }}',
-            'youtube.com' => '{{ $setting->youtube }}',
-            'tiktok.com' => '{{ $setting->tiktok }}',
-        ];
-
-        foreach ($socials as $domain => $settingVar) {
-            if (preg_match_all('/https?:\/\/(www\.)?' . preg_quote($domain, '/') . '\/[^\s"\'<>]+/i', $html, $matches)) {
-                foreach (array_unique($matches[0]) as $match) {
-                    $placeholders[$match] = $settingVar;
-                }
-            }
-        }
-
-        // Scan for copyright text
-        if (preg_match('/copyright\s*©\s*[^<]+/i', $html, $matches)) {
-            $placeholders[trim($matches[0])] = '© {{ date("Y") }} {{ $setting->sitename }}. All Rights Reserved.';
-        }
-
-        // Default words to scan
-        $keywords = [
-            'phone' => '{{ $setting->phone }}',
-            'email' => '{{ $setting->email }}',
-            'address' => '{{ $setting->address }}',
-            'whatsapp' => '{{ $setting->whatsapp }}',
-        ];
-
-        foreach ($keywords as $word => $settingVar) {
-            if (preg_match_all('/\b' . preg_quote($word, '/') . '\b/i', $html, $matches)) {
-                $placeholders[$word] = $settingVar;
-            }
-        }
-
-        $formatted = [];
-        foreach ($placeholders as $original => $replacement) {
-            // Auto-detect type based on content
-            $type = 'text';
-            if (filter_var($original, FILTER_VALIDATE_EMAIL)) {
-                $type = 'email';
-            } elseif (filter_var($original, FILTER_VALIDATE_URL) || strpos($original, 'http') === 0) {
-                $type = 'link';
-            } elseif (stripos($original, 'logo') !== false || stripos($original, 'icon') !== false) {
-                $type = 'logo';
-            } elseif (stripos($original, 'phone') !== false || preg_match('/\+?\d{1,3}[\s.-]?\d+/', $original)) {
-                $type = 'phone';
-            } elseif (stripos($original, 'social') !== false || stripos($original, 'facebook') !== false || stripos($original, 'twitter') !== false) {
-                $type = 'social';
-            }
-            $formatted[] = [
-                'original' => $original,
-                'replacement' => $replacement,
-                'type' => $type,
-                'enabled' => true,
-            ];
-        }
-        return $formatted;
-    }
-
-    /**
      * Step 3: Run placeholders mapping & prepare section extraction
      */
     private function processMappings()
     {
         $html = $this->htmlNormalized;
 
-        // Apply only enabled mappings
-        foreach ($this->mappings as $mapping) {
-            if ($mapping['enabled']) {
-                // Safely replace placeholders outside tags, script, and styles
-                $pattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b' . preg_quote($mapping['original'], '~') . '\b~is';
-                $html = preg_replace($pattern, $mapping['replacement'], $html);
-            }
-        }
+        // Apply only enabled mappings menggunakan PlaceholderMappingService
+        $mappingService = new PlaceholderMappingService($html, $this->themeName);
+        $html = $mappingService->applyMappings($this->mappings);
 
         $this->htmlNormalized = $html;
 
@@ -636,36 +560,16 @@ class BuilderTheme extends Component
     }
 
     /**
-     * Build theme config based on selected section types
-     */
-    private function buildThemeConfig()
-    {
-        $homepageSections = [];
-        $blockSections = [];
-
-        foreach ($this->sections as $section) {
-            if ($section['type'] === 'homepage') {
-                $homepageSections[] = $section['id'];
-            } elseif ($section['type'] === 'block') {
-                $blockSections[] = $section['id'];
-            }
-            // 'skip' sections are not included
-        }
-
-        $config = "<?php\n\nreturn [\n";
-        $config .= "    'homepage_sections' => [" . implode(", ", array_map(fn($s) => "'{$s}'", $homepageSections)) . "],\n";
-        $config .= "    'block_sections' => [" . implode(", ", array_map(fn($s) => "'{$s}'", $blockSections)) . "],\n";
-        $config .= "];";
-
-        return $config;
-    }
-
-    /**
-     * Generate index.blade.php with only homepage sections
+     * Generate index.blade.php dengan normalisasi HTML
+     * Hapus <main> tag dan ganti <div class="section"> dengan <section>
      */
     private function generateIndexBlade()
     {
-        $content = "@extends('suryacms::layouts.app')\n\n@section('content')\n";
+        // Prepare HTML: remove <main> tags dan convert div to section
+        $mappingService = new PlaceholderMappingService($this->htmlNormalized, $this->themeName);
+        $preparedHtml = $mappingService->prepareIndexHtml();
+
+        $content = "@extends('frontend::app')\n\n@section('content')\n";
 
         foreach ($this->sections as $section) {
             if ($section['type'] === 'homepage') {
@@ -701,10 +605,11 @@ class BuilderTheme extends Component
             $generator = new ThemeLayoutGeneratorService($this->htmlNormalized, $this->themeName);
 
             // Build theme config based on section types
-            $themeConfig = $this->buildThemeConfig();
+            // $themeConfig = $this->buildThemeConfig();
 
             // Generate index.blade.php content with homepage sections only
             $indexContent = $this->generateIndexBlade();
+            $indexContent = str_replace('-&gt;', '->', $indexContent);
 
             $this->generatedFiles = [
                 'app.blade.php' => $generator->generate(),
@@ -720,7 +625,7 @@ class BuilderTheme extends Component
                 'page/financial.blade.php' => $generator->generatePageReport('Financial Reports'),
                 'page/share.blade.php' => $generator->generatePageReport('Share Reports'),
                 'page/maintenance.blade.php' => $generator->generatePageMaintenance(),
-                'theme.php' => $themeConfig
+                'theme.php' => "<?php\n\nreturn " . $generator->generateThemeConfig() . ";",
             ];
 
         } catch (\Exception $e) {

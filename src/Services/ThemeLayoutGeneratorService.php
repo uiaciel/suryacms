@@ -516,14 +516,14 @@ class ThemeLayoutGeneratorService
 
             $toggleAnchor->appendChild($dom->createTextNode("@if (session('locale', 'id') === 'id')\n"));
             $idImg = $dom->createElement('img');
-            $idImg->setAttribute('src', '/frontend/sge/images/id.png');
+            $idImg->setAttribute('src', '/frontend/default/img/id.png');
             $idImg->setAttribute('alt', 'Indonesia');
             $idImg->setAttribute('width', '20');
             $idImg->setAttribute('class', 'align-middle me-1');
             $toggleAnchor->appendChild($idImg);
             $toggleAnchor->appendChild($dom->createTextNode("\n@else\n"));
             $usImg = $dom->createElement('img');
-            $usImg->setAttribute('src', '/frontend/sge/images/us.png');
+            $usImg->setAttribute('src', '/frontend/default/img/us.png');
             $usImg->setAttribute('alt', 'English');
             $usImg->setAttribute('width', '20');
             $usImg->setAttribute('class', 'align-middle me-1');
@@ -583,7 +583,7 @@ class ThemeLayoutGeneratorService
                         $idAnchor->removeChild($idAnchor->firstChild);
                     }
                     $idIcon = $dom->createElement('img');
-                    $idIcon->setAttribute('src', '/frontend/sge/images/id.png');
+                    $idIcon->setAttribute('src', '/frontend/default/img/id.png');
                     $idIcon->setAttribute('alt', 'Indonesia');
                     $idIcon->setAttribute('width', '20');
                     $idIcon->setAttribute('class', 'align-middle me-1');
@@ -600,7 +600,7 @@ class ThemeLayoutGeneratorService
                         $enAnchor->removeChild($enAnchor->firstChild);
                     }
                     $enIcon = $dom->createElement('img');
-                    $enIcon->setAttribute('src', '/frontend/sge/images/us.png');
+                    $enIcon->setAttribute('src', '/frontend/default/img/us.png');
                     $enIcon->setAttribute('alt', 'English');
                     $enIcon->setAttribute('width', '20');
                     $enIcon->setAttribute('class', 'align-middle me-1');
@@ -1016,6 +1016,7 @@ BLADE;
                     'name' => ucfirst($this->themeName),
                     'path' => strtolower($this->themeName),
                     'version' => '1.0.0',
+                    "style" => "tailwindcss", // Default ke Bootstrap, bisa diubah ke tailwindcss
                     'author' => 'Theme Generator',
                     'url' => 'https://uiaciel.com',
                     'license' => 'MIT',
@@ -1030,6 +1031,7 @@ BLADE;
                         'category' => 'Plugin',
                         'icon' => '🖼️',
                         'content' => '[[gallery]]',
+                        'preview' => '',
                     ],
                     [
                         'id' => 'blogs-block',
@@ -1037,6 +1039,7 @@ BLADE;
                         'category' => 'Plugin',
                         'icon' => '📝',
                         'content' => '[[blog]]',
+                        'preview' => '',
                     ],
                     [
                         'id' => 'youtube-block',
@@ -1044,6 +1047,7 @@ BLADE;
                         'category' => 'Plugin',
                         'icon' => '📺',
                         'content' => '[[youtube]]',
+                        'preview' => '',
                     ],
                 ],
                 'sections' => $sections,
@@ -1235,7 +1239,7 @@ BLADE;
     {
         // Decode HTML entities globally (restores -> and other characters)
         $html = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        
+
         // Ensure standard -> operator is restored
         $html = str_replace('-&gt;', '->', $html);
 
@@ -1262,7 +1266,7 @@ BLADE;
             '//header',
             '//body/section'
         ];
-        
+
         foreach ($patterns as $pattern) {
             $nodes = $xpath->query($pattern);
             if ($nodes->length > 0) {
@@ -1272,7 +1276,7 @@ BLADE;
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -1284,7 +1288,7 @@ BLADE;
         $dom = new DOMDocument;
         @$dom->loadHTML('<?xml encoding="UTF-8">'.$this->htmlContent);
         $xpath = new DOMXPath($dom);
-        
+
         $heroNode = $this->extractHeroSection($xpath);
         if (!$heroNode) {
             // Fallback header
@@ -1296,13 +1300,13 @@ BLADE;
 </section>
 HTML;
         }
-        
+
         // Clone the hero node
         $doc = new DOMDocument('1.0', 'UTF-8');
         $cloned = $doc->importNode($heroNode, true);
         $doc->appendChild($cloned);
         $clonedXpath = new DOMXPath($doc);
-        
+
         // Find main headings
         $headings = $clonedXpath->query('.//h1|.//h2|.//h3');
         if ($headings->length > 0) {
@@ -1312,13 +1316,13 @@ HTML;
             }
             $mainHeading->appendChild($doc->createTextNode("@yield('page_title', 'Halaman')"));
         }
-        
+
         // Remove button, input, form, and anchor button elements to keep it clean
         $elementsToRemove = $clonedXpath->query('.//button|.//input|.//form|.//a[contains(@class, "btn")]');
         foreach ($elementsToRemove as $el) {
             $el->parentNode->removeChild($el);
         }
-        
+
         $html = $doc->saveHTML();
         $html = preg_replace('/<\?xml[^>]*\?>/', '', $html);
         return trim($html);
@@ -1345,7 +1349,7 @@ HTML;
 
 @section('content')
     {$pageHeader}
-    
+
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-12">
@@ -1397,18 +1401,18 @@ BLADE;
 
 @section('content')
     {$pageHeader}
-    
+
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-8">
                 @if(\$post->thumbnail)
                 <img src="/storage/{{ \$post->thumbnail }}" class="img-fluid rounded mb-4" alt="{{ \$post->title }}">
                 @endif
-                
+
                 <div class="mb-4">
                     {!! \$post->content !!}
                 </div>
-                
+
                 @if(\$post->tags)
                 <div class="mt-4 mb-4">
                     <strong>Tags:</strong>
@@ -1418,7 +1422,7 @@ BLADE;
                 </div>
                 @endif
             </div>
-            
+
             <!-- Sidebar -->
             <div class="col-lg-4">
                 <div class="card mb-4">
@@ -1450,7 +1454,7 @@ BLADE;
 
 @section('content')
     {$pageHeader}
-    
+
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-8">
@@ -1475,7 +1479,7 @@ BLADE;
                 <p>No posts found in this category.</p>
                 @endif
             </div>
-            
+
             <!-- Sidebar -->
             <div class="col-lg-4">
                 <div class="card mb-4">
@@ -1507,7 +1511,7 @@ BLADE;
 
 @section('content')
     {$pageHeader}
-    
+
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-6 mb-4">
@@ -1529,7 +1533,7 @@ BLADE;
                     <button type="submit" class="btn btn-primary">Send Message</button>
                 </form>
             </div>
-            
+
             <div class="col-lg-6">
                 <h3>Contact Info</h3>
                 <p><strong>Address:</strong> {{ \$setting->address }}</p>
@@ -1555,7 +1559,7 @@ BLADE;
 
 @section('content')
     {$pageHeader}
-    
+
     <div class="container py-5">
         <div class="row">
             <div class="col-lg-12">
