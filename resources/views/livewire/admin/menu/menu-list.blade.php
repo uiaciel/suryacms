@@ -117,14 +117,18 @@
                                     class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-700 active:scale-90"
                                     title="Move Up">
                                     <span wire:loading.remove wire:target="moveUp({{ $menu->id }}, null)">
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 15l7-7 7 7" />
                                         </svg>
                                     </span>
                                     <span wire:loading wire:target="moveUp({{ $menu->id }}, null)">
                                         <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
                                         </svg>
                                     </span>
                                 </button>
@@ -132,14 +136,18 @@
                                     class="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-700 active:scale-90"
                                     title="Move Down">
                                     <span wire:loading.remove wire:target="moveDown({{ $menu->id }}, null)">
-                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
+                                            stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
                                         </svg>
                                     </span>
                                     <span wire:loading wire:target="moveDown({{ $menu->id }}, null)">
                                         <svg class="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                            </path>
                                         </svg>
                                     </span>
                                 </button>
@@ -217,33 +225,49 @@
                                             </div>
                                         </div>
                                         <div class="flex items-center gap-1.5">
-                                            <button wire:click="moveUp({{ $child->id }}, {{ $menu->id }})" wire:loading.attr="disabled" wire:target="moveUp({{ $child->id }}, {{ $menu->id }})"
+                                            <button wire:click="moveUp({{ $child->id }}, {{ $menu->id }})"
+                                                wire:loading.attr="disabled"
+                                                wire:target="moveUp({{ $child->id }}, {{ $menu->id }})"
                                                 class="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-slate-600 active:scale-90">
-                                                <span wire:loading.remove wire:target="moveUp({{ $child->id }}, {{ $menu->id }})">
+                                                <span wire:loading.remove
+                                                    wire:target="moveUp({{ $child->id }}, {{ $menu->id }})">
                                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24"
                                                         stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2" d="M5 15l7-7 7 7" />
                                                     </svg>
                                                 </span>
-                                                <span wire:loading wire:target="moveUp({{ $child->id }}, {{ $menu->id }})">
-                                                    <svg class="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                                <span wire:loading
+                                                    wire:target="moveUp({{ $child->id }}, {{ $menu->id }})">
+                                                    <svg class="h-3 w-3 animate-spin" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8v8z"></path>
                                                     </svg>
                                                 </span>
                                             </button>
-                                            <button wire:click="moveDown({{ $child->id }}, {{ $menu->id }})" wire:loading.attr="disabled" wire:target="moveDown({{ $child->id }}, {{ $menu->id }})"
+                                            <button wire:click="moveDown({{ $child->id }}, {{ $menu->id }})"
+                                                wire:loading.attr="disabled"
+                                                wire:target="moveDown({{ $child->id }}, {{ $menu->id }})"
                                                 class="flex h-6 w-6 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-400 shadow-sm transition hover:text-slate-600 active:scale-90">
-                                                <span wire:loading.remove wire:target="moveDown({{ $child->id }}, {{ $menu->id }})">
-                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                <span wire:loading.remove
+                                                    wire:target="moveDown({{ $child->id }}, {{ $menu->id }})">
+                                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24"
+                                                        stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M19 9l-7 7-7-7" />
                                                     </svg>
                                                 </span>
-                                                <span wire:loading wire:target="moveDown({{ $child->id }}, {{ $menu->id }})">
-                                                    <svg class="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                                <span wire:loading
+                                                    wire:target="moveDown({{ $child->id }}, {{ $menu->id }})">
+                                                    <svg class="h-3 w-3 animate-spin" fill="none"
+                                                        viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12"
+                                                            r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a8 8 0 018-8v8z"></path>
                                                     </svg>
                                                 </span>
                                             </button>

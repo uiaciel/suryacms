@@ -5,10 +5,15 @@ namespace Uiaciel\SuryaCms\Http\Livewire\Admin;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Drivers\Gd\Encoders\WebpEncoder;
+use Intervention\Image\ImageManager;
 use Uiaciel\SuryaCms\Models\Gallery;
+use Livewire\WithFileUploads;
 
 class ImageGalleryModal extends Component
 {
+    use WithFileUploads;
     public $isOpen = false;
 
     public $galleries = [];
@@ -19,10 +24,63 @@ class ImageGalleryModal extends Component
 
     protected $listeners = ['openGalleryModal' => 'open', 'closeGalleryModal' => 'close'];
 
+    public $uploadImage;
+    public $uploadName;
+    public $uploadCategory = 'POST';
+
     public function mount()
     {
         $this->loadGalleries();
     }
+
+    public function uploadNewImage()
+{
+    $this->validate([
+        'uploadImage' => 'required|file|mimes:jpg,jpeg,png,webp,pdf|max:20048',
+        'uploadName' => 'required|string|min:3',
+        'uploadCategory' => 'required|string',
+    ]);
+
+    $file = $this->uploadImage;
+    $timestamp = now()->format('YmdHis');
+    $slugTitle = str_replace(' ', '_', strtolower($this->uploadName));
+    $extension = $file->getClientOriginalExtension();
+
+    try {
+        if (strtolower($extension) === 'pdf') {
+            $fileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
+            $path = $file->storeAs('galleries', $fileName, 'public');
+        } else {
+            // Proses Gambar ke WebP
+            $manager = new ImageManager(new Driver());
+            $fileName = "{$timestamp}_gallery_{$slugTitle}.webp";
+
+            $convertedImage = $manager->read($file->getRealPath())
+                                      ->encode(new WebpEncoder(quality: 70));
+
+            Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+            $path = 'galleries/' . $fileName;
+        }
+
+        $gallery = Gallery::create([
+            'name' => $this->uploadName,
+            'image_path' => $path,
+            'category' => strtoupper($this->uploadCategory),
+            'status' => $this->status ?? 'Publish', // Pastikan properti status ada
+        ]);
+
+
+        $this->loadGalleries();
+        $this->selectImage($gallery->id);
+        $this->reset(['selectedImage','uploadImage', 'uploadName']);
+
+
+        $this->dispatch('swal', ['icon' => 'success', 'title' => 'Success', 'text' => 'File uploaded successfully!']);
+
+    } catch (\Exception $e) {
+        $this->dispatch('swal', ['icon' => 'error', 'title' => 'Error', 'text' => $e->getMessage()]);
+    }
+}
 
     public function loadGalleries()
     {
