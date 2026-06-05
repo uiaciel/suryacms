@@ -35,7 +35,7 @@
 
         <x-suryacms::session-status />
 
-        @if ($html)
+        @if ($is_builder)
 
             <div
                 class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center hover:shadow-md transition-shadow">
@@ -46,15 +46,15 @@
                         </path>
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Homepage Builder Content</h2>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Page Builder Content</h2>
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">
-                    This page was designed using the visual Homepage Builder. Standard editor is disabled to prevent
+                    This page was designed using the visual Page Builder. Standard editor is disabled to prevent
                     layout conflicts.
                 </p>
                 <a href="{{ route('admin.homepage.builder', $slug) }}"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5">
                     <i class="fas fa-magic"></i>
-                    Edit with Homepage Builder
+                    Edit with Page Builder
                 </a>
             </div>
         @else

@@ -45,8 +45,8 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="px-3 py-1 text-xs font-medium rounded-full {{ $page->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
-                                    {{ $page->is_active ? 'Published' : 'Draft' }}
+                                    class="px-3 py-1 text-xs font-medium rounded-full {{ $page->status ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
+                                    {{ $page->status ? 'Published' : 'Draft' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right space-x-2">

@@ -105,6 +105,7 @@ class PageCreate extends Component
         ]);
 
         $this->redirect('/admin/page-builder');
+
     }
 
     public function uploadPdf(): void

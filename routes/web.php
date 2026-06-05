@@ -96,6 +96,7 @@ Route::prefix('admin')
 
         Route::get('homepage-builder/{pageSlug}', HomepageBuilder::class)->name('homepage.builder');
         Route::get('page-builder', IndexPageBuilder::class)->name('page.builder');
+        Route::get('playground', fn () => view('suryacms::livewire.admin.page-builder.playground'))->name('playground');
 
         Route::get('search', SearchResult::class)->name('search.results');
         Route::get('users', [ProfileController::class, 'index'])->name('users.index');

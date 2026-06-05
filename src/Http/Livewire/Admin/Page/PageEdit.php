@@ -54,6 +54,8 @@ class PageEdit extends Component
 
     public $galleriesPdf;
 
+    public $is_builder;
+
     public function getTranslations($languageId)
     {
         return response()->json(Page::where('language_id', '!=', $languageId)->get());
@@ -75,6 +77,7 @@ class PageEdit extends Component
             $this->pdf = $page->pdf;
             $this->status = $page->status;
             $this->html = $page->html;
+            $this->is_builder = $page->is_builder;
             $this->setting = Setting::first();
             $this->languages = Language::all();
             $this->galleriesPdf = Gallery::where('category', 'PDF')->get();

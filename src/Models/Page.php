@@ -22,6 +22,7 @@ class Page extends Model
         'status',
         'html',
         'css',
+        'is_builder',
     ];
 
     public function homepage()
