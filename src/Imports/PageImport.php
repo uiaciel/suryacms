@@ -32,6 +32,7 @@ class PageImport implements ToModel, WithHeadingRow
             'status' => $row['status'],
             'html' => $row['html'],
             'css' => $row['css'],
+            'is_builder' => $row['is_builder'] ?? false,
 
         ]);
     }

@@ -50,6 +50,8 @@ class PageCreate extends Component
 
     public $galleriesPdf;
 
+    public $is_builder = false;
+
     public function getTranslations($languageId)
     {
         return response()->json(Page::where('language_id', '!=', $languageId)->get());
@@ -81,6 +83,28 @@ class PageCreate extends Component
         $this->showPdfModal = false;
         $this->pdfFile = null;
         $this->pdfUploadStatus = '';
+    }
+
+    public function gotobuilder(): void
+    {
+        $this->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        Page::create([
+            'title' => $this->title ?: 'Untitled Page',
+            'content' => null,
+            'pdf' => null,
+            'datepublish' => $this->datepublish,
+            'language_id' => $this->language_id,
+            'translation_id' => $this->translation_id ?: null,
+            'status' => $this->status,
+            'slug' => Str::slug($this->title ?: 'untitled'),
+            'user_id' => Auth::id(),
+            'is_builder' => 1,
+        ]);
+
+        $this->redirect('/admin/page-builder');
     }
 
     public function uploadPdf(): void

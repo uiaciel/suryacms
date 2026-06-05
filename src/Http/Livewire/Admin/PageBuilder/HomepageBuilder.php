@@ -7,6 +7,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
+use Livewire\Attributes\On;
 
 class HomepageBuilder extends Component
 {
@@ -34,6 +35,8 @@ class HomepageBuilder extends Component
 
     public $fileUpload;
 
+
+
     public function mount($pageSlug)
     {
         // logger('Slug yang diterima:', [$pageId]);
@@ -49,6 +52,28 @@ class HomepageBuilder extends Component
         $this->language_id = $page->language_id;
         $this->html = $page->html;
         $this->css = $page->css;
+    }
+
+    #[On('handleSaveBlock')]
+    public function handleSaveBlock($name, $category, $html, $css)
+    {
+        $newBlock = \Uiaciel\SuryaCms\Models\CustomBlock::create([
+            'name' => $name,
+            'category' => $category,
+            'html' => $html,
+            'css' => $css,
+            'settings' => ['type' => 'custom']
+        ]);
+
+
+
+        $this->dispatch('swal', [
+            'icon' => 'success',
+            'title' => 'Berhasil',
+            'text' => 'Blok berhasil disimpan ke database!'
+        ]);
+
+        $this->dispatch('add-block-to-editor', $newBlock);
     }
 
     public function exportPage()
