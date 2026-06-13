@@ -2,35 +2,35 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
-use Uiaciel\SuryaCms\Http\Controllers\AboutController;
-use Uiaciel\SuryaCms\Http\Controllers\AdminController;
-use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
-use Uiaciel\SuryaCms\Http\Controllers\GuideController;
-use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
+use Uiaciel\SuryaCms\Http\Controllers\{
+    AboutController,
+    AdminController,
+    AuthenticatedSessionController,
+    FrontendController,
+    GuideController,
+    ProfileController
+};
 use Uiaciel\SuryaCms\Http\Livewire\Admin;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Backup;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\SettingTheme;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\ConvertTheme;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\EditorTheme;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\BuilderTheme;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Contact;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\FileCheck;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\MenuCreate;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\MenuList;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageCreate;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageEdit;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\PageIndex;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\HomepageBuilder;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\IndexPageBuilder;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostCreate;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostEdit;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\PostIndex;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\SearchResult;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube\YoutubeCreate;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube\YoutubeList;
+use Uiaciel\SuryaCms\Http\Livewire\Admin\{
+    Backup,
+    Contact,
+    FileCheck,
+    SearchResult
+};
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\{MenuCreate, MenuList};
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\{PageCreate, PageEdit, PageIndex};
+use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\{HomepageBuilder, IndexPageBuilder};
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\{PostCreate, PostEdit, PostIndex};
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\{
+    BuilderTheme,
+    ConvertTheme,
+    CreateTheme,
+    DocsTheme,
+    EditorTheme,
+    SettingTheme
+};
+use Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube\{YoutubeCreate, YoutubeList};
 use Uiaciel\SuryaCms\Http\Livewire\SettingWeb;
-use Uiaciel\SuryaCms\Models\Setting;
 
 Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -117,6 +117,8 @@ Route::prefix('admin')
                 Route::get('/generate', ConvertTheme::class)->name('convert.theme');
                 Route::get('/editor', EditorTheme::class)->name('admin.theme.editor');
                 Route::get('/builder', BuilderTheme::class)->name('builder');
+                Route::get('/docs', DocsTheme::class)->name('docs');
+                Route::get('/create/{theme?}', CreateTheme::class)->name('create');
             });
     });
 

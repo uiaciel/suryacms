@@ -56,6 +56,9 @@ class BuilderTheme extends Component
     public $htmlLines = []; // HTML split by lines for scroll reference
     public $selectedIndexItem = null; // Track clicked index item
 
+    public $sidebarMinimized = true;
+    public $sidebarOpen = true;
+
     // Validation Errors list
     public $validationErrors = [];
 
@@ -72,6 +75,8 @@ class BuilderTheme extends Component
 
     public function mount()
     {
+        $this->sidebarMinimized = true;
+        $this->sidebarOpen = true;
         $this->sessionId = (string) Str::uuid();
         $this->tempPath = storage_path("app/temp/themes/builder/" . $this->sessionId);
         $this->indexPreview = asset("storage/temp/themes/builder/{$this->sessionId}/index.html");
@@ -759,6 +764,8 @@ class BuilderTheme extends Component
 
     public function render()
     {
-        return view('suryacms::livewire.admin.themes.builder-theme')->layout('suryacms::layouts.app');
+        return view('suryacms::livewire.admin.themes.builder-theme')->layout('suryacms::layouts.app')->layoutData([
+            'sidebarMinimized' => true,
+        ]);
     }
 }

@@ -116,7 +116,10 @@
 
 </head>
 
-<body class="bg-[#f0f3fb] text-slate-700 flex overflow-hidden h-screen" x-data="{ sidebarOpen: false, sidebarMinimized: false }">
+<body class="bg-[#f0f3fb] text-slate-700 flex overflow-hidden h-screen" x-data="{
+    sidebarOpen: @js($sidebarOpen ?? false),
+    sidebarMinimized: @js($sidebarMinimized ?? false)
+}">
     <div class="flex h-screen w-full relative">
         <!-- Overlay for mobile -->
         <div x-show="sidebarOpen" x-transition:enter="transition opacity-ease-out duration-300"
