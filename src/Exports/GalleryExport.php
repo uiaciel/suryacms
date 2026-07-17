@@ -37,6 +37,7 @@ class GalleryExport implements FromQuery, WithHeadings, WithMapping
             $gallery->name,
             $gallery->description,
             $gallery->image_path,
+            $gallery->is_tinymce_upload ? 'Yes' : 'No',
             $gallery->category,
             $gallery->status,
             $gallery->created_at,

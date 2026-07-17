@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
+use Uiaciel\SuryaCms\Jobs\RestoreFullJob;
+use Uiaciel\SuryaCms\Services\BackupManager;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use Uiaciel\SuryaCms\Imports\SettingImport;
@@ -140,6 +143,20 @@ class SettingWeb extends Component
     public string $setup_email = '';
 
     public string $setup_tagline = '';
+
+    public string $setup_action = 'create';
+
+    public $restoreBackupFile;
+
+    public ?string $restoreStatusToken = null;
+
+    public int $restoreProgress = 0;
+
+    public ?string $restoreMessage = null;
+
+    public ?array $restoreInfo = null;
+
+    public bool $restoreStarted = false;
 
     public function getAvailableThemes()
     {
@@ -614,13 +631,57 @@ class SettingWeb extends Component
      */
     public function saveInitialSetting()
     {
-        $this->validate([
+        $rules = [
             'setup_sitename' => 'required|string|max:255',
             'setup_url' => 'required|url',
             'setup_email' => 'required|email|max:255',
             'setup_language' => 'required|in:id,en',
             'setup_tagline' => 'nullable|string|max:255',
-        ]);
+            'setup_action' => 'required|in:create,restore',
+        ];
+
+        if ($this->setup_action === 'restore') {
+            $rules['restoreBackupFile'] = 'required|file|mimes:zip|max:51200';
+        }
+
+        $this->validate($rules);
+
+        if ($this->setup_action === 'restore') {
+            try {
+                $this->restoreProgress = 0;
+                $this->restoreMessage = 'Memproses verifikasi backup...';
+                $token = Str::uuid()->toString();
+                $this->restoreStatusToken = $token;
+                $statusFile = BackupManager::getStatusFilePath($token);
+
+                $path = $this->restoreBackupFile->storeAs('backups', 'restore-' . now()->format('YmdHis') . '.zip', 'local');
+                $backupPath = storage_path('app/' . $path);
+
+                $this->restoreInfo = BackupManager::extractBackupInfo($backupPath);
+                BackupManager::updateStatus($statusFile, 'uploaded', 'Backup berhasil diunggah. Menjalankan restore...', 15);
+                RestoreFullJob::dispatch($backupPath, $statusFile);
+
+                $this->restoreStarted = true;
+                $this->restoreInfo = BackupManager::extractBackupInfo($backupPath);
+                $this->restoreMessage = 'Restore sedang dijalankan. Silakan tunggu sampai selesai.';
+
+                $this->dispatch('swal', [
+                    'icon' => 'success',
+                    'title' => 'Restore dimulai',
+                    'text' => 'Proses restore berjalan di background. Status akan diperbarui secara otomatis.',
+                ]);
+            } catch (\Exception $e) {
+                $this->restoreStarted = false;
+                $this->restoreMessage = 'Terjadi kesalahan: ' . $e->getMessage();
+                $this->dispatch('swal', [
+                    'icon' => 'error',
+                    'title' => 'Restore gagal',
+                    'text' => $e->getMessage(),
+                ]);
+            }
+
+            return;
+        }
 
         try {
             // Create new setting record
@@ -670,6 +731,49 @@ class SettingWeb extends Component
                 'icon' => 'error',
                 'title' => 'Error',
                 'text' => 'Failed to create settings: '.$e->getMessage(),
+            ]);
+        }
+    }
+
+    public function pollRestoreStatus()
+    {
+        if (! $this->restoreStatusToken) {
+            return;
+        }
+
+        $statusFile = BackupManager::getStatusFilePath($this->restoreStatusToken);
+        if (! File::exists($statusFile)) {
+            return;
+        }
+
+        $status = json_decode(File::get($statusFile), true);
+        if (! is_array($status)) {
+            return;
+        }
+
+        $this->restoreProgress = $status['progress'] ?? $this->restoreProgress;
+        $this->restoreMessage = $status['message'] ?? $this->restoreMessage;
+
+        if (isset($status['info']) && is_array($status['info'])) {
+            $this->restoreInfo = $status['info'];
+        }
+
+        if (isset($status['status']) && $status['status'] === 'completed') {
+            $this->restoreStarted = false;
+            $this->dispatch('swal', [
+                'icon' => 'success',
+                'title' => 'Restore berhasil',
+                'text' => 'Restore backup selesai. Halaman akan dimuat ulang.',
+            ]);
+            $this->redirect(route('admin.setting'), navigate: true);
+        }
+
+        if (isset($status['status']) && $status['status'] === 'failed') {
+            $this->restoreStarted = false;
+            $this->dispatch('swal', [
+                'icon' => 'error',
+                'title' => 'Restore gagal',
+                'text' => $status['message'] ?? 'Terjadi kegagalan pada proses restore.',
             ]);
         }
     }

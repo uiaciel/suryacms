@@ -5,12 +5,14 @@ namespace Uiaciel\SuryaCms\Http\Livewire\Admin;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
+use Uiaciel\SuryaCms\Jobs\BackupFullJob;
 use Maatwebsite\Excel\Facades\Excel;
 use Uiaciel\SuryaCms\Exports\GalleryExport;
 use Uiaciel\SuryaCms\Exports\MenuExport;
 use Uiaciel\SuryaCms\Exports\PageExport;
 use Uiaciel\SuryaCms\Exports\PostExport;
 use Uiaciel\SuryaCms\Exports\SettingExport;
+use Uiaciel\SuryaCms\Services\BackupManager;
 use Uiaciel\SuryaCms\Models\Menu;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
@@ -19,6 +21,8 @@ use Uiaciel\SuryaCms\Models\Setting;
 class Backup extends Component
 {
     public $setting;
+
+    public $backupProgress;
 
     public $posts;
 
@@ -29,6 +33,12 @@ class Backup extends Component
     public $pages;
 
     public $pagesCount;
+
+    public $backupFiles = [];
+
+    public $isBackingUp = false;
+
+    public $backupMessage = '';
 
     public $titlePage = 'Backup';
 
@@ -43,6 +53,59 @@ class Backup extends Component
         $this->pagesCount = Page::count();
         $this->menus = Menu::all();
         $this->setting = Setting::where('id', 1)->first();
+        $this->loadBackupFiles();
+    }
+
+    public function loadBackupFiles()
+    {
+        $directory = BackupManager::backupDirectory();
+        if (! File::isDirectory($directory)) {
+            $this->backupFiles = [];
+            return;
+        }
+
+        $this->backupFiles = collect(File::files($directory))
+            ->sortByDesc(fn ($file) => $file->getMTime())
+            ->map(fn ($file) => [
+                'name' => $file->getFilename(),
+                'path' => $file->getRealPath(),
+                'updated_at' => date('Y-m-d H:i:s', $file->getMTime()),
+                'size' => $this->formatSize($file->getSize()),
+            ])
+            ->toArray();
+    }
+
+    public function formatSize(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return $bytes . ' B';
+        }
+
+        if ($bytes < 1048576) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+
+        return round($bytes / 1048576, 2) . ' MB';
+    }
+
+    public function exportFullBackup()
+    {
+        // Dispatch the backup job and keep the UI responsive.
+        BackupFullJob::dispatch()->onQueue('default');
+
+        $this->isBackingUp = true;
+        $this->backupMessage = 'Backup sedang berjalan di latar belakang. Silakan cek kembali halaman ini nanti untuk melihat file backup yang tersedia.';
+    }
+
+    public function downloadBackup(string $fileName)
+    {
+        $path = BackupManager::backupDirectory() . DIRECTORY_SEPARATOR . $fileName;
+        if (! File::exists($path)) {
+            session()->flash('error', 'File backup tidak ditemukan.');
+            return;
+        }
+
+        return response()->download($path)->deleteFileAfterSend(true);
     }
 
     // public function exportStorage()
