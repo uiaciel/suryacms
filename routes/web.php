@@ -10,18 +10,18 @@ use Uiaciel\SuryaCms\Http\Controllers\{
     GuideController,
     ProfileController
 };
-use Uiaciel\SuryaCms\Http\Livewire\Admin;
-use Uiaciel\SuryaCms\Http\Livewire\Admin\{
+use Uiaciel\SuryaCms\Livewire\Admin;
+use Uiaciel\SuryaCms\Livewire\Admin\{
     Backup,
     Contact,
     FileCheck,
     SearchResult
 };
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Menu\{MenuCreate, MenuList};
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Page\{PageCreate, PageEdit, PageIndex};
-use Uiaciel\SuryaCms\Http\Livewire\Admin\PageBuilder\{HomepageBuilder, IndexPageBuilder};
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Post\{PostCreate, PostEdit, PostIndex};
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\{
+use Uiaciel\SuryaCms\Livewire\Admin\Menu\{MenuCreate, MenuList};
+use Uiaciel\SuryaCms\Livewire\Admin\Page\{PageCreate, PageEdit, PageIndex};
+use Uiaciel\SuryaCms\Livewire\Admin\PageBuilder\{HomepageBuilder, IndexPageBuilder};
+use Uiaciel\SuryaCms\Livewire\Admin\Post\{PostCreate, PostEdit, PostIndex};
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\{
     BuilderTheme,
     ConvertTheme,
     CreateTheme,
@@ -29,8 +29,11 @@ use Uiaciel\SuryaCms\Http\Livewire\Admin\Themes\{
     EditorTheme,
     SettingTheme
 };
-use Uiaciel\SuryaCms\Http\Livewire\Admin\Youtube\{YoutubeCreate, YoutubeList};
-use Uiaciel\SuryaCms\Http\Livewire\SettingWeb;
+use Uiaciel\SuryaCms\Livewire\Admin\Youtube\{YoutubeCreate, YoutubeList};
+use Uiaciel\SuryaCms\Livewire\SettingWeb;
+
+use Uiaciel\SuryaCms\Http\Controllers\BackupController;
+use Uiaciel\SuryaCms\Livewire\System\FullRestore;
 
 Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -82,6 +85,10 @@ Route::prefix('admin')
                 Route::post('/', [AdminController::class, 'saveGallery'])->name('store');
                 Route::post('{id}/edit', [AdminController::class, 'editGallery'])->name('edit');
             });
+
+        Route::get('/system/restore', FullRestore::class)->name('suryacms.admin.restore');
+        Route::get('/system/backup/download/{filename}', [BackupController::class, 'download'])
+        ->name('suryacms.admin.backup.download');
 
         Route::get('contacts', Contact::class)->name('contact.index');
 
@@ -139,5 +146,6 @@ Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(fun
 });
 
     require __DIR__.'/frontend.php';
+    require __DIR__.'/api.php';
 
     Route::get('suryacms/test', fn () => 'SuryaCMS aktif!');

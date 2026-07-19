@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Schema;
 // $defaultLang = $setting->language ?? 'id';
 
 // Define route middleware
-$routeMiddleware = ['web', 'suryacms.locale'];
+$routeMiddleware = ['web', 'suryacms.locale', 'suryacms.track-visitor'];
 
 // Build excluded slugs pattern untuk wildcard route
 $excludedSlugs = ['login', 'register', 'password', 'email', 'logout', 'contact-us', 'homepage-builder', 'suryacms', 'api', '_debugbar', 'horizon', 'telescope', 'category', 'media'];
@@ -80,6 +80,6 @@ if (is_multilingual()) {
     | SINGLE LANGUAGE ROUTES
     |--------------------------------------------------------------------------
     */
-    Route::middleware(['web'])
+    Route::middleware(['web', 'suryacms.track-visitor'])
         ->group($registerFrontendRoutes);
 }

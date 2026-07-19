@@ -105,12 +105,21 @@ php artisan migrate
 - Frontend Contact Form
 - Message Inbox di Admin Panel
 
-### Backup System
-- Backup Images
-- Backup PDF
-- Backup Export File
-- Backup Full Data
-- Riwayat Backup tersimpan di Database
+### Backup System (Full Backup & Restore)
+- Full Database Backup (Hanya tabel inti SuryaCMS berformat JSON per tabel)
+- Backup File Storage (`storage/app/public`)
+- Backup Assets Frontend (`public/frontend`)
+- Backup Themes (`resources/views/frontend`)
+- Backup Konfigurasi (`config/*` dan `.env`)
+- Fitur "Full Restore" dengan sinkronisasi *Cache Tracking* via Livewire UI
+- Artisan Commands untuk Eksekusi via Terminal:
+  ```bash
+  # Membuat Backup Baru
+  php artisan suryacms:backup
+
+  # Me-restore dari Backup ZIP
+  php artisan suryacms:restore storage/app/private/suryacms_backups/file_backup.zip
+  ```
 
 ### PWA & Performance
 - Frontend Page Cache

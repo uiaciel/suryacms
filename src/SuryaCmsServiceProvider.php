@@ -13,7 +13,8 @@ use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
 use Uiaciel\SuryaCms\Http\Middleware\CheckMaintenance;
 use Uiaciel\SuryaCms\Http\Middleware\CheckRegistrationStatus;
-use Uiaciel\SuryaCms\Http\Middleware\SetLocaleFromUrl; // ← TAMBAHKAN INI
+use Uiaciel\SuryaCms\Http\Middleware\SetLocaleFromUrl;
+use Uiaciel\SuryaCms\Http\Middleware\TrackVisitor;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Contact;
 use Uiaciel\SuryaCms\Models\Gallery;
@@ -42,6 +43,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
         $this->registerMiddleware();
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'suryacms');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
@@ -56,13 +58,16 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
     }
 
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/suryacms-backup.php', 'suryacms-backup');
+    }
 
     private function registerLivewireComponents(): void
     {
         $packageNamespace = 'suryacms';
-        $componentDir = __DIR__.'/Http/Livewire';
-        $baseNamespace = 'Uiaciel\\SuryaCms\\Http\\Livewire\\';
+        $componentDir = __DIR__.'/Livewire';
+        $baseNamespace = 'Uiaciel\\SuryaCms\\Livewire\\';
 
         $filesystem = new Filesystem;
 
@@ -93,7 +98,8 @@ class SuryaCmsServiceProvider extends ServiceProvider
         $router->aliasMiddleware('suryacms.maintenance', CheckMaintenance::class);
 
         // Register locale middleware
-        $router->aliasMiddleware('suryacms.locale', SetLocaleFromUrl::class); // ← TAMBAHKAN INI
+        $router->aliasMiddleware('suryacms.locale', SetLocaleFromUrl::class);
+        $router->aliasMiddleware('suryacms.track-visitor', TrackVisitor::class);
     }
 
     private function bootTheme(): void
@@ -170,7 +176,8 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/../config/frontend.php' => config_path('frontend.php'),
-        ], 'suryacms-frontend-config');
+            __DIR__.'/../config/suryacms-backup.php' => config_path('suryacms-backup.php'),
+        ], 'suryacms-config');
 
         $this->publishes([
             __DIR__.'/../resources/views/frontend' => resource_path('views/frontend'),
