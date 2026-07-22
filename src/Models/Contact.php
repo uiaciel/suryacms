@@ -17,11 +17,16 @@ class Contact extends Model
         'user_agent',
         'is_spam',
         'referrer',
+        'forwarded_at',
+        'is_important',
+        'notes',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
         'is_spam' => 'boolean',
+        'is_important' => 'boolean',
+        'forwarded_at' => 'datetime',
     ];
 
     public function scopeUnread($query)

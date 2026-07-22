@@ -57,17 +57,43 @@ class Contact extends Component
 
         if (! $contact) {
             session()->flash('error', 'Pesan tidak ditemukan.');
+            return;
+        }
 
+        $setting = \Uiaciel\SuryaCms\Models\Setting::first();
+        $emailTo = $setting->email_forwarder ?? config('mail.from.address');
+
+        if (!$emailTo) {
+            session()->flash('error', 'Email penerus belum dikonfigurasi di Pengaturan.');
             return;
         }
 
         try {
-            Mail::to('emailkamu@gmail.com') // ganti dengan Gmail pribadi
-                ->send(new ForwardInbox($contact));
+            Mail::to($emailTo)->send(new ForwardInbox($contact));
 
-            session()->flash('success', 'Pesan berhasil diteruskan ke email Anda.');
+            $contact->update(['forwarded_at' => now()]);
+
+            session()->flash('success', 'Pesan berhasil diteruskan ke ' . $emailTo);
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal meneruskan pesan: '.$e->getMessage());
+            session()->flash('error', 'Gagal meneruskan pesan: ' . $e->getMessage());
+        }
+    }
+
+    public function toggleImportant($id)
+    {
+        $contact = ContactModel::find($id);
+        if ($contact) {
+            $contact->is_important = !$contact->is_important;
+            $contact->save();
+        }
+    }
+
+    public function toggleStatus($id)
+    {
+        $contact = ContactModel::find($id);
+        if ($contact) {
+            $contact->status = ($contact->status === 'Pending') ? 'Resolved' : 'Pending';
+            $contact->save();
         }
     }
 

@@ -27,4 +27,7 @@ return [
         //'reports',
         //'stocks',
     ],
+
+    'monitor_token' => env('SURYACMS_MONITOR_TOKEN', null),
+    'version'       => '2.1.17',
 ];

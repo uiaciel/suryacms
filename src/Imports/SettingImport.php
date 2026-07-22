@@ -60,7 +60,9 @@ class SettingImport implements ToModel, WithHeadingRow
             'site_maintenance' => $row['site_maintenance'],
             'email_forwarder' => $row['email_forwarder'],
             'date_format' => $row['date_format'],
-
+            'contact_form_honeypot' => $row['contact_form_honeypot'] ?? true,
+            'contact_form_rate_limit' => $row['contact_form_rate_limit'] ?? 3,
+            'contact_form_auto_forward' => $row['contact_form_auto_forward'] ?? false,
         ])->save();
 
         // Kita return null karena kita tidak membuat model baru per baris.

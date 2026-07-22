@@ -47,6 +47,8 @@
 
                     <form action="{{ route('sendcontact') }}" method="POST">
                         @csrf
+
+                         <input type="text" name="website_url" style="display:none !important" tabindex="-1" autocomplete="off">
                         <div class="mb-3">
                             <label for="name" class="form-label fw-bold">Name</label>
                             <input type="text" class="form-control" name="sender" id="sender" aria-describedby="nameId"

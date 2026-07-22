@@ -172,6 +172,26 @@ class FrontendController extends Controller
      */
     public function sendcontact(Request $request)
     {
+        $setting = $this->getSetting();
+
+        // 1. Honeypot Check
+        $isSpam = false;
+        if ($setting && $setting->contact_form_honeypot) {
+            if ($request->filled('website_url')) { // 'website_url' is the hidden honeypot field
+                $isSpam = true;
+            }
+        }
+
+        // 2. Rate Limiting
+        $ip = $request->ip();
+        $rateLimit = $setting->contact_form_rate_limit ?? 3;
+        $cacheKey = "contact_rate_limit_{$ip}";
+        $attempts = Cache::get($cacheKey, 0);
+
+        if ($attempts >= $rateLimit) {
+            return redirect()->back()->with('error', __('Too many requests. Please try again later.'));
+        }
+
         $validated = $request->validate([
             'sender'  => 'required|string|max:255',
             'email'   => 'required|email|max:255',
@@ -179,14 +199,49 @@ class FrontendController extends Controller
             'message' => 'required|string|max:5000',
         ]);
 
-        Contact::create([
-            'name'       => $validated['sender'],
-            'email'      => $validated['email'],
-            'subject'    => $validated['subject'],
-            'message'    => $validated['message'],
-            'ip_address' => $request->ip(),
-            'user_agent' => $request->userAgent(),
+        // 3. Auto-Flagging Keywords
+        $isImportant = false;
+        $importantKeywords = ['Quotation', 'Project', 'Urgent', 'Kerjasama', 'Inquiry', 'Business'];
+        $contentToSearch = $validated['subject'] . ' ' . $validated['message'];
+        
+        foreach ($importantKeywords as $keyword) {
+            if (stripos($contentToSearch, $keyword) !== false) {
+                $isImportant = true;
+                break;
+            }
+        }
+
+        $contact = Contact::create([
+            'name'         => $validated['sender'],
+            'email'        => $validated['email'],
+            'subject'      => $validated['subject'],
+            'message'      => $validated['message'],
+            'ip_address'   => $ip,
+            'user_agent'   => $request->userAgent(),
+            'referrer'     => $request->header('referer'),
+            'is_spam'      => $isSpam,
+            'is_important' => $isImportant,
         ]);
+
+        // Increment rate limit counter
+        Cache::put($cacheKey, $attempts + 1, now()->addMinutes(10));
+
+        // 4. Auto Forwarding
+        if (!$isSpam && $setting && $setting->contact_form_auto_forward && $setting->email_forwarder) {
+            try {
+                \Illuminate\Support\Facades\Mail::to($setting->email_forwarder)
+                    ->send(new \Uiaciel\SuryaCms\Mail\ForwardInbox($contact));
+                
+                $contact->update(['forwarded_at' => now()]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to auto-forward contact: " . $e->getMessage());
+            }
+        }
+
+        if ($isSpam) {
+            // Silently return success to the user even if it's spam to not alert the bot
+            return redirect()->back()->with('success', __('Success! Your message has been sent.'));
+        }
 
         return redirect()->back()->with('success', __('Success! Your message has been sent.'));
     }

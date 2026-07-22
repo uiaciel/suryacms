@@ -14,7 +14,7 @@ class MonitorController extends Controller
     public function index(Request $request)
     {
         // 1. Validasi Token Keamanan dari .env
-        $secretToken = config('suryacms.monitor_token');
+        $secretToken = config('suryacms-backup.monitor_token');
         if (!$secretToken || $request->header('Authorization') !== 'Bearer ' . $secretToken) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
@@ -53,7 +53,7 @@ class MonitorController extends Controller
 
         return response()->json([
             'status' => 'online',
-            'suryacms_version' => config('suryacms.version', '1.0.0'),
+            'suryacms_version' => config('suryacms-backup.version', '1.0.0'),
             'php_version' => PHP_VERSION,
             'storage' => [
                 'free_human' => round($freeSpace / (1024 * 1024 * 1024), 2) . ' GB',
