@@ -1,4 +1,20 @@
-<div>
+<div x-data="{
+    activeTab: @js($activeTab ?? 'seo'),
+    tinyMceReady: false,
+    switchTab(tab) {
+        this.activeTab = tab;
+
+        if (tab === 'office' && !this.tinyMceReady) {
+            this.initTinyMce();
+        }
+    },
+    initTinyMce() {
+        if (typeof window.initTinyMceForSettings === 'function') {
+            window.initTinyMceForSettings();
+            this.tinyMceReady = true;
+        }
+    }
+}" x-init="if (activeTab === 'office') initTinyMce()">
     {{-- <x-suryacms::import-export-offcanvas /> --}}
 
     <form wire:submit.prevent="updateSettingWeb" enctype="multipart/form-data"
@@ -34,7 +50,7 @@
 
         <div class="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-1.5 shadow-sm">
 
-            <button type="button" wire:click="$set('activeTab', 'seo')" @class([
+            <button type="button" @click="switchTab('seo')" @class([
                 'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
                 'bg-blue-600 text-white shadow-sm' => $activeTab === 'seo',
                 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
@@ -43,7 +59,7 @@
                 <i class="fas fa-search text-xs"></i> SEO
             </button>
 
-            <button type="button" wire:click="$set('activeTab', 'office')" @class([
+            <button type="button" @click="switchTab('office')" @class([
                 'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
                 'bg-blue-600 text-white shadow-sm' => $activeTab === 'office',
                 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
@@ -52,7 +68,7 @@
                 <i class="fas fa-envelope text-xs"></i> Contact
             </button>
 
-            <button type="button" wire:click="$set('activeTab', 'setting')" @class([
+            <button type="button" @click="switchTab('setting')" @class([
                 'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
                 'bg-blue-600 text-white shadow-sm' => $activeTab === 'setting',
                 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
@@ -61,7 +77,7 @@
                 <i class="fas fa-globe text-xs"></i> Website
             </button>
 
-            <button type="button" wire:click="$set('activeTab', 'themes')" @class([
+            <button type="button" @click="switchTab('themes')" @class([
                 'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
                 'bg-blue-600 text-white shadow-sm' => $activeTab === 'themes',
                 'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
@@ -72,7 +88,7 @@
 
         </div>
 
-        @if ($activeTab === 'seo')
+        <div x-show="activeTab === 'seo'" x-cloak class="w-full">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
                 {{-- Left: Form Fields --}}
@@ -341,9 +357,9 @@
 
                 </div>
             </div>
-        @endif
+        </div>
 
-        @if ($activeTab === 'office')
+        <div x-show="activeTab === 'office'" x-cloak class="w-full">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
                 {{-- Left: Office Info --}}
@@ -433,9 +449,9 @@
                 </div>
 
             </div>
-        @endif
+        </div>
 
-        @if ($activeTab === 'setting')
+        <div x-show="activeTab === 'setting'" x-cloak class="w-full">
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
                 {{-- Left: General Settings --}}
@@ -595,9 +611,9 @@
                 </div>
 
             </div>
-        @endif
+        </div>
 
-        @if ($activeTab === 'themes')
+        <div x-show="activeTab === 'themes'" x-cloak class="w-full">
             <div class="space-y-5">
 
                 {{-- Theme & Layout --}}
@@ -787,14 +803,16 @@
                 </div>
 
             </div>
-        @endif
+        </div>
 
     </form>
 
     @push('scripts')
         <script>
-            function initTinyMCE() {
+            window.initTinyMceForSettings = function() {
                 if (typeof tinymce === 'undefined') return;
+                if (tinymce.get('address')) return;
+
                 tinymce.remove('#address');
                 tinymce.init({
                     selector: '#address',
@@ -812,21 +830,7 @@
                         });
                     },
                 });
-            }
-
-            document.addEventListener('DOMContentLoaded', () => {
-                initTinyMCE();
-
-                // Re-init after Livewire updates (e.g. tab switching)
-                Livewire.hook('morph.updated', ({
-                    el,
-                    component
-                }) => {
-                    if (document.querySelector('#address') && !tinymce.get('address')) {
-                        initTinyMCE();
-                    }
-                });
-            });
+            };
         </script>
     @endpush
 

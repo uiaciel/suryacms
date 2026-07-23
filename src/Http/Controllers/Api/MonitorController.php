@@ -5,16 +5,18 @@ namespace Uiaciel\SuryaCms\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Uiaciel\SuryaCMS\Models\Visitor;
 use Illuminate\Http\Request;
+use Composer\InstalledVersions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class MonitorController extends Controller
 {
     public function index(Request $request)
     {
         // 1. Validasi Token Keamanan dari .env
-        $secretToken = config('suryacms-backup.monitor_token');
+        $secretToken = config('suryacms.monitor_token');
         if (!$secretToken || $request->header('Authorization') !== 'Bearer ' . $secretToken) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
@@ -53,7 +55,7 @@ class MonitorController extends Controller
 
         return response()->json([
             'status' => 'online',
-            'suryacms_version' => config('suryacms-backup.version', '1.0.0'),
+            'suryacms_version' => $this->getSuryacmsVersion(),
             'php_version' => PHP_VERSION,
             'storage' => [
                 'free_human' => round($freeSpace / (1024 * 1024 * 1024), 2) . ' GB',
@@ -63,7 +65,7 @@ class MonitorController extends Controller
             'custom_metrics' => $customMetrics,
             'visitors' => $visitors,
             'uiaciel_packages' => $this->detectUiaCielPackages(),
-            'active_theme' => config('suryacms.theme', 'default'),
+            'active_theme' => $this->getActiveTheme(),
             'last_backup' => cache('suryacms_last_backup_time', 'Never'),
         ]);
     }
@@ -91,5 +93,55 @@ class MonitorController extends Controller
         return array_values(array_filter(array_keys($requires), function($package) {
             return str_starts_with($package, 'uiaciel/');
         }));
+    }
+
+    private function getSuryacmsVersion(): string
+    {
+        if (class_exists(InstalledVersions::class)) {
+            try {
+                return InstalledVersions::getPrettyVersion('uiaciel/suryacms') ?: config('suryacms.version', '1.0.0');
+            } catch (\Throwable $e) {
+                // ignore and fallback
+            }
+        }
+
+        $packageJsonPath = realpath(__DIR__.'/../../composer.json');
+        if ($packageJsonPath && file_exists($packageJsonPath)) {
+            $packageJson = json_decode(file_get_contents($packageJsonPath), true);
+            if (! empty($packageJson['version'])) {
+                return $packageJson['version'];
+            }
+        }
+
+        $rootComposer = base_path('composer.json');
+        if (file_exists($rootComposer)) {
+            $rootJson = json_decode(file_get_contents($rootComposer), true);
+            if (! empty($rootJson['require']['uiaciel/suryacms'])) {
+                return $rootJson['require']['uiaciel/suryacms'];
+            }
+        }
+
+        return config('suryacms.version', '1.0.0');
+    }
+
+    private function getActiveTheme(): string
+    {
+        if (function_exists('getActiveTheme')) {
+            try {
+                return getActiveTheme();
+            } catch (\Throwable $e) {
+                // continue fallback
+            }
+        }
+
+        try {
+            if (Schema::hasTable('settings')) {
+                return Setting::value('active_theme') ?: config('frontend.active', 'default');
+            }
+        } catch (\Throwable $e) {
+            // ignore and fallback
+        }
+
+        return config('frontend.active', 'default');
     }
 }

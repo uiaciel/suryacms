@@ -335,69 +335,7 @@
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
-
-                <!-- Header Dashboard -->
-                <div
-                    class="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 pb-4 border-b border-gray-200">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Visitor Statis</h1>
-                        <p class="text-sm text-gray-500">Counter Visitor Website</p>
-                    </div>
-                    <div
-                        class="text-xs text-gray-400 bg-white px-3 py-1.5 rounded-md shadow-sm border border-gray-100 self-start md:self-center">
-                        Auto-refresh aktif • Waktu server: {{ now()->format('H:i:s') }}
-                    </div>
-                </div>
-
-                <!-- Ringkasan Statistik Utama Keseluruhan Klien (Grid Cards) -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Hari Ini -->
-                    <div
-                        class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Today
-                        </span>
-                        <div class="flex items-baseline space-x-2 mt-2">
-                            <span
-                                class="text-2xl font-bold text-indigo-600 tracking-tight">{{ number_format($stats['today']) }}</span>
-                            <span class="text-xs text-gray-500">total hit</span>
-                        </div>
-                    </div>
-
-                    <!-- Minggu Ini -->
-                    <div
-                        class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Week
-                        </span>
-                        <div class="flex items-baseline space-x-2 mt-2">
-                            <span
-                                class="text-2xl font-bold text-gray-800 tracking-tight">{{ number_format($stats['this_week']) }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Bulan Ini -->
-                    <div
-                        class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Month
-                        </span>
-                        <div class="flex items-baseline space-x-2 mt-2">
-                            <span
-                                class="text-2xl font-bold text-gray-800 tracking-tight">{{ number_format($stats['this_month']) }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Total Terdaftar -->
-                    <div
-                        class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-between">
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Visitor Total
-                        </span>
-                        <div class="flex items-baseline space-x-2 mt-2">
-                            <span
-                                class="text-2xl font-bold text-emerald-600 tracking-tight">{{ $stats['total'] }}</span>
-
-                        </div>
-                    </div>
-                </div>
-
+                <livewire:suryacms::admin.visitor-detail />
             </div>
         </div>
 

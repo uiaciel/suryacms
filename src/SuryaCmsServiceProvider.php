@@ -60,7 +60,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/suryacms-backup.php', 'suryacms-backup');
+        $this->mergeConfigFrom(__DIR__.'/../config/suryacms.php', 'suryacms');
     }
 
     private function registerLivewireComponents(): void
@@ -176,7 +176,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/../config/frontend.php' => config_path('frontend.php'),
-            __DIR__.'/../config/suryacms-backup.php' => config_path('suryacms-backup.php'),
+            __DIR__.'/../config/suryacms.php' => config_path('suryacms.php'),
         ], 'suryacms-config');
 
         $this->publishes([
