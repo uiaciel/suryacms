@@ -5,7 +5,7 @@
         this.activeTab = tab;
 
         if (tab === 'office' && !this.tinyMceReady) {
-            this.initTinyMce();
+            this.$nextTick(() => this.initTinyMce());
         }
     },
     initTinyMce() {
@@ -15,7 +15,6 @@
         }
     }
 }" x-init="if (activeTab === 'office') initTinyMce()">
-    {{-- <x-suryacms::import-export-offcanvas /> --}}
 
     <form wire:submit.prevent="updateSettingWeb" enctype="multipart/form-data"
         @if ($showSetupModal) style="display: none;" @endif>
@@ -48,46 +47,40 @@
 
         <x-suryacms::session-status />
 
+        <!-- TAB NAVIGATION (Perbaikan Alpine :class) -->
         <div class="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-1.5 shadow-sm">
 
-            <button type="button" @click="switchTab('seo')" @class([
-                'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
-                'bg-blue-600 text-white shadow-sm' => $activeTab === 'seo',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
-                    $activeTab !== 'seo',
-            ])>
+            <button type="button" @click="switchTab('seo')"
+                :class="activeTab === 'seo' ? 'bg-blue-600 text-white shadow-sm' :
+                    'text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+                class="flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition">
                 <i class="fas fa-search text-xs"></i> SEO
             </button>
 
-            <button type="button" @click="switchTab('office')" @class([
-                'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
-                'bg-blue-600 text-white shadow-sm' => $activeTab === 'office',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
-                    $activeTab !== 'office',
-            ])>
+            <button type="button" @click="switchTab('office')"
+                :class="activeTab === 'office' ? 'bg-blue-600 text-white shadow-sm' :
+                    'text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+                class="flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition">
                 <i class="fas fa-envelope text-xs"></i> Contact
             </button>
 
-            <button type="button" @click="switchTab('setting')" @class([
-                'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
-                'bg-blue-600 text-white shadow-sm' => $activeTab === 'setting',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
-                    $activeTab !== 'setting',
-            ])>
+            <button type="button" @click="switchTab('setting')"
+                :class="activeTab === 'setting' ? 'bg-blue-600 text-white shadow-sm' :
+                    'text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+                class="flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition">
                 <i class="fas fa-globe text-xs"></i> Website
             </button>
 
-            <button type="button" @click="switchTab('themes')" @class([
-                'flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition',
-                'bg-blue-600 text-white shadow-sm' => $activeTab === 'themes',
-                'text-gray-500 hover:bg-gray-100 hover:text-gray-700' =>
-                    $activeTab !== 'themes',
-            ])>
+            <button type="button" @click="switchTab('themes')"
+                :class="activeTab === 'themes' ? 'bg-blue-600 text-white shadow-sm' :
+                    'text-gray-500 hover:bg-gray-100 hover:text-gray-700'"
+                class="flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm font-semibold rounded-xl transition">
                 <i class="fas fa-palette text-xs"></i> Themes
             </button>
 
         </div>
 
+        {{-- SEO TAB --}}
         <div x-show="activeTab === 'seo'" x-cloak class="w-full">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
@@ -139,7 +132,6 @@
                                 <p class="mt-1.5 text-[11px] text-gray-400">Pisahkan keywords dengan koma</p>
                             </div>
 
-                            {{-- Multilingual Fields --}}
                             @if (isset($setting) && $setting->is_multilingual == 'Yes')
                                 <div class="border-t border-gray-100 pt-3">
                                     <div class="mb-3 flex items-center gap-2">
@@ -250,8 +242,7 @@
                                         <input type="file"
                                             class="w-full cursor-pointer rounded-xl border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
                                             wire:model="favicon" accept="image/*">
-                                        <p class="mt-1.5 text-[11px] text-gray-400">ICO, PNG. Rekomendasi: 32×32px
-                                        </p>
+                                        <p class="mt-1.5 text-[11px] text-gray-400">ICO, PNG. Rekomendasi: 32×32px</p>
                                         <div wire:loading wire:target="favicon"
                                             class="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
                                             <i class="fas fa-spinner animate-spin"></i> Uploading...
@@ -282,8 +273,8 @@
                                         <input type="file"
                                             class="w-full cursor-pointer rounded-xl border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-500 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-600 hover:file:bg-blue-100"
                                             wire:model="images" accept="image/*">
-                                        <p class="mt-1.5 text-[11px] text-gray-400">JPG, PNG. Rekomendasi:
-                                            1200×630px</p>
+                                        <p class="mt-1.5 text-[11px] text-gray-400">JPG, PNG. Rekomendasi: 1200×630px
+                                        </p>
                                         <div wire:loading wire:target="images"
                                             class="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
                                             <i class="fas fa-spinner animate-spin"></i> Uploading...
@@ -348,8 +339,7 @@
                                     <h6 class="mb-0.5 text-sm font-bold leading-tight text-gray-800">
                                         {{ $sitename ?? 'Site Name' }} — {{ $tagline ?? 'Tagline' }}
                                     </h6>
-                                    <p class="text-xs text-gray-500">{{ Str::limit($description ?? '-', 100) }}
-                                    </p>
+                                    <p class="text-xs text-gray-500">{{ Str::limit($description ?? '-', 100) }}</p>
                                 </div>
                             </div>
                         </div>
@@ -359,11 +349,14 @@
             </div>
         </div>
 
+        {{-- OFFICE / CONTACT TAB --}}
         <div x-show="activeTab === 'office'" x-cloak class="w-full">
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
 
-                {{-- Left: Office Info --}}
+                {{-- Left: Office Info & Inbox Config --}}
                 <div class="space-y-5 lg:col-span-2">
+
+                    {{-- Office Info --}}
                     <div class="rounded-2xl border border-gray-100 bg-white shadow-sm">
                         <div class="flex items-center gap-2 border-b border-gray-50 px-5 py-4">
                             <i class="fas fa-building text-sm text-blue-500"></i>
@@ -415,8 +408,88 @@
 
                         </div>
                     </div>
+
+                    {{-- INBOX CONFIGURATION (UI/UX Refactored) --}}
+                    <div class="rounded-2xl border border-gray-100 bg-white shadow-sm">
+                        <div class="flex items-center gap-2 border-b border-gray-50 px-5 py-4">
+                            <i class="fas fa-inbox text-sm text-blue-500"></i>
+                            <h2 class="text-sm font-bold text-slate-800">Inbox Configuration</h2>
+                        </div>
+                        <div class="space-y-5 p-5">
+
+                            {{-- Email Forwarder Input --}}
+                            <div>
+                                <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                    for="email_forwader">
+                                    <i class="fas fa-paper-plane mr-1 text-blue-400"></i> Forward Email Destination
+                                </label>
+                                <input type="email" id="email_forwader"
+                                    class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                    wire:model="email_forwader" placeholder="forward-inbox@perusahaan.com">
+                                <p class="mt-1 text-[11px] text-gray-400">Email yang menerima pesan otomatis saat form
+                                    kontak diisi.</p>
+                                @error('email_forwader')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <hr class="border-gray-100">
+
+                            {{-- Boolean Switches Section --}}
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+
+                                {{-- Honeypot Toggle Switch --}}
+                                <div
+                                    class="flex items-start justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition hover:bg-gray-50">
+                                    <div class="pr-3">
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="fas fa-shield-alt text-amber-500 text-xs"></i>
+                                            <span
+                                                class="text-xs font-bold uppercase tracking-wide text-gray-700">Honeypot
+                                                Protection</span>
+                                        </div>
+                                        <p class="mt-1 text-[11px] leading-relaxed text-gray-500">
+                                            Cegah bot spam pada contact form secara transparan tanpa reCAPTCHA.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex cursor-pointer items-center">
+                                        <input type="checkbox" wire:model.live="contact_form_honeypot"
+                                            class="peer sr-only">
+                                        <div
+                                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none">
+                                        </div>
+                                    </label>
+                                </div>
+
+                                {{-- Auto Forward Toggle Switch --}}
+                                <div
+                                    class="flex items-start justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition hover:bg-gray-50">
+                                    <div class="pr-3">
+                                        <div class="flex items-center gap-1.5">
+                                            <i class="fas fa-share text-blue-500 text-xs"></i>
+                                            <span class="text-xs font-bold uppercase tracking-wide text-gray-700">Auto
+                                                Forward</span>
+                                        </div>
+                                        <p class="mt-1 text-[11px] leading-relaxed text-gray-500">
+                                            Teruskan seluruh pesan masuk secara instan ke email forwarder.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex cursor-pointer items-center">
+                                        <input type="checkbox" wire:model.live="contact_form_auto_forward"
+                                            class="peer sr-only">
+                                        <div
+                                            class="peer h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none">
+                                        </div>
+                                    </label>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
 
+                {{-- Right: Social Media --}}
                 <div>
                     <div class="rounded-2xl border border-gray-100 bg-white shadow-sm" x-data="{ open: true }">
                         <button type="button" @click="open = !open"
@@ -451,6 +524,7 @@
             </div>
         </div>
 
+        {{-- WEBSITE SETTINGS TAB --}}
         <div x-show="activeTab === 'setting'" x-cloak class="w-full">
             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
@@ -474,8 +548,7 @@
                                         <option value="" disabled>Pilih format...</option>
                                         @foreach ($dateFormats as $formatKey => $formatDisplay)
                                             <option value="{{ $formatKey }}">
-                                                {{ Carbon\Carbon::now()->format($formatKey) }}
-                                                ({{ $formatDisplay }})
+                                                {{ Carbon\Carbon::now()->format($formatKey) }} ({{ $formatDisplay }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -613,6 +686,7 @@
             </div>
         </div>
 
+        {{-- THEMES TAB --}}
         <div x-show="activeTab === 'themes'" x-cloak class="w-full">
             <div class="space-y-5">
 
@@ -662,7 +736,6 @@
                                         class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                                         Homepage Type
                                     </label>
-                                    {{-- wire:model.live agar kondisi @if di bawahnya langsung reaktif --}}
                                     <select wire:model.live="homepage_type"
                                         class="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200">
                                         <option value="index">Default Theme Homepage</option>
@@ -776,10 +849,9 @@
                             @endforeach
                         </div>
 
-                        {{-- Live color preview using inline style from Livewire properties --}}
                         <div class="border-t border-gray-50 pt-4">
-                            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Preview
-                                Color Scheme</p>
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Preview Color
+                                Scheme</p>
                             <div class="flex flex-wrap gap-2">
                                 <button type="button" style="background-color: {{ $color_primary }}"
                                     class="rounded-xl px-4 py-2 text-xs font-semibold text-white">Primary</button>
@@ -806,6 +878,126 @@
         </div>
 
     </form>
+
+    {{-- Initial Setup Modal --}}
+    @if ($showSetupModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+
+                <div class="flex items-center gap-3 bg-gradient-to-r from-[#1e2356] to-[#343a8d] px-6 py-5">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
+                        <i class="fas fa-cog text-sm text-white"></i>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-white">Initial Setup</h5>
+                        <p class="text-xs text-blue-200">Selesaikan pengaturan awal website Anda</p>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="mb-5 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+                        <i class="fas fa-info-circle mt-0.5 flex-shrink-0 text-blue-500"></i>
+                        <p class="text-sm text-blue-700">
+                            Selamat datang! Lengkapi informasi dasar berikut untuk menyelesaikan pengaturan awal website
+                            Anda.
+                        </p>
+                    </div>
+
+                    <form wire:submit.prevent="saveInitialSetting" class="space-y-4">
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                for="setup_sitename">
+                                Site Name <span class="font-normal normal-case text-red-500">*</span>
+                            </label>
+                            <input type="text" id="setup_sitename"
+                                class="@error('setup_sitename') border-red-400 bg-red-50 @else border-gray-200 @enderror w-full rounded-xl border px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                wire:model.live="setup_sitename" placeholder="e.g., My Website">
+                            @error('setup_sitename')
+                                <p class="mt-1 flex items-center gap-1 text-xs text-red-500">
+                                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                for="setup_tagline">
+                                Tagline <span
+                                    class="text-[11px] font-normal normal-case text-gray-400">(Opsional)</span>
+                            </label>
+                            <input type="text" id="setup_tagline"
+                                class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                wire:model.live="setup_tagline" placeholder="e.g., Your website tagline">
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                for="setup_email">
+                                Email <span class="font-normal normal-case text-red-500">*</span>
+                            </label>
+                            <input type="email" id="setup_email"
+                                class="@error('setup_email') border-red-400 bg-red-50 @else border-gray-200 @enderror w-full rounded-xl border px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                wire:model.live="setup_email" placeholder="your@email.com">
+                            @error('setup_email')
+                                <p class="mt-1 flex items-center gap-1 text-xs text-red-500">
+                                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                for="setup_url">
+                                Website URL <span class="font-normal normal-case text-red-500">*</span>
+                            </label>
+                            <input type="url" id="setup_url"
+                                class="@error('setup_url') border-red-400 bg-red-50 @else border-gray-200 @enderror w-full rounded-xl border px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                wire:model.live="setup_url" placeholder="https://example.com">
+                            @error('setup_url')
+                                <p class="mt-1 flex items-center gap-1 text-xs text-red-500">
+                                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                                for="setup_language">
+                                Default Language <span class="font-normal normal-case text-red-500">*</span>
+                            </label>
+                            <select id="setup_language"
+                                class="@error('setup_language') border-red-400 bg-red-50 @else border-gray-200 @enderror w-full rounded-xl border bg-white px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                                wire:model.live="setup_language">
+                                <option value="id">Bahasa Indonesia</option>
+                                <option value="en">English</option>
+                            </select>
+                            @error('setup_language')
+                                <p class="mt-1 flex items-center gap-1 text-xs text-red-500">
+                                    <i class="fas fa-exclamation-circle"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit"
+                                class="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 font-bold text-white transition hover:bg-blue-700"
+                                wire:loading.attr="disabled">
+                                <span wire:loading.remove wire:target="saveInitialSetting">
+                                    <i class="fas fa-check-circle mr-1"></i> Complete Setup
+                                </span>
+                                <span wire:loading wire:target="saveInitialSetting" class="flex items-center gap-2">
+                                    <i class="fas fa-spinner animate-spin"></i> Processing...
+                                </span>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    @endif
 
     @push('scripts')
         <script>

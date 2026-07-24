@@ -46,7 +46,7 @@ class ProfileEdit extends Component
         } catch (ValidationException $e) {
             $this->reset('current_password', 'password', 'password_confirmation');
 
-            session()->flash('error', 'Validation failed. Please check your input and try again.');
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Validation failed. Please check your input and try again.']);
             throw $e;
         }
 
@@ -55,7 +55,7 @@ class ProfileEdit extends Component
         $user->save();
 
         $this->reset('current_password', 'password', 'password_confirmation');
-        session()->flash('success', 'Password updated successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Password updated successfully.']);
     }
 
     public function togglePasswordVisibility()
@@ -86,7 +86,7 @@ class ProfileEdit extends Component
         $user->email = $validated['email'];
         $user->save();
 
-        session()->flash('success', 'Profile updated successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Profile updated successfully.']);
     }
 
     public function render()

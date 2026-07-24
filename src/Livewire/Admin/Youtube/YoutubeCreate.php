@@ -73,7 +73,7 @@ class YoutubeCreate extends Component
             'status' => $this->status,
         ]);
 
-        session()->flash('success', 'Video berhasil disimpan!');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Video berhasil disimpan!']);
 
         return $this->redirect('/admin/galleries/');
     }

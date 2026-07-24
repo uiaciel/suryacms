@@ -15,6 +15,7 @@ use Uiaciel\SuryaCms\Livewire\Admin\{
     Backup,
     Contact,
     FileCheck,
+    Gallery,
     SearchResult
 };
 use Uiaciel\SuryaCms\Livewire\Admin\Menu\{MenuCreate, MenuList};
@@ -81,7 +82,8 @@ Route::prefix('admin')
         Route::prefix('galleries')
             ->name('gallery.')
             ->group(function () {
-                Route::get('/', [AdminController::class, 'gallery'])->name('index');
+                Route::get('/', Gallery::class)->name('index');
+                // Route::get('/', [AdminController::class, 'gallery'])->name('index');
                 Route::post('/', [AdminController::class, 'saveGallery'])->name('store');
                 Route::post('{id}/edit', [AdminController::class, 'editGallery'])->name('edit');
             });

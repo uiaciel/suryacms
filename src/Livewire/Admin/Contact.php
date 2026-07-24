@@ -38,7 +38,7 @@ class Contact extends Component
             $contact->save();
         }
 
-        session()->flash('success', 'Message mark as Spam.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Message marked as spam.']);
     }
 
     public function deleteContact($id)
@@ -56,7 +56,7 @@ class Contact extends Component
         $contact = ContactModel::find($id);
 
         if (! $contact) {
-            session()->flash('error', 'Pesan tidak ditemukan.');
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Pesan tidak ditemukan.']);
             return;
         }
 
@@ -64,7 +64,7 @@ class Contact extends Component
         $emailTo = $setting->email_forwarder ?? config('mail.from.address');
 
         if (!$emailTo) {
-            session()->flash('error', 'Email penerus belum dikonfigurasi di Pengaturan.');
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Email penerus belum dikonfigurasi di Pengaturan.']);
             return;
         }
 
@@ -73,9 +73,9 @@ class Contact extends Component
 
             $contact->update(['forwarded_at' => now()]);
 
-            session()->flash('success', 'Pesan berhasil diteruskan ke ' . $emailTo);
+            $this->dispatch('swal', ['icon' => 'success', 'text' => 'Pesan berhasil diteruskan ke ' . $emailTo]);
         } catch (\Exception $e) {
-            session()->flash('error', 'Gagal meneruskan pesan: ' . $e->getMessage());
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Gagal meneruskan pesan: ' . $e->getMessage()]);
         }
     }
 

@@ -105,6 +105,12 @@ class SettingWeb extends Component
 
     public $email_forwarder;
 
+    public $contact_form_auto_forward = false;
+
+    public $contact_form_honeypot = true;
+
+    public $contact_form_rate_limit = 3;
+
     public $date_format;
 
     public $active_theme;

@@ -54,19 +54,19 @@ class Comment extends Component
             'post_id' => $this->postId,
         ]);
 
-        session()->flash('message', 'Your Comment will be check Admin.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Your comment will be reviewed by an admin.']);
     }
 
     public function approve()
     {
         $this->comment->approve();
-        session()->flash('message', 'Comment approved successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Comment approved successfully.']);
     }
 
     public function reject()
     {
         $this->comment->update(['status' => 'rejected']);
-        session()->flash('message', 'Comment rejected successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Comment rejected successfully.']);
     }
 
     public function render()

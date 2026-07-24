@@ -1,384 +1,358 @@
-@extends('suryacms::layouts.app')
-@section('content')
-    <div class="mb-6" x-data="{
-        search: '',
-        category: '',
-        showEditModal: false,
-        showUploadModal: false,
-        successMessage: 0,
-        errorMessage: 0,
+<div class="mb-6" x-data="{
+    search: '',
+    showModal: false,
+}" x-on:notify.window="showModal = false;">
 
-        selectedGallery: null,
-        galleries: @js($galleries),
-        categories: [...new Set(@js($galleries).map(g => g.category))],
-        filteredGalleries() {
-            return this.galleries.filter(g => {
-                let matchCategory = this.category === '' || g.category === this.category;
-                let matchSearch = g.name.toLowerCase().includes(this.search.toLowerCase());
-                return matchCategory && matchSearch;
-            });
-        },
-        openEditModal(gallery) {
-            this.selectedGallery = gallery;
-            this.showEditModal = true;
-        },
-        closeEditModal() {
-            this.showEditModal = false;
-            this.selectedGallery = null;
-        },
-        filterByCategory(cat) {
-            this.category = cat;
-        },
-    }">
+    <!-- Header Section -->
+    <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+        <div>
+            <h3 class="font-bold text-2xl text-gray-900">Media Library</h3>
+            <p class="text-sm text-gray-500">Kelola berkas gambar dan dokumen PDF perusahaan Anda.</p>
+        </div>
 
-        <!-- Header Section -->
-        <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-3 mb-6">
-            <div class="flex flex-wrap items-center gap-3">
-                <h3 class="font-bold text-lg text-gray-900">Media Library</h3>
-                <button type="button" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full shadow-sm transition-colors" @click="showUploadModal = true">
-                    <i class="bi bi-cloud-arrow-up-fill mr-2"></i> Upload Media
-                </button>
-            </div>
+        <button type="button"
+            class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm transition-colors gap-2"
+            @click="$wire.resetFields(); showModal = true;">
+            <i class="bi bi-cloud-arrow-up-fill text-lg"></i>
+            <span>Upload Media</span>
+        </button>
+    </header>
 
-            <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="hidden sm:block">
-                <ol class="flex gap-2 text-sm text-gray-500">
-                    <li><a href="/admin" class="hover:text-gray-700 transition-colors">Admin</a></li>
-                    <li class="before:content-['/'] before:mr-2">/</li>
-                    <li><a href="/admin/galleries" class="hover:text-gray-700 transition-colors">Media Library</a></li>
-                    <li class="before:content-['/'] before:mr-2">/</li>
-                    <li class="text-gray-700">{{ $titlePage ?? 'Files' }}</li>
-                </ol>
-            </nav>
-        </header>
+    <!-- Global Search & Filter Bar -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6">
+        <div class="relative w-full max-w-md">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text"
+                class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                placeholder="Cari media berdasarkan judul..." x-model="search">
+        </div>
+    </div>
 
-        <!-- Alerts -->
-        @if (session()->has('success'))
-            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
-                <i class="bi bi-check-circle-fill text-green-600 text-lg mt-0.5"></i>
-                <div class="flex-1">
-                    <p class="font-semibold text-green-800">{{ session('success') }}</p>
-                </div>
-                <button @click="show = false" class="text-green-600 hover:text-green-800">
-                    <i class="bi bi-x text-lg"></i>
-                </button>
-            </div>
-        @endif
-        @if (session()->has('error'))
-            <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3" x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)">
-                <i class="bi bi-x-octagon-fill text-red-600 text-lg mt-0.5"></i>
-                <div class="flex-1">
-                    <p class="font-semibold text-red-800">{{ session('error') }}</p>
-                </div>
-                <button @click="show = false" class="text-red-600 hover:text-red-800">
-                    <i class="bi bi-x text-lg"></i>
-                </button>
-            </div>
-        @endif
+    <!-- MAIN CONTENT GRID: 2 CARD TERPISAH -->
+    <div class="space-y-8">
 
-        <!-- Gallery Section -->
-        <div class="grid gap-6">
-            <div class="col-span-full">
-                <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-
-                    <!-- Filter Bar -->
-                    <div class="border-b border-gray-200 p-4">
-                        <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-
-                            <!-- Category Filter Buttons -->
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors" :class="category === '' ? 'bg-blue-600 text-white' : 'border border-blue-600 text-blue-600 hover:bg-blue-50'" @click="filterByCategory('')">
-                                    All ({{ count($galleries) }})
-                                </button>
-                                <template x-for="cat in categories" :key="cat">
-                                    <button type="button" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors" :class="category === cat ? 'bg-blue-600 text-white' : 'border border-blue-600 text-blue-600 hover:bg-blue-50'" @click="filterByCategory(cat)" x-text="cat"></button>
-                                </template>
-                            </div>
-
-                            <!-- Search Input -->
-                            <input
-                                type="text"
-                                class="flex-1 md:max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                placeholder="Search images..."
-                                x-model="search"
-                            >
-                        </div>
+        <!-- CARD 1: IMAGE GALLERY -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                        <i class="bi bi-images text-lg"></i>
                     </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">Image Gallery</h4>
+                        <p class="text-xs text-gray-500">Koleksi berkas gambar (JPG, PNG, WEBP)</p>
+                    </div>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full">
+                    {{ $galleries->where('mime_type', 'image')->count() }} Files
+                </span>
+            </div>
 
-                    <!-- Gallery Grid -->
-                    <div class="p-6">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            <template x-for="gallery in filteredGalleries()" :key="gallery.id">
-                                <div class="cursor-pointer group">
-                                    <div class="bg-white rounded-2xl shadow-sm hover:shadow-md overflow-hidden transition-shadow h-full flex flex-col border border-gray-100">
-                                        <div class="aspect-square bg-gray-50 overflow-hidden flex items-center justify-center relative">
+            <div class="p-6">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    @forelse($galleries->where('mime_type', 'image') as $gallery)
+                        <div class="cursor-pointer group"
+                            x-show="!search || '{{ strtolower($gallery->name) }}'.includes(search.toLowerCase())"
+                            @click="$wire.editGallery({{ $gallery->id }}); showModal = true;">
 
-                                            <template x-if="gallery.category.toUpperCase() === 'PDF'">
-                                                <div class="flex flex-col items-center justify-center w-full h-full bg-red-50 group-hover:bg-red-100 transition-colors" @click="openEditModal(gallery)">
-                                                    <i class="fas fa-file-pdf text-5xl text-red-500"></i>
-                                                    <span class="text-[10px] font-bold text-red-600 mt-2">PDF DOCUMENT</span>
-                                                    <a :href="'{{ asset('storage') }}/' + gallery.image_path" target="_blank" class="absolute top-2 right-2 p-1.5 bg-white/80 hover:bg-white rounded-full shadow-sm text-gray-600" title="View PDF" @click.stop>
-                                                        <i class="bi bi-eye text-sm"></i>
-                                                    </a>
-                                                </div>
-                                            </template>
-
-                                            <template x-if="gallery.category.toUpperCase() !== 'PDF'">
-                                                <img
-                                                    :src="'{{ asset('storage') }}/' + gallery.image_path"
-                                                    :alt="gallery.name"
-                                                    class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                                    @click="openEditModal(gallery)"
-                                                >
-                                            </template>
-                                        </div>
-
-                                        <div class="p-3 border-t border-gray-200 bg-white flex-1 flex flex-col">
-                                            <p class="text-sm font-bold text-gray-900 truncate" x-text="gallery.name"></p>
-                                            <div class="flex items-center justify-between mt-2">
-                                                <span
-                                                    class="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full"
-                                                    :class="gallery.status === 'Publish' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
-                                                    x-text="gallery.status"
-                                                ></span>
-                                                <span class="text-[10px] text-gray-400 font-medium" x-text="gallery.category"></span>
-                                            </div>
-                                        </div>
+                            <div
+                                class="bg-white rounded-xl shadow-xs hover:shadow-md overflow-hidden transition-all duration-200 h-full flex flex-col border border-gray-100 group-hover:border-blue-200">
+                                <div class="aspect-square bg-gray-50 overflow-hidden relative">
+                                    <img src="{{ asset('storage/' . ($gallery->cover_path ?? $gallery->image_path)) }}"
+                                        alt="{{ $gallery->alt_text ?? $gallery->name }}"
+                                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                                </div>
+                                <div class="p-3 bg-white flex-1 flex flex-col justify-between border-t border-gray-50">
+                                    <p class="text-xs font-bold text-gray-800 truncate" title="{{ $gallery->name }}">
+                                        {{ $gallery->name }}</p>
+                                    <div class="flex items-center justify-between mt-2 text-[10px]">
+                                        <span
+                                            class="px-2 py-0.5 rounded-md font-bold {{ $gallery->status === 'Publish' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                                            {{ $gallery->status }}
+                                        </span>
+                                        <span
+                                            class="text-gray-400 font-medium truncate max-w-[70px]">{{ $gallery->category ?? '-' }}</span>
                                     </div>
                                 </div>
-                            </template>
+                            </div>
                         </div>
-
-                        <!-- Empty State -->
-                        <div x-show="filteredGalleries().length === 0" class="text-center py-16 text-gray-500">
-                            <i class="bi bi-search text-6xl mb-4 block text-gray-300"></i>
-                            <h5 class="font-light text-lg">No images found matching your criteria.</h5>
+                    @empty
+                        <div class="col-span-full text-center py-12 text-gray-400">
+                            <i class="bi bi-image text-5xl block mb-2 opacity-40"></i>
+                            <p class="text-sm font-light">Belum ada gambar terunggah.</p>
                         </div>
-                    </div>
-
+                    @endforelse
                 </div>
             </div>
         </div>
 
-        <!-- Upload Modal (Alpine) -->
-        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center transition-opacity" x-show="showUploadModal" x-transition @click="showUploadModal = false" style="display: none;">
-            <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto" @click.stop>
-                <!-- Modal Header -->
-                <div class="bg-blue-600 text-white p-4 flex items-center justify-between rounded-t-2xl">
-                    <h5 class="text-lg font-bold flex items-center gap-2">
-                        <i class="bi bi-plus-circle"></i> Upload New Image
-                    </h5>
-                    <button type="button" class="text-white hover:bg-blue-700 p-1 rounded transition-colors" @click="showUploadModal = false">
-                        <i class="bi bi-x text-2xl"></i>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="p-6">
-                    <form action="{{ route('admin.gallery.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="mb-4">
-                            <label for="name" class="block text-sm font-bold text-gray-900 mb-2">Title</label>
-                            <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" id="name" name="name" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="description" class="block text-sm font-bold text-gray-900 mb-2">Description</label>
-                            <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none" id="description" name="description" rows="2"></textarea>
-                        </div>
-                        <div class="mb-4">
-                            <label for="image_path" class="block text-sm font-bold text-gray-900 mb-2">
-                                File <span class="text-gray-400 font-normal">(Image or PDF)</span>
-                            </label>
-                            <input type="file"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                id="image_path" name="image_path"
-                                accept=".jpg,.png,.jpeg,.pdf"
-                                required>
-                            <p class="text-xs text-gray-500 mt-1">Max 2MB. Format: JPG, PNG, or PDF.</p>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label for="category" class="block text-sm font-bold text-gray-900 mb-2">Category</label>
-                                <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase"
-                            id="category" name="category" placeholder="e.g., PDF, SLIDER, POST" x-model="categoryHint">
-                            </div>
-                            <div>
-                                <label for="status" class="block text-sm font-bold text-gray-900 mb-2">Status</label>
-                                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all bg-white" id="status" name="status">
-                                    <option value="Publish">Publish</option>
-                                    <option value="Draft">Draft</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mt-6">
-                            <button type="submit" class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2">
-                                <i class="bi bi-upload"></i> Upload & Save
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Edit Modal (Alpine) -->
-        <div
-            class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center transition-opacity"
-            x-show="showEditModal"
-            x-transition
-            @click="closeEditModal()"
-        >
-            <div
-                class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-                @click.stop
-                x-show="selectedGallery"
-            >
-                <!-- Modal Header -->
-                <div class="border-b border-gray-200 p-6 flex items-center justify-between">
-                    <h5 class="text-lg font-bold text-gray-900">Edit Media</h5>
-                    <button
-                        type="button"
-                        class="text-gray-500 hover:text-gray-700 p-1 rounded transition-colors"
-                        @click="closeEditModal()"
-                    >
-                        <i class="bi bi-x text-2xl"></i>
-                    </button>
-                </div>
-
-                <!-- Modal Body -->
-                <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Image Preview -->
-                        <div class="flex items-start justify-center">
-                        <template x-if="selectedGallery.category.toUpperCase() === 'PDF'">
-                            <embed
-                                :src="'{{ asset('storage') }}/' + selectedGallery.image_path"
-                                type="application/pdf"
-                                class="w-full rounded-lg h-[500px]"
-                            >
-                        </template>
-                        <template x-if="selectedGallery.category.toUpperCase() !== 'PDF'">
-                            <img
-                                :src="'{{ asset('storage') }}/' + selectedGallery.image_path"
-                                class="w-full rounded-lg object-cover max-h-96"
-                            >
-                        </template>
-                        </div>
-
-                        <!-- Edit Form -->
-                        <div>
-                            <form @submit.prevent="
-                                fetch('{{ url('admin/gallery') }}/' + selectedGallery.id, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                        'Accept': 'application/json'
-                                    },
-                                    body: new FormData($event.target)
-                                }).then(response => {
-                                    if(response.ok) {
-                                        closeEditModal();
-                                        // Show success notification
-                                        document.querySelector('[data-success-notification]')?.classList.remove('hidden');
-                                        setTimeout(() => {
-                                            document.querySelector('[data-success-notification]')?.classList.add('hidden');
-                                        }, 3000);
-                                    }
-                                }).catch(error => console.error(error));
-                            ">
-                                <!-- Title -->
-                                <div class="mb-4">
-                                    <label for="edit_name" class="block text-sm font-bold text-gray-900 mb-2">Title</label>
-                                    <input
-                                        type="text"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                        id="edit_name"
-                                        name="name"
-                                        x-model="selectedGallery.name"
-                                        required
-                                    >
-                                </div>
-
-                                <!-- Description -->
-                                <div class="mb-4">
-                                    <label for="edit_description" class="block text-sm font-bold text-gray-900 mb-2">Description</label>
-                                    <textarea
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                                        id="edit_description"
-                                        name="description"
-                                        x-model="selectedGallery.description"
-                                        rows="3"
-                                    ></textarea>
-                                </div>
-
-                                <!-- Image Upload -->
-                                <div class="mb-4">
-                                    <label for="edit_image_path" class="block text-sm font-bold text-gray-900 mb-2">Update Image (Optional)</label>
-                                    <input
-                                        type="file"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                        id="edit_image_path"
-                                        name="image_path"
-                                    >
-                                    <p class="text-xs text-gray-500 mt-1">Leave empty to keep current image.</p>
-                                </div>
-
-                                <!-- Category & Status -->
-                                <div class="grid grid-cols-2 gap-4 mb-6">
-                                    <div>
-                                        <label for="edit_category" class="block text-sm font-bold text-gray-900 mb-2">Category</label>
-                                        <input
-                                            type="text"
-                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                            id="edit_category"
-                                            name="category"
-                                            x-model="selectedGallery.category"
-                                        >
-                                    </div>
-                                    <div>
-                                        <label for="edit_status" class="block text-sm font-bold text-gray-900 mb-2">Status</label>
-                                        <select
-                                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
-                                            id="edit_status"
-                                            name="status"
-                                            x-model="selectedGallery.status"
-                                        >
-                                            <option value="Publish">Publish</option>
-                                            <option value="Draft">Draft</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="flex gap-3">
-                                    <button
-                                        type="submit"
-                                        class="flex-1 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <i class="bi bi-check-circle"></i> Update
-                                    </button>
-                                    <button
-                                        type="button"
-                                        @click="
-                                            if (confirm('Are you sure you want to delete this image?')) {
-                                                $wire.deleteImage(selectedGallery.id);
-                                                closeEditModal();
-                                            }
-                                        "
-                                        class="flex-1 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+        <!-- CARD 2: PDF DOCUMENT GALLERY -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-red-100 text-red-600 rounded-lg">
+                        <i class="bi bi-file-earmark-pdf-fill text-lg"></i>
                     </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800">PDF Documents</h4>
+                        <p class="text-xs text-gray-500">Koleksi dokumen berkas PDF</p>
+                    </div>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-red-50 text-red-600 rounded-full">
+                    {{ $galleries->where('mime_type', 'pdf')->count() }} Documents
+                </span>
+            </div>
+
+            <div class="p-6">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    @forelse($galleries->where('mime_type', 'pdf') as $gallery)
+                        <div class="cursor-pointer group relative"
+                            x-show="!search || '{{ strtolower($gallery->name) }}'.includes(search.toLowerCase())"
+                            @click="$wire.editGallery({{ $gallery->id }}); showModal = true;">
+
+                            <div
+                                class="bg-white rounded-xl shadow-xs hover:shadow-md overflow-hidden transition-all duration-200 h-full flex flex-col border border-gray-100 group-hover:border-red-200">
+                                <div
+                                    class="aspect-square bg-gray-100 overflow-hidden relative flex items-center justify-center">
+                                    @if ($gallery->cover_path)
+                                        <img src="{{ asset('storage/' . $gallery->cover_path) }}"
+                                            alt="{{ $gallery->name }}"
+                                            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                                    @else
+                                        <div class="flex flex-col items-center justify-center text-red-400">
+                                            <i class="bi bi-file-earmark-pdf text-5xl"></i>
+                                        </div>
+                                    @endif
+
+                                    <!-- Tag Badge PDF -->
+                                    <div
+                                        class="absolute top-2 left-2 px-1.5 py-0.5 bg-red-600/90 backdrop-blur-xs text-white font-bold text-[9px] rounded shadow-xs flex items-center gap-1">
+                                        <i class="bi bi-file-pdf"></i> PDF
+                                    </div>
+
+                                    <!-- Preview Link PDF -->
+                                    <a href="{{ asset('storage/' . $gallery->image_path) }}" target="_blank"
+                                        class="absolute top-2 right-2 p-1 bg-white/90 hover:bg-white text-gray-700 rounded-full shadow-xs transition-colors"
+                                        title="Buka PDF" @click.stop>
+                                        <i class="bi bi-box-arrow-up-right text-xs"></i>
+                                    </a>
+                                </div>
+                                <div class="p-3 bg-white flex-1 flex flex-col justify-between border-t border-gray-50">
+                                    <p class="text-xs font-bold text-gray-800 truncate" title="{{ $gallery->name }}">
+                                        {{ $gallery->name }}</p>
+                                    <div class="flex items-center justify-between mt-2 text-[10px]">
+                                        <span
+                                            class="px-2 py-0.5 rounded-md font-bold {{ $gallery->status === 'Publish' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600' }}">
+                                            {{ $gallery->status }}
+                                        </span>
+                                        <span
+                                            class="text-gray-400 font-medium truncate max-w-[70px]">{{ $gallery->file_size ?? 'PDF' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full text-center py-12 text-gray-400">
+                            <i class="bi bi-file-earmark-pdf text-5xl block mb-2 opacity-40"></i>
+                            <p class="text-sm font-light">Belum ada dokumen PDF terunggah.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         </div>
 
     </div>
 
-    <livewire:suryacms::admin.youtube.youtube-list />
-@endsection
+    <!-- WIDE RESPONSIVE MODAL (UPLOAD & EDIT) -->
+    <div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity"
+        x-show="showModal" x-transition style="display: none;">
+
+        <!-- Modal Container Layout Melebar (Max Width 4XL) -->
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
+            @click.away="showModal = false">
+
+            <!-- Modal Header -->
+            <div class="bg-gray-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="bi bi-cloud-arrow-up text-xl text-blue-400" x-show="!$wire.isEdit"></i>
+                    <i class="bi bi-pencil-square text-xl text-yellow-400" x-show="$wire.isEdit"></i>
+                    <h5 class="text-base font-bold" x-text="$wire.isEdit ? 'Edit Media Details' : 'Upload New Media'">
+                    </h5>
+                </div>
+                <button type="button" class="text-gray-400 hover:text-white p-1 rounded-lg transition-colors"
+                    @click="showModal = false">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Grid 2 Kolom di Desktop, Tumpuk di Mobile) -->
+            <div class="p-6 overflow-y-auto flex-1">
+                <form wire:submit.prevent="{{ $isEdit ? 'updateGallery' : 'saveGallery' }}">
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+
+                        <!-- KANVAS KIRI (5 Kolom): File Input / Dropzone & Preview -->
+                        <div class="md:col-span-5 space-y-4">
+                            <label class="block text-sm font-bold text-gray-800">Media File</label>
+
+                            <!-- Dropzone Box -->
+                            <div
+                                class="relative border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-2xl p-4 transition-all text-center bg-gray-50 hover:bg-blue-50/30 flex flex-col items-center justify-center min-h-[220px]">
+                                <input type="file"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    wire:model="fileimage_path" accept=".jpg,.png,.jpeg,.webp,.pdf">
+
+                                <!-- State 1: Ada Preview Cover/Gambar -->
+                                @if (
+                                    $fileimage_path &&
+                                        in_array(strtolower($fileimage_path->getClientOriginalExtension()), ['jpg', 'png', 'jpeg', 'webp']))
+                                    <img src="{{ $fileimage_path->temporaryUrl() }}"
+                                        class="max-h-48 rounded-lg object-contain shadow-xs">
+                                @elseif($cover_path && $isEdit)
+                                    <img src="{{ asset('storage/' . $cover_path) }}"
+                                        class="max-h-48 rounded-lg object-contain shadow-xs">
+                                @else
+                                    <!-- State 2: Default Placeholder -->
+                                    <div class="flex flex-col items-center justify-center py-4">
+                                        <div
+                                            class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2">
+                                            <i class="bi bi-cloud-arrow-up text-2xl"></i>
+                                        </div>
+                                        <p class="text-xs font-bold text-gray-700 mb-1">Clik to Upload File
+                                        </p>
+                                        <p class="text-[10px] text-gray-400">Image (JPG, PNG, WEBP) or PDF (Max
+                                            30MB)</p>
+                                    </div>
+                                @endif
+
+                                <!-- STATE PROGRESS & UPLOADING INDIKATOR -->
+                                <div wire:loading wire:target="fileimage_path"
+                                    class="absolute inset-0 bg-white/95 z-20 rounded-2xl flex flex-col items-center justify-center p-4">
+                                    <div
+                                        class="w-10 h-10 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-3">
+                                    </div>
+                                    <p class="text-xs font-bold text-gray-800">Processing...</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Please wait until proceesing done</p>
+                                </div>
+                            </div>
+
+                            @error('fileimage_path')
+                                <span class="text-red-500 text-xs font-medium block">{{ $message }}</span>
+                            @enderror
+
+                            <!-- Extra Alert jika PDF terunggah -->
+                            @if ($fileimage_path && strtolower($fileimage_path->getClientOriginalExtension()) === 'pdf')
+                                <div
+                                    class="p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 text-xs text-red-700">
+                                    <i class="bi bi-file-earmark-pdf-fill text-lg shrink-0"></i>
+                                    <span>Image Cover generate automaticly</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- KANAN (7 Kolom): Form Inputs Metadatas -->
+                        <div class="md:col-span-7 space-y-4">
+
+                            <!-- Title Input -->
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Title
+                                </label>
+                                <input type="text"
+                                    class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all"
+                                    wire:model="filename" placeholder="Masukkan judul berkas">
+                                @error('filename')
+                                    <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <!-- Alt Text & Category (2 Kolom Sejajar) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Caption
+                                        (SEO)</label>
+                                    <input type="text"
+                                        class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all"
+                                        wire:model="filealt_text" placeholder="Alt deskripsi gambar">
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Category</label>
+                                    <input type="text"
+                                        class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all uppercase"
+                                        wire:model="filecategory" placeholder="Contoh: SLIDER, PDF">
+                                </div>
+                            </div>
+
+                            <!-- Description Input -->
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Description</label>
+                                <textarea
+                                    class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all resize-none"
+                                    wire:model="filedescription" rows="2" placeholder="Description..."></textarea>
+                            </div>
+
+                            <!-- Status Selection -->
+                            <div>
+                                <label
+                                    class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Status
+                                </label>
+                                <div class="flex gap-4 items-center">
+                                    <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                        <input type="radio" wire:model="filestatus" value="Publish"
+                                            class="text-blue-600 focus:ring-blue-500">
+                                        <span>Publish</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                        <input type="radio" wire:model="filestatus" value="Draft"
+                                            class="text-blue-600 focus:ring-blue-500">
+                                        <span>Draft</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Modal Footer Actions (Sticky at bottom) -->
+                    <div
+                        class="mt-8 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end items-center">
+                        <button type="button" @click="showModal = false"
+                            class="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors text-sm">
+                            Cancel
+                        </button>
+
+                        <template x-if="$wire.isEdit">
+                            <button type="button"
+                                @click="if(confirm('Apakah Anda yakin ingin menghapus media ini?')) { $wire.deleteGallery($wire.selected_id); showModal = false; }"
+                                class="w-full sm:w-auto px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-xl transition-colors text-sm">
+                                Delete Media
+                            </button>
+                        </template>
+
+                        <!-- Button Submit (Otomatis Disabled Saat Sedang Upload File) -->
+                        <button type="submit" wire:loading.attr="disabled"
+                            wire:target="fileimage_path, saveGallery, updateGallery"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-semibold rounded-xl transition-colors text-sm flex items-center justify-center gap-2">
+                            <span wire:loading.remove wire:target="fileimage_path, saveGallery, updateGallery">
+                                <i class="bi bi-check-circle-fill"></i> Save Media
+                            </span>
+                            <span wire:loading wire:target="fileimage_path, saveGallery, updateGallery"
+                                class="flex items-center gap-2">
+                                <i class="bi bi-arrow-repeat animate-spin"></i> Prosessing...
+                            </span>
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>

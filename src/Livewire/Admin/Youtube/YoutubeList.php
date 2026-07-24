@@ -52,7 +52,7 @@ class YoutubeList extends Component
             'description' => $this->editDescription,
         ]);
 
-        session()->flash('success', 'Video updated successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Video updated successfully.']);
 
         $this->loadVideos();
 
@@ -68,7 +68,7 @@ class YoutubeList extends Component
     public function delete($id)
     {
         YoutubeVideo::findOrFail($id)->delete();
-        session()->flash('success', 'Video berhasil dihapus.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Video berhasil dihapus.']);
         $this->loadVideos();
         $this->loadVideos();
     }
@@ -79,7 +79,7 @@ class YoutubeList extends Component
 
         if ($status) {
             YoutubeVideo::findOrFail($id)->update(['status' => $status]);
-            session()->flash('success', 'Status video berhasil diupdate.');
+            $this->dispatch('swal', ['icon' => 'success', 'text' => 'Status video berhasil diupdate.']);
         }
     }
 

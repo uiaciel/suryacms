@@ -1,6 +1,7 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <x-suryacms::toast-alert />
+
         <div class="mb-8">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
