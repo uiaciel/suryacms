@@ -22,9 +22,11 @@
                 {{-- Breadcrumb --}}
                 <nav aria-label="breadcrumb" class="mt-4 sm:mt-0">
                     <ol class="flex flex-wrap gap-2 text-sm text-gray-600">
-                        <li><a href="/admin" class="text-blue-600 hover:text-blue-700 hover:underline">Admin</a></li>
+                        <li><a href="/{{ config('suryacms.admin_prefix') }}"
+                                class="text-blue-600 hover:text-blue-700 hover:underline">Admin</a></li>
                         <li class="text-gray-400">/</li>
-                        <li><a href="/admin/pages" class="text-blue-600 hover:text-blue-700 hover:underline">Pages</a>
+                        <li><a href="/{{ config('suryacms.admin_prefix') }}/pages"
+                                class="text-blue-600 hover:text-blue-700 hover:underline">Pages</a>
                         </li>
                         <li class="text-gray-400">/</li>
                         <li class="text-gray-600 font-medium">New Page</li>
@@ -366,7 +368,7 @@
                             Publish Page
                         </button>
 
-                        <a href="/admin/pages"
+                        <a href="/{{ config('suryacms.admin_prefix') }}/pages"
                             class="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-xl transition-colors text-center block">
                             Cancel
                         </a>

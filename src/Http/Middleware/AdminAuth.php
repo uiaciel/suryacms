@@ -14,7 +14,7 @@ class AdminAuth
         }
 
         if ($request->is('dashboard') || $request->is('*/dashboard')) {
-            return redirect('/admin');
+            return redirect()->route('admin.dashboard'); // Ganti 'admin.dashboard' dengan route admin dashboard Anda
         }
 
         return $next($request);

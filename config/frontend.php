@@ -37,5 +37,13 @@ return [
         'default',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Halaman Register
+    |--------------------------------------------------------------------------
+    |
+    | Halaman /register dinonaktifkan, user baru create di halaman admin dashboard
+    |
+    */
     'registration_enabled' => env('FRONTEND_REGISTRATION_ENABLED', true),
 ];

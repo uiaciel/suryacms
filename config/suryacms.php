@@ -1,6 +1,33 @@
 <?php
 
 return [
+
+    /**
+     * Route for Admin Dashboard
+     */
+    'admin_prefix' => 'admin',
+
+    /**
+     * slug untuk rute frontend
+     * Jika menggunakan halaman baru, tambahkan disini
+     */
+    'excluded_slugs' => [
+        'login',
+        'register',
+        'password',
+        'email',
+        'logout',
+        'contact-us',
+        'homepage-builder',
+        'suryacms',
+        'api',
+        '_debugbar',
+        'horizon',
+        'telescope',
+        'category',
+        'media'
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Backup Tables
@@ -29,5 +56,5 @@ return [
     ],
 
     'monitor_token' => env('SURYACMS_MONITOR_TOKEN', null),
-    'version'       => '2.1.17',
+    'version'       => '2.1.18',
 ];

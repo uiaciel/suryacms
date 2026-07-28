@@ -11,7 +11,8 @@
                 <ol class="flex gap-2 text-sm text-gray-500 mt-1">
                     <li><a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition-colors">Admin</a></li>
                     <li class="before:content-['/'] before:mr-2 text-gray-400"></li>
-                    <li><a href="/admin/menu" class="hover:text-blue-600 transition-colors">Menu</a></li>
+                    <li><a href="/{{ config('suryacms.admin_prefix') }}/menu"
+                            class="hover:text-blue-600 transition-colors">Menu</a></li>
                     <li class="before:content-['/'] before:mr-2 text-gray-400"></li>
                     <li class="text-gray-700 font-medium">{{ $titlePage }}</li>
                 </ol>
@@ -249,7 +250,7 @@
                                     this.categoryPost = data;
                                     this.$watch('selectedCategoryPost', (value) => {
                                         const selected = this.categoryPost.find(category => category.link ===
-                                        value);
+                                            value);
                                         this.getName = selected ? selected.name : '';
                                         this.$wire.link = value;
                                     });

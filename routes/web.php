@@ -40,7 +40,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
-Route::prefix('admin')
+Route::prefix(config('suryacms.admin_prefix', 'admin'))
     ->name('admin.')
     ->middleware(['web', 'auth'])
     ->group(function () {
@@ -151,3 +151,18 @@ Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(fun
     require __DIR__.'/api.php';
 
     Route::get('suryacms/test', fn () => 'SuryaCMS aktif!');
+    Route::get('suryacms/sw.js', function () {
+
+        return response(<<<'JS'
+    self.addEventListener('install', event => {
+        self.skipWaiting();
+    });
+
+    self.addEventListener('activate', event => {
+        event.waitUntil(clients.claim());
+    });
+    JS
+        , 200)->header('Content-Type', 'application/javascript');
+
+    });
+    Route::get('suryacms/manifest.json', [AdminController::class, 'manifest'])->name('admin.manifest');

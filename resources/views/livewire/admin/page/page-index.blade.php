@@ -14,7 +14,8 @@
             <ol class="flex gap-2 text-sm text-gray-600">
                 <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
                 <li>/</li>
-                <li><a href="/admin/pages" class="text-blue-600 hover:text-blue-700">Pages</a></li>
+                <li><a href="/{{ config('suryacms.admin_prefix') }}/pages"
+                        class="text-blue-600 hover:text-blue-700">Pages</a></li>
                 <li>/</li>
                 <li class="text-gray-600">{{ $titlePage }}</li>
             </ol>
@@ -104,7 +105,7 @@
                                         <i class="fa-solid fa-up-right-from-square"></i>
                                     </a>
                                     <template x-if="page.is_builder">
-                                        <a href="/admin/page-builder/"
+                                        <a href="/{{ config('suryacms.admin_prefix') }}/page-builder/"
                                             class="ml-2 inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold uppercase hover:bg-emerald-200 transition">
                                             <i class="fa-solid fa-cubes"></i> Edit with Builder
                                         </a>
@@ -143,7 +144,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="inline-flex gap-2">
-                                        <a :href="'/admin/pages/edit/' + page.id"
+                                        <a :href="'/{{ config('suryacms.admin_prefix') }}/pages/edit/' + page.id"
                                             class="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                                             title="Edit">
                                             <i class="fas fa-pencil-alt"></i>

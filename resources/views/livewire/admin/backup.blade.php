@@ -118,7 +118,7 @@
                 <p class="text-xs text-slate-300 mt-0.5">Manage full-system configuration states, asset archives, and
                     structural restorations.</p>
             </div>
-            <a href="/admin/system/restore"
+            <a href="/{{ config('suryacms.admin_prefix') }}/system/restore"
                 class="w-full sm:w-auto inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-700/20 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none">
                 <svg wire:loading.remove wire:target="generateBackup" class="h-4 w-4 mr-2" fill="none"
                     viewBox="0 0 24 24" stroke="currentColor">

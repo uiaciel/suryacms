@@ -109,6 +109,17 @@
         }
     </style>
 
+    <link rel="manifest" href="{{ route('admin.manifest') }}">
+    <meta name="theme-color" content="#0f172a">
+
+    <link href="{{ $setting->favicon }}" rel="icon" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $setting->logo }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $setting->logo }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $setting->logo }}">
+
+    <link rel="mask-icon" href="{{ $setting->logo }}" color="#5bbad5">
+
     @vite(['resources/js/app.js'])
     @livewireStyles
 
@@ -137,11 +148,15 @@
             class="w-64 bg-[#1e2356] text-white fixed lg:static inset-y-0 left-0 z-50 flex-shrink-0 flex flex-col shadow-2xl overflow-hidden transition-all duration-300 ease-in-out">
 
             <!-- Sidebar Header -->
-            <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
+            <div class="flex items-center justify-between px-6 py-5 border-b border-white/10" wire:ignore>
                 <div class="flex items-center gap-3">
-                    <div
-                        class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-sm">
-                        S</div>
+                    @if ($setting->logo)
+                        <img src="/{{ $setting->logo }}" class="w-8 h-8 rounded-lg" />
+                    @else
+                        <div
+                            class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-sm">
+                            S</div>
+                    @endif
                     <span x-show="!sidebarMinimized" class="text-lg font-black tracking-tight">Admin<span
                             class="text-blue-400">Panel</span></span>
                 </div>
@@ -157,13 +172,13 @@
                     <p x-show="!sidebarMinimized"
                         class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">Main Menu
                     </p>
-                    <a href="/admin" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin') && !Request::is('admin/*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-th-large w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
                             x-show="!sidebarMinimized">Dashboard</span>
                     </a>
-                    <a href="/admin/posts" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/posts" wire:navigate
                         class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/posts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <span class="flex items-center"><i class="fas fa-file-alt w-4 text-center"
@@ -172,19 +187,19 @@
                         <span x-show="!sidebarMinimized"
                             class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ $posts->count() }}</span>
                     </a>
-                    <a href="/admin/pages" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/pages" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/pages*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-copy w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
                             x-show="!sidebarMinimized">Pages</span>
                     </a>
-                    <a href="/admin/galleries" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/galleries" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/galleries*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-photo-video w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
                             x-show="!sidebarMinimized">Media</span>
                     </a>
-                    <a href="/admin/contacts" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/contacts" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/contacts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-envelope w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
@@ -219,19 +234,19 @@
                 <div>
                     <p x-show="!sidebarMinimized"
                         class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Themes</p>
-                    <a href="/admin/themes" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/themes" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-layer-group w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
                         <span x-show="!sidebarMinimized">All Themes</span>
                     </a>
-                    <a href="/admin/themes/editor"
+                    <a href="/{{ config('suryacms.admin_prefix') }}/themes/editor"
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/editor*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-code w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
                         <span x-show="!sidebarMinimized">Editor</span>
                     </a>
-                    <a href="/admin/themes/builder" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/themes/builder" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/generate*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-magic w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
@@ -257,7 +272,7 @@
                             </button>
                             <div x-show="open && !sidebarMinimized" x-collapse x-cloak class="mt-1 space-y-1">
                                 @foreach (collect($pages)->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))->take(4) as $page)
-                                    <a href="/admin/homepage-builder/{{ $page->slug }}"
+                                    <a href="/{{ config('suryacms.admin_prefix') }}/homepage-builder/{{ $page->slug }}"
                                         class="flex items-center pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition-all {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'text-blue-400 bg-white/5' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
                                         <i class="fas fa-circle text-[6px] mr-3"></i> {{ $page->title }}
                                     </a>
@@ -271,13 +286,13 @@
                     <p x-show="!sidebarMinimized"
                         class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Tools &
                         Settings</p>
-                    <a href="/admin/menu" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/menu" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/menu*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-bars w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
                             x-show="!sidebarMinimized">Menu</span>
                     </a>
-                    <a href="/admin/setting"
+                    <a href="/{{ config('suryacms.admin_prefix') }}/setting"
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/setting*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-cog w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
@@ -377,11 +392,11 @@
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition">
                                 <i class="fas fa-info-circle mr-3 w-4 text-center text-gray-400"></i> About SuryaCMS
                             </a>
-                            <a href="/admin/guide" wire:navigate
+                            <a href="/{{ config('suryacms.admin_prefix') }}/guide" wire:navigate
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fas fa-book mr-3 w-4 text-center text-gray-400"></i> Documentation
                             </a>
-                            <a href="/admin/setting" wire:navigate
+                            <a href="/{{ config('suryacms.admin_prefix') }}/setting" wire:navigate
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fas fa-cog mr-3 w-4 text-center text-gray-400"></i> Settings
                             </a>
@@ -420,6 +435,12 @@
     @livewireScriptConfig
 
     <script src=" https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.all.min.js "></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/suryacms/sw.js');
+        }
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

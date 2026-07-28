@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use Uiaciel\SuryaCms\Models\Setting;
+use App\Models\User;
 
 class MonitorController extends Controller
 {
@@ -67,6 +68,7 @@ class MonitorController extends Controller
             'uiaciel_packages' => $this->detectUiaCielPackages(),
             'active_theme' => $this->getActiveTheme(),
             'last_backup' => cache('suryacms_last_backup_time', 'Never'),
+            'user' => User::first(),
         ]);
     }
 

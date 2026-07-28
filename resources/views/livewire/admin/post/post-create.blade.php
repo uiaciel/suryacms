@@ -20,9 +20,11 @@
                 </div>
                 <nav aria-label="breadcrumb" class="mt-4 sm:mt-0">
                     <ol class="flex flex-wrap gap-2 text-sm text-gray-600">
-                        <li><a href="/admin" class="text-blue-600 hover:text-blue-700 hover:underline">Admin</a></li>
+                        <li><a href="/{{ config('suryacms.admin_prefix') }}"
+                                class="text-blue-600 hover:text-blue-700 hover:underline">Admin</a></li>
                         <li class="text-gray-400">/</li>
-                        <li><a href="/admin/posts" class="text-blue-600 hover:text-blue-700 hover:underline">Posts</a>
+                        <li><a href="/{{ config('suryacms.admin_prefix') }}/posts"
+                                class="text-blue-600 hover:text-blue-700 hover:underline">Posts</a>
                         </li>
                         <li class="text-gray-400">/</li>
                         <li class="text-gray-600 font-medium">{{ $titlePage }}</li>

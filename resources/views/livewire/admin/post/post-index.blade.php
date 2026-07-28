@@ -14,7 +14,8 @@
             <ol class="flex gap-2 text-sm text-gray-600">
                 <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
                 <li>/</li>
-                <li><a href="/admin/posts" class="text-blue-600 hover:text-blue-700">Posts</a></li>
+                <li><a href="/{{ config('suryacms.admin_prefix') }}/posts"
+                        class="text-blue-600 hover:text-blue-700">Posts</a></li>
                 <li>/</li>
                 <li class="text-gray-600">{{ $titlePage }}</li>
             </ol>
@@ -185,7 +186,7 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <a :href="`/admin/posts/edit/${post.id}`"
+                                    <a :href="`/{{ config('suryacms.admin_prefix') }}/posts/edit/${post.id}`"
                                         class="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium inline-flex items-center"
                                         title="Edit Post">
                                         <i class="fas fa-pencil mr-1"></i> Edit

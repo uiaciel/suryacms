@@ -14,116 +14,140 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Laravel\Facades\Image;
 use Uiaciel\SuryaCms\Models\Gallery;
 use Uiaciel\SuryaCms\Models\Page;
+use Uiaciel\SuryaCms\Models\Setting;
 use Spatie\PdfToImage\Pdf;
 use ZipArchive;
 
 class AdminController extends Controller
 {
-    public function tinymce(Request $request)
-{
-    try {
-        // 1. Validasi File (Gambar & PDF)
-        $request->validate([
-            'file' => 'required|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:30024',
+
+    public function manifest()
+    {
+        
+        $setting = Setting::first();
+    
+        return response()->json([
+            "name" => $setting->url,
+            "short_name" => $setting->url,
+            "start_url" => "/admin",
+            "scope" => "/admin",
+            "display" => "standalone",
+            "background_color" => "#ffffff",
+            "theme_color" => "#0f172a",
+            "icons" => [
+                [
+                    "src" => asset($setting->logo),
+                    "sizes" => "512x512",
+                    "type" => "image/png"
+                ]
+            ]
         ]);
-
-        if (! $request->hasFile('file')) {
-            return response()->json([
-                'error' => 'No file uploaded',
-            ], 400);
-        }
-
-        $file = $request->file('file');
-        $originName = $file->getClientOriginalName();
-        $baseName = pathinfo($originName, PATHINFO_FILENAME);
-        $slugName = Str::slug($baseName);
-        $timestamp = now()->format('YmdHis');
-        $extension = strtolower($file->getClientOriginalExtension());
-
-        // Inisialisasi Model Gallery
-        $gallery = new Gallery;
-        $gallery->name = $baseName;
-        $gallery->alt_text = $baseName;
-        $gallery->description = 'Uploaded via TinyMCE Editor';
-        $gallery->category = $request->input('category', 'POST');
-        $gallery->status = 'Publish';
-        $gallery->is_tinymce_upload = true;
-        $gallery->file_size = round($file->getSize() / 1024, 2) . ' KB';
-
-        if ($extension === 'pdf') {
-            // A. LOGIKA UPLOAD PDF
-            $pdfFileName = "{$timestamp}_{$slugName}.pdf";
-            Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
-
-            $gallery->image_path = 'galleries/' . $pdfFileName;
-            $gallery->mime_type = 'pdf';
-
-            // Generate Cover Image dari Halaman 1 PDF
-            $pdfPath = storage_path('app/public/' . $gallery->image_path);
-            $tempCoverPath = storage_path('app/public/galleries/temp_' . $timestamp . '.jpg');
-
-            if (!file_exists(storage_path('app/public/galleries/covers'))) {
-                mkdir(storage_path('app/public/galleries/covers'), 0755, true);
-            }
-
-            // Render halaman 1 ke temp image
-            $pdf = new Pdf($pdfPath);
-            $pdf->selectPage(1)->saveExtraPageAsPage($tempCoverPath);
-
-            // Convert temp cover image ke WebP
-            $manager = new ImageManager(new Driver);
-            $coverFileName = "{$timestamp}_cover_{$slugName}.webp";
-            $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
-
-            Storage::disk('public')->put('galleries/covers/' . $coverFileName, $convertedCover->__toString());
-            $gallery->cover_path = 'galleries/covers/' . $coverFileName;
-
-            // Hapus temp image
-            if (file_exists($tempCoverPath)) {
-                unlink($tempCoverPath);
-            }
-
-        } else {
-            // B. LOGIKA UPLOAD GAMBAR
-            $manager = new ImageManager(new Driver);
-            $fileName = "{$timestamp}_{$slugName}.webp";
-
-            $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
-
-            Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
-
-            $gallery->image_path = 'galleries/' . $fileName;
-            $gallery->cover_path = 'galleries/' . $fileName;
-            $gallery->mime_type = 'image';
-        }
-
-        $gallery->save();
-
-        // 2. Return Response JSON
-        // Properti 'location' wajib ada untuk bawaan TinyMCE image plugin
-        return response()->json([
-            'location'       => Storage::url($gallery->image_path),
-            'cover_location' => Storage::url($gallery->cover_path),
-            'mime_type'      => $gallery->mime_type,
-            'title'          => $gallery->name,
-            'media_id'       => $gallery->id,
-        ], 200);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'error' => 'Validation failed: ' . implode(', ', array_merge(...array_values($e->errors()))),
-        ], 422);
-    } catch (\Exception $e) {
-        Log::error('TinyMCE upload error: ' . $e->getMessage(), [
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-        ]);
-
-        return response()->json([
-            'error' => 'File upload failed: ' . $e->getMessage(),
-        ], 500);
     }
-}
+    public function tinymce(Request $request)
+    {
+        try {
+            // 1. Validasi File (Gambar & PDF)
+            $request->validate([
+                'file' => 'required|file|mimes:jpeg,png,jpg,gif,svg,webp,pdf|max:30024',
+            ]);
+
+            if (! $request->hasFile('file')) {
+                return response()->json([
+                    'error' => 'No file uploaded',
+                ], 400);
+            }
+
+            $file = $request->file('file');
+            $originName = $file->getClientOriginalName();
+            $baseName = pathinfo($originName, PATHINFO_FILENAME);
+            $slugName = Str::slug($baseName);
+            $timestamp = now()->format('YmdHis');
+            $extension = strtolower($file->getClientOriginalExtension());
+
+            // Inisialisasi Model Gallery
+            $gallery = new Gallery;
+            $gallery->name = $baseName;
+            $gallery->alt_text = $baseName;
+            $gallery->description = 'Uploaded via TinyMCE Editor';
+            $gallery->category = $request->input('category', 'POST');
+            $gallery->status = 'Publish';
+            $gallery->is_tinymce_upload = true;
+            $gallery->file_size = round($file->getSize() / 1024, 2) . ' KB';
+
+            if ($extension === 'pdf') {
+                // A. LOGIKA UPLOAD PDF
+                $pdfFileName = "{$timestamp}_{$slugName}.pdf";
+                Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
+
+                $gallery->image_path = 'galleries/' . $pdfFileName;
+                $gallery->mime_type = 'pdf';
+
+                // Generate Cover Image dari Halaman 1 PDF
+                $pdfPath = storage_path('app/public/' . $gallery->image_path);
+                $tempCoverPath = storage_path('app/public/galleries/temp_' . $timestamp . '.jpg');
+
+                if (!file_exists(storage_path('app/public/galleries/covers'))) {
+                    mkdir(storage_path('app/public/galleries/covers'), 0755, true);
+                }
+
+                // Render halaman 1 ke temp image
+                $pdf = new Pdf($pdfPath);
+                $pdf->selectPage(1)->saveExtraPageAsPage($tempCoverPath);
+
+                // Convert temp cover image ke WebP
+                $manager = new ImageManager(new Driver);
+                $coverFileName = "{$timestamp}_cover_{$slugName}.webp";
+                $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
+
+                Storage::disk('public')->put('galleries/covers/' . $coverFileName, $convertedCover->__toString());
+                $gallery->cover_path = 'galleries/covers/' . $coverFileName;
+
+                // Hapus temp image
+                if (file_exists($tempCoverPath)) {
+                    unlink($tempCoverPath);
+                }
+
+            } else {
+                // B. LOGIKA UPLOAD GAMBAR
+                $manager = new ImageManager(new Driver);
+                $fileName = "{$timestamp}_{$slugName}.webp";
+
+                $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
+
+                Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+
+                $gallery->image_path = 'galleries/' . $fileName;
+                $gallery->cover_path = 'galleries/' . $fileName;
+                $gallery->mime_type = 'image';
+            }
+
+            $gallery->save();
+
+            // 2. Return Response JSON
+            // Properti 'location' wajib ada untuk bawaan TinyMCE image plugin
+            return response()->json([
+                'location'       => Storage::url($gallery->image_path),
+                'cover_location' => Storage::url($gallery->cover_path),
+                'mime_type'      => $gallery->mime_type,
+                'title'          => $gallery->name,
+                'media_id'       => $gallery->id,
+            ], 200);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed: ' . implode(', ', array_merge(...array_values($e->errors()))),
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('TinyMCE upload error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            return response()->json([
+                'error' => 'File upload failed: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 
     public function gallery()
     {

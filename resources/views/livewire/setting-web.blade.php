@@ -29,7 +29,8 @@
                     <h1 class="text-xl font-extrabold text-slate-800">Website Settings</h1>
                     <nav aria-label="breadcrumb">
                         <ol class="mt-0.5 flex items-center gap-1.5 text-xs text-gray-400">
-                            <li><a href="/admin" class="text-blue-500 hover:underline">Admin</a></li>
+                            <li><a href="/{{ config('suryacms.admin_prefix') }}"
+                                    class="text-blue-500 hover:underline">Admin</a></li>
                             <li><i class="fas fa-chevron-right text-[9px]"></i></li>
                             <li class="font-medium text-gray-600">Settings</li>
                         </ol>

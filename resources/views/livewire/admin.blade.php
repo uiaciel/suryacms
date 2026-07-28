@@ -42,7 +42,7 @@
             <div>
                 <h1 class="lg:text-2xl text-lg font-bold text-blue-600">{{ $setting->sitename ?? 'Admin Dashboard' }}
                 </h1>
-                <p class="text-xs text-gray-400 mt-1">Selamat datang — {{ now()->format('l, j F Y') }}</p>
+                <p class="text-xs text-gray-400 mt-1">Welcome — {{ now()->format('l, j F Y') }}</p>
             </div>
         </div>
 
@@ -52,7 +52,7 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <!-- Main Content (Left) -->
-        <div class="lg:col-span-2">
+        <div class="lg:col-span-2 gap-4">
             <!-- Stat Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
@@ -112,8 +112,12 @@
                 </div>
             </div>
 
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
+                <livewire:suryacms::admin.visitor-detail />
+            </div>
+
             <!-- Maintenance Mode Card -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6 mt-6">
                 <div class="px-6 py-5 flex justify-between items-center border-b border-gray-50">
                     <div class="flex items-center gap-3">
                         <div
@@ -283,41 +287,71 @@
             </div>
 
             <!-- SEO Preview Card -->
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-6">
+                <!-- Google Search Result Preview -->
                 <div class="mb-6 pb-6 border-b border-gray-200">
-                    <label class="block text-sm font-bold text-gray-800 mb-3">
-                        <i class="fa-brands fa-google text-blue-500 mr-2"></i> Google Search Result Preview
+                    <label class="block text-sm font-bold text-gray-800 mb-3 flex items-center">
+                        <i class="fa-brands fa-google text-blue-500 mr-2"></i>
+                        <span>Google Search Result Preview</span>
                     </label>
-                    <div class="border border-gray-200 p-4 rounded-lg bg-gray-50">
-                        <h4 class="text-blue-600 font-semibold mb-1">{{ $setting->sitename }} -
-                            {{ $setting->tagline }}</h4>
-                        <p class="text-green-600 text-xs mb-1">{{ $setting->url }}</p>
-                        <p class="text-gray-600 text-sm">{{ Str::limit($setting->description, 160) }}</p>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-gray-800 mb-3">
-                        <i class="fas fa-share-alt text-blue-500 mr-2"></i> Social Media Share Preview
-                    </label>
-                    <div class="border border-gray-200 p-4 rounded-lg bg-gray-50 flex gap-4">
-                        @if (isset($setting) && $setting->images)
-                            <img src="{{ asset($setting->images) }}" alt="Preview"
-                                class="w-24 h-24 rounded object-cover">
-                        @else
-                            <div
-                                class="w-24 h-24 bg-white rounded border border-gray-200 flex items-center justify-center">
-                                <i class="fas fa-image text-gray-400"></i>
-                            </div>
-                        @endif
-                        <div class="flex-1">
-                            <h5 class="font-semibold text-gray-800 mb-1">{{ $setting->sitename }} -
-                                {{ $setting->tagline }}</h5>
-                            <p class="text-gray-600 text-xs mb-1">{{ Str::limit($setting->description, 100) }}</p>
-                            <p class="text-green-600 text-xs">{{ $setting->url }}</p>
-                        </div>
+
+                    <div
+                        class="border border-gray-200 p-4 rounded-xl bg-gray-50/80 hover:bg-gray-50 transition-colors">
+                        <h4
+                            class="text-blue-600 font-semibold text-base sm:text-lg mb-1 leading-snug hover:underline cursor-pointer break-words">
+                            {{ $setting->sitename }} - {{ $setting->tagline }}
+                        </h4>
+                        <p class="text-green-700 text-xs sm:text-sm mb-1.5 break-all font-mono">
+                            {{ $setting->url }}
+                        </p>
+                        <p class="text-gray-600 text-xs sm:text-sm leading-relaxed break-words">
+                            {{ Str::limit($setting->description, 160) }}
+                        </p>
                     </div>
                 </div>
 
+                <!-- Social Media Share Preview -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-share-alt text-blue-500 mr-2"></i>
+                        <span>Social Media Share Preview</span>
+                    </label>
+
+                    <!-- Container Responsif -->
+                    <!-- Card Wrapper dengan batas lebar maksimal agar menyerupai card Open Graph asli -->
+                    <div
+                        class="max-w-md mx-auto sm:mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
+
+                        <!-- Media / Gambar -->
+                        <div class="relative w-full h-40 sm:h-48 overflow-hidden bg-gray-100">
+                            @if (isset($setting) && $setting->images)
+                                <img src="{{ asset($setting->images) }}" class="h-full w-full object-cover"
+                                    alt="Social Card Preview">
+                            @else
+                                <div
+                                    class="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                                    <i class="fas fa-image text-3xl sm:text-4xl text-gray-300"></i>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Konten Teks Card -->
+                        <div class="border-t border-gray-100 bg-gray-50 p-3.5">
+                            <p
+                                class="mb-1 text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 font-medium truncate">
+                                {{ parse_url($setting->url ?? '', PHP_URL_HOST) ?? $setting->url }}
+                            </p>
+                            <h6 class="mb-1 text-sm sm:text-base font-bold leading-snug text-gray-800 line-clamp-2">
+                                {{ $sitename ?? ($setting->sitename ?? 'Site Name') }} —
+                                {{ $tagline ?? ($setting->tagline ?? 'Tagline') }}
+                            </h6>
+                            <p class="text-xs text-gray-500 line-clamp-2 leading-relaxed">
+                                {{ Str::limit($description ?? ($setting->description ?? '-'), 100) }}
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
             </div>
 
             <!-- Download Backups -->
@@ -334,9 +368,6 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
-                <livewire:suryacms::admin.visitor-detail />
-            </div>
         </div>
 
         <!-- Sidebar (Right) -->

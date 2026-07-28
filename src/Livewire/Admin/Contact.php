@@ -97,6 +97,11 @@ class Contact extends Component
         }
     }
 
+    public function unselectContact()
+    {
+        $this->selectedContact = null;
+    }
+
     public function render()
     {
         return view('suryacms::livewire.admin.contact')->layout('suryacms::layouts.app');

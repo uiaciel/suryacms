@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Schema;
 use Uiaciel\SuryaCms\Models\Setting;
 
 if (! function_exists('register_admin_menupackage')) {
+     /**
+     * Check menu is enabled.
+     */
+
     function register_admin_menupackage($packageName, array $menus)
     {
         // Ambil menu yang sudah ada

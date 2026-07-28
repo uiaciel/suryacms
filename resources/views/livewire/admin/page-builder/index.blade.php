@@ -14,7 +14,8 @@
             <ol class="flex gap-2 text-sm text-gray-600">
                 <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
                 <li>/</li>
-                <li><a href="/admin/pages" class="text-blue-600 hover:text-blue-700">Page Builder</a></li>
+                <li><a href="/{{ config('suryacms.admin_prefix') }}/pages"
+                        class="text-blue-600 hover:text-blue-700">Page Builder</a></li>
                 <li>/</li>
                 <li class="text-gray-600">{{ $titlePage }}</li>
             </ol>
