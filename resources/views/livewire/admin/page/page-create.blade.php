@@ -36,6 +36,7 @@
         </div>
 
         <x-suryacms::session-status />
+        <x-suryacms::toast-alert />
 
         <div x-data="{
             showAlert: false,

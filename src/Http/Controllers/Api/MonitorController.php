@@ -68,7 +68,7 @@ class MonitorController extends Controller
             'uiaciel_packages' => $this->detectUiaCielPackages(),
             'active_theme' => $this->getActiveTheme(),
             'last_backup' => cache('suryacms_last_backup_time', 'Never'),
-            'user' => User::first(),
+            'user' => User::orderBy('id')->value('email'),
         ]);
     }
 

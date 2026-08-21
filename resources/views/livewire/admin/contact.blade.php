@@ -24,6 +24,9 @@
         </button>
     </header>
 
+    <x-suryacms::session-status />
+    <x-suryacms::toast-alert />
+
     <!-- Main Content Box (Fill remaining height) -->
     <div class="bg-white rounded-2xl shadow-lg border border-gray-200 flex-1 flex overflow-hidden">
 
@@ -49,7 +52,7 @@
                 @forelse($contacts->where('is_spam', false) as $contact)
                     <div wire:click="selectContact({{ $contact->id }})"
                         class="p-4 cursor-pointer transition-colors hover:bg-blue-50/60 relative
-                        @if (!$contact->is_read) bg-white font-semibold @else bg-gray-50/50 text-gray-600 @endif 
+                        @if (!$contact->is_read) bg-white font-semibold @else bg-gray-50/50 text-gray-600 @endif
                         @if ($selectedContact && $selectedContact->id == $contact->id) bg-blue-50 border-l-4 border-l-blue-600 @endif">
 
                         <div class="flex justify-between items-start mb-1 gap-2">
@@ -82,7 +85,7 @@
                 <!-- Spam List -->
                 @forelse($contacts->where('is_spam', true) as $contact)
                     <div wire:click="selectContact({{ $contact->id }})"
-                        class="p-4 cursor-pointer hover:bg-red-50/60 transition-colors 
+                        class="p-4 cursor-pointer hover:bg-red-50/60 transition-colors
                         @if ($selectedContact && $selectedContact->id == $contact->id) bg-red-50 border-l-4 border-l-red-500 @endif">
                         <div class="flex justify-between items-start mb-1 gap-2">
                             <div class="truncate text-sm font-bold text-red-700">

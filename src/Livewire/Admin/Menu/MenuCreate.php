@@ -56,7 +56,7 @@ class MenuCreate extends Component
         Excel::import(new MenuImport, $this->importFile);
 
         session()->flash('success', 'Menus imported successfully!');
-        $this->redirect(route('admin.menu.create'), navigate: true);
+        $this->redirectRoute('admin.menu.create', navigate: true);
     }
 
     public function dataExport()
@@ -103,7 +103,7 @@ class MenuCreate extends Component
         session()->flash('message', 'Menu created successfully.');
         $this->reset(['name', 'type', 'link', 'category', 'parent_id']);
 
-        return $this->redirect('/admin/menu');
+        return $this->redirectRoute('admin.menu.index');
     }
 
     public function render()

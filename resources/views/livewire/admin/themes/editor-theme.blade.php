@@ -96,6 +96,9 @@
         </div>
     @endif
 
+    <x-suryacms::session-status />
+    <x-suryacms::toast-alert />
+
     {{-- MAIN LAYOUT --}}
     <div class="flex flex-col lg:flex-row gap-4 items-start relative">
 

@@ -119,6 +119,7 @@ class PageEdit extends Component
                 'description' => 'PDF uploaded for page content',
                 'image_path' => $path,
                 'category' => 'PDF',
+                'mime_type' => 'pdf',
                 'status' => 'Publish',
             ]);
 
@@ -234,7 +235,7 @@ class PageEdit extends Component
 
             session()->flash('success', 'Page updated successfully.');
 
-            return $this->redirect('/admin/pages');
+            return $this->redirectRoute('admin.page.index', navigate:true);
         } catch (\Exception $e) {
             $this->dispatch('swal', [
                 'icon' => 'error',

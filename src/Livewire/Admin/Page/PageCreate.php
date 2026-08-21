@@ -104,7 +104,7 @@ class PageCreate extends Component
             'is_builder' => 1,
         ]);
 
-        $this->redirect('/admin/page-builder');
+        $this->redirectRoute('admin.page.builder', navigate:true);
 
     }
 
@@ -119,15 +119,22 @@ class PageCreate extends Component
         ]);
 
         try {
-            $fileName = 'pdf_' . time() . '_' . Str::slug($this->title ?: 'untitled') . '.pdf';
+            // $fileName = 'pdf_' . time() . '_' . Str::slug($this->title ?: 'untitled') . '.pdf';
+            // $path = 'pdfs/' . $fileName;
+
+            $originalName = pathinfo($this->pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $sluggedName = Str::slug($originalName) ?: 'pdf-file';
+
+            $fileName = $sluggedName . '-' . time() .'.pdf';
             $path = 'pdfs/' . $fileName;
 
             Storage::disk('public')->put($path, file_get_contents($this->pdfFile->getRealPath()));
 
             Gallery::create([
-                'name' => $this->title ?: 'Untitled PDF',
-                'description' => 'PDF uploaded for page content',
+                'name' => $fileName,
+                'description' => $this->title ?: 'PDF uploaded for page content',
                 'image_path' => $path,
+                'mime_type' => 'pdf',
                 'category' => 'PDF',
                 'status' => 'Publish',
             ]);
@@ -153,15 +160,14 @@ class PageCreate extends Component
         }
     }
 
-    public function insertPdfToContent(int $galleryId): void
+    public function insertPdfToContent($pdfUrl = null, $pdfName = null): void
     {
-        $gallery = Gallery::find($galleryId);
-        if (! $gallery) {
+        if (! $pdfUrl && ! $this->selectedPdfUrl) {
             return;
         }
 
-        $url = Storage::url($gallery->image_path);
-        $name = $gallery->name;
+        $url = $pdfUrl ?? $this->selectedPdfUrl;
+        $name = $pdfName ?? basename($url);
 
         $embedHtml = '<div class="pdf-embed my-4 p-4 border-2 border-red-200 rounded-lg bg-red-50 flex items-center gap-3 justify-between">'
             . '<div class="flex items-center gap-3">'
@@ -175,6 +181,13 @@ class PageCreate extends Component
             . '</a></div>';
 
         $this->konten .= $embedHtml;
+
+        $this->dispatch('pdfInsertedToContent', [
+            'url' => $url,
+            'name' => $name,
+            'html' => $embedHtml,
+        ]);
+
         $this->closePdfModal();
 
         $this->dispatch('swal', [
@@ -184,14 +197,16 @@ class PageCreate extends Component
         ]);
     }
 
-    public function insertPdfToPage(int $galleryId): void
+    public function insertPdfToPage($pdfUrl = null): void
     {
-        $gallery = Gallery::find($galleryId);
-        if (! $gallery) {
+        if (! $pdfUrl && ! $this->selectedPdfUrl) {
             return;
         }
 
-        $this->pdf = Storage::url($gallery->image_path);
+        $url = $pdfUrl ?? $this->selectedPdfUrl;
+        $this->pdf = $url;
+        $this->selectedPdfUrl = null;
+
         $this->closePdfModal();
 
         $this->dispatch('swal', [
@@ -236,7 +251,7 @@ class PageCreate extends Component
                 'text' => 'Page created successfully!',
             ]);
 
-            return $this->redirect('/admin/pages');
+            return $this->redirectRoute('admin.page.index', navigate:true);
         } catch (\Exception $e) {
             $this->dispatch('swal', [
                 'icon' => 'error',

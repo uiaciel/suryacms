@@ -636,3 +636,35 @@ if (! function_exists('available_locales')) {
         return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')->get();
     }
 }
+
+if (! function_exists('seo_meta')) {
+    function seo_meta($seo = null)
+    {
+        $setting = setting();
+
+        $isEnglish = $setting->language === 'en';
+
+        $siteName = $isEnglish
+            ? $setting->sitename_translation
+            : $setting->sitename;
+
+        $keywords = $isEnglish
+            ? $setting->keywords_translation
+            : $setting->keywords;
+
+        $description = $isEnglish
+            ? $setting->description_translation
+            : $setting->description;
+
+        $data = [
+            'title' => $seo->title ?? $siteName,
+            'keywords' => $seo->keyword ?? $keywords,
+            'description' => $seo->description ?? $description,
+            'image' => $seo->image ?? $setting->images,
+            'url' => $seo->url ?? $setting->url,
+            'site_name' => $siteName,
+        ];
+
+        return view('suryacms::layouts.seo-meta', compact('data'))->render();
+    }
+}

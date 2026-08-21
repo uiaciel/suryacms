@@ -47,15 +47,23 @@ class PdfModal extends Component
         ]);
 
         try {
-            $fileName = 'pdf_' . time() . '_' . Str::slug($this->pageTitle ?: 'untitled') . '.pdf';
+            // $fileName = 'pdf_' . time() . '_' . Str::slug($this->pageTitle ?: 'untitled') . '.pdf';
+            // $path = 'pdfs/' . $fileName;
+
+            $originalName = pathinfo($this->pdfFile->getClientOriginalName(), PATHINFO_FILENAME);
+
+            $sluggedName = Str::slug($originalName) ?: 'pdf-file';
+
+            $fileName = $sluggedName . '.pdf';
             $path = 'pdfs/' . $fileName;
 
             Storage::disk('public')->put($path, file_get_contents($this->pdfFile->getRealPath()));
 
             Gallery::create([
-                'name' => $this->pageTitle ?: 'PDF File',
-                'description' => 'PDF uploaded for page content',
+                'name' => $sluggedName,
+                'description' => $sluggedName,
                 'image_path' => $path,
+                'mime_type' => 'pdf',
                 'category' => 'PDF',
                 'status' => 'Publish',
             ]);
@@ -75,7 +83,7 @@ class PdfModal extends Component
         }
     }
 
-    public function insertPdfToContent($pdfUrl = null, $pdfName = null): void
+        public function insertPdfToContent($pdfUrl = null, $pdfName = null): void
     {
         if (! $pdfUrl && ! $this->selectedPdfUrl) {
             return;

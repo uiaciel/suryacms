@@ -375,7 +375,7 @@ class SettingWeb extends Component
             'text' => 'Proses restore berjalan di background. Status akan diperbarui otomatis.',
         ]);
     }
-    
+
     public function pollRestoreStatus()
     {
         if (!$this->restoreStarted) {
@@ -391,15 +391,15 @@ class SettingWeb extends Component
             if ($this->restoreProgress == 100) {
                 $this->restoreStarted = false;
                 cache()->forget('suryacms_restore_status');
-                
+
                 $this->dispatch('swal', [
                     'icon' => 'success',
                     'title' => 'Restore Berhasil',
                     'text' => 'Sistem berhasil direstore dari backup.',
                 ]);
-                
+
                 // Refresh after restore
-                return $this->redirect(route('admin.setting'), navigate: true);
+                return $this->redirectRoute('admin.setting', navigate: true);
             } else if ($this->restoreProgress == -1) {
                 $this->restoreStarted = false;
                 cache()->forget('suryacms_restore_status');
@@ -429,7 +429,7 @@ class SettingWeb extends Component
             Excel::import(new SettingImport($setting), $this->importFile);
 
             session()->flash('success', 'Settings imported successfully!');
-            $this->redirect(route('admin.setting'), navigate: true);
+            $this->redirectRoute('admin.setting', navigate: true);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
             // Anda bisa menampilkan pesan error yang lebih spesifik di sini jika mau.
@@ -666,7 +666,7 @@ class SettingWeb extends Component
         cache()->forget('app_date_format');
         session()->flash('message', 'Settings updated successfully.');
 
-        $this->redirect(route('admin.setting'), navigate: true);
+        $this->redirectRoute('admin.setting', navigate: true);
 
         $this->dispatch('swal', [
             'icon' => 'success',
@@ -799,7 +799,7 @@ class SettingWeb extends Component
 
                 $this->restoreProgress = 0;
                 $this->restoreMessage = 'Memulai restore backup...';
-                
+
                 cache()->forget('suryacms_restore_status');
                 ProcessRestore::dispatch($backupPath);
 
@@ -866,7 +866,7 @@ class SettingWeb extends Component
             ]);
 
             // Redirect to reload the page
-            $this->redirect(route('admin.setting'), navigate: true);
+            $this->redirectRoute('admin.setting', navigate: true);
         } catch (\Exception $e) {
             $this->dispatch('swal', [
                 'icon' => 'error',

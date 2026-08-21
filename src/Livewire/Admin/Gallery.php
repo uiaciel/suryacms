@@ -18,11 +18,13 @@ class Gallery extends Component
     public $filename;
     public $filealt_text;
     public $filedescription;
-    public $fileimage_path;
+    public $fileimage_path; // Menampung temporary file upload
+    public $existing_file_path; // Path file aktual di DB
     public $filecategory;
     public $filestatus = 'Publish';
     public $cover_path;
     public $coverPreview;
+    public $mime_type;
 
     public $isEdit = false;
 
@@ -38,6 +40,17 @@ class Gallery extends Component
         ];
     }
 
+    // Auto-fill nama file jika field name masih kosong saat upload
+    public function updatedFileimagePath()
+    {
+        $this->validateOnly('fileimage_path');
+
+        if ($this->fileimage_path && empty($this->filename)) {
+            $originalName = $this->fileimage_path->getClientOriginalName();
+            $this->filename = pathinfo($originalName, PATHINFO_FILENAME);
+        }
+    }
+
     public function resetFields()
     {
         $this->reset([
@@ -46,9 +59,11 @@ class Gallery extends Component
             'filealt_text',
             'filedescription',
             'fileimage_path',
+            'existing_file_path',
             'filecategory',
             'cover_path',
             'coverPreview',
+            'mime_type',
             'isEdit',
         ]);
         $this->filestatus = 'Publish';
@@ -81,13 +96,11 @@ class Gallery extends Component
 
                 if ($extension === 'pdf') {
                     $gallery->mime_type = 'pdf';
-
-                    // Generate cover image dari PDF
                     $generatedCover = $this->generatePdfCover($path, $originalFilename, $time);
                     $gallery->cover_path = $generatedCover;
                 } else {
                     $gallery->mime_type = 'image';
-                    $gallery->cover_path = $path; // Jika gambar, cover_path sama dengan image_path
+                    $gallery->cover_path = $path;
                 }
             }
 
@@ -111,7 +124,9 @@ class Gallery extends Component
         $this->filedescription = $gallery->description;
         $this->filecategory = $gallery->category;
         $this->filestatus = $gallery->status;
+        $this->existing_file_path = $gallery->image_path;
         $this->cover_path = $gallery->cover_path;
+        $this->mime_type = $gallery->mime_type;
         $this->isEdit = true;
     }
 
@@ -167,6 +182,39 @@ class Gallery extends Component
         }
     }
 
+    // Method baru untuk meregenerasi cover PDF secara manual jika terjadi kegagalan
+    public function regenerateCover($id = null)
+    {
+        $galleryId = $id ?? $this->selected_id;
+        if (!$galleryId) return;
+
+        $gallery = ModelsGallery::findOrFail($galleryId);
+
+        if ($gallery->mime_type !== 'pdf' || !$gallery->image_path) {
+            $this->dispatch('notify', type: 'warning', message: 'File is not a PDF.');
+            return;
+        }
+
+        $time = time();
+        $originalFilename = basename($gallery->image_path);
+
+        // Hapus cover lama jika ada
+        if ($gallery->cover_path && Storage::disk('public')->exists($gallery->cover_path)) {
+            Storage::disk('public')->delete($gallery->cover_path);
+        }
+
+        $newCoverPath = $this->generatePdfCover($gallery->image_path, $originalFilename, $time);
+
+        if ($newCoverPath) {
+            $gallery->cover_path = $newCoverPath;
+            $gallery->save();
+            $this->cover_path = $newCoverPath;
+            $this->dispatch('notify', type: 'success', message: 'PDF cover re-generated successfully.');
+        } else {
+            $this->dispatch('notify', type: 'error', message: 'Failed to re-generate PDF cover.');
+        }
+    }
+
     public function deleteGallery($id)
     {
         try {
@@ -194,12 +242,10 @@ class Gallery extends Component
             $imageRelativePath = "galleries/covers/{$slugName}_{$time}_cover.jpg";
             $imageFullPath = Storage::disk('public')->path($imageRelativePath);
 
-            // Pastikan direktori penampung cover ada
             if (!file_exists(dirname($imageFullPath))) {
                 mkdir(dirname($imageFullPath), 0755, true);
             }
 
-            // Gunakan JPG sebagai format penampung standar ImageMagick
             (new Pdf($pdfFullPath))
                 ->selectPage(1)
                 ->format(\Spatie\PdfToImage\Enums\OutputFormat::Jpg)

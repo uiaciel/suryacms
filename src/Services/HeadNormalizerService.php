@@ -227,45 +227,7 @@ class HeadNormalizerService
     private function buildSEOMeta()
     {
         return <<<'BLADE'
-    @if($setting->language == "en")
-    <title>{{ $seo->title ?? $setting->sitename_translation }}</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta content="{{ $seo->keyword ?? $setting->keywords_translation }}" name="keywords" />
-    <meta content="{{ $seo->description ?? $setting->description_translation }}" name="description" />
-    <meta name="author" content="Kreasi Tek Media">
-    <meta name="robots" content="index, follow">
-
-    <meta property="og:title" content="{{ $seo->title ?? $setting->sitename_translation }}">
-    <meta property="og:description" content="{{ $seo->description ?? $setting->description_translation }}">
-    <meta property="og:image" content="{{ $seo->image ?? $setting->images }}">
-    <meta property="og:url" content="{{ $seo->url ?? $setting->url }}">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="{{ $seo->title ?? $setting->sitename }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seo->title ?? $setting->sitename_translation }}">
-    <meta name="twitter:description" content="{{ $seo->description ?? $setting->description_translation }}">
-    <meta name="twitter:image" content="{{ $seo->image ?? $setting->images }}">
-    <meta name="twitter:url" content="{{ $seo->url ?? $setting->url }}">
-    @else
-    <title>{{ $seo->title ?? $setting->sitename }}</title>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <meta content="{{ $seo->keyword ?? $setting->keywords }}" name="keywords" />
-    <meta content="{{ $seo->description ?? $setting->description }}" name="description" />
-    <meta name="author" content="Kreasi Tek Media">
-    <meta name="robots" content="index, follow">
-
-    <meta property="og:title" content="{{ $seo->title ?? $setting->sitename }}">
-    <meta property="og:description" content="{{ $seo->description ?? $setting->description }}">
-    <meta property="og:image" content="{{ $seo->image ?? $setting->images }}">
-    <meta property="og:url" content="{{ $seo->url ?? $setting->url }}">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="{{ $seo->title ?? $setting->sitename }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seo->title ?? $setting->sitename }}">
-    <meta name="twitter:description" content="{{ $seo->description ?? $setting->description }}">
-    <meta name="twitter:image" content="{{ $seo->image ?? $setting->images }}">
-    <meta name="twitter:url" content="{{ $seo->url ?? $setting->url }}">
-    @endif
+    {!! seo_meta($seo ?? null) !!}
 
 BLADE;
     }

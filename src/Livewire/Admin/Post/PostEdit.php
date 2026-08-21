@@ -461,7 +461,7 @@ class PostEdit extends Component
                 'text' => 'Post updated Successfully!',
             ]);
 
-            return $this->redirect('/admin/posts', navigate: true);
+            return $this->redirectRoute('admin.post.index', navigate: true);
         } else {
             session()->flash('error', 'Post not found.');
             $this->dispatch('swal', [
@@ -470,7 +470,7 @@ class PostEdit extends Component
                 'text' => 'Post not found!',
             ]);
 
-            return $this->redirect('/admin/posts', navigate: true);
+            return $this->redirectRoute('admin.post.index', navigate: true);
         }
     }
 
@@ -525,7 +525,7 @@ class PostEdit extends Component
                 'text' => 'Post not found!',
             ]);
 
-            return $this->redirect('/admin/posts', navigate: true);
+            return $this->redirectRoute('admin.post.index', navigate: true);
         }
     }
 
@@ -543,7 +543,7 @@ class PostEdit extends Component
                 'text' => 'Post deleted Successfully!',
             ]);
 
-            return $this->redirect('/admin/posts', navigate: true);
+            return $this->redirectRoute('admin.post.index', navigate: true);
         } else {
             session()->flash('error', 'Post not found.');
             $this->dispatch('swal', [

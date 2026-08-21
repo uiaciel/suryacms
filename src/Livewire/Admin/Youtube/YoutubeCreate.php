@@ -75,7 +75,7 @@ class YoutubeCreate extends Component
 
         $this->dispatch('swal', ['icon' => 'success', 'text' => 'Video berhasil disimpan!']);
 
-        return $this->redirect('/admin/galleries/');
+        return $this->redirectRoute('admin.gallery.index');
     }
 
     public function render()

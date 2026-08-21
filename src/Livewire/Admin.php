@@ -61,7 +61,7 @@ class Admin extends Component
         // Check if setting exists, if not redirect to setting page for initial setup
         $setting = Setting::first();
         if (! $setting) {
-            $this->redirect(route('admin.setting'), navigate: true);
+            $this->redirectRoute('admin.setting', navigate: true);
 
             return;
         }
@@ -277,7 +277,7 @@ class Admin extends Component
                 'title' => 'Berhasil',
                 'text' => 'Category Status Updated Successfully!',
             ]);
-            $this->redirect(route('admin.dashboard'), navigate: true);
+            $this->redirectRoute('admin.dashboard', navigate: true);
             session()->flash('success', 'Category Status Updated Successfully.');
         }
     }
@@ -325,7 +325,7 @@ class Admin extends Component
             ]
         );
 
-        $this->redirect(route('admin.dashboard'), navigate: true);
+        $this->redirectRoute('admin.dashboard', navigate: true);
 
         session()->flash('success', 'Language Created Successfully.');
         $this->resetLanguageFields();

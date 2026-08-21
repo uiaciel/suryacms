@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
 use Uiaciel\SuryaCms\Http\Controllers\{
     AboutController,
@@ -129,6 +130,33 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
                 Route::get('/docs', DocsTheme::class)->name('docs');
                 Route::get('/create/{theme?}', CreateTheme::class)->name('create');
             });
+
+    Route::get('/test-session/{type}', function ($type) {
+        switch ($type) {
+            case 'success':
+                session()->flash('success', 'Data PDF berhasil diupload dan disimpan ke galeri!');
+                break;
+            case 'error':
+                session()->flash('error', 'Gagal terhubung ke server storage. Silakan coba lagi.');
+                break;
+            case 'info':
+                session()->flash('info', 'Sistem akan melakukan maintenance pada pukul 00:00 WIB.');
+                break;
+            case 'warning':
+                session()->flash('warning', 'Ukuran file Anda mendekati batas maksimal 20MB.');
+                break;
+            case 'validation':
+                // Membuat instance error bag palsu untuk mengetes $errors->any()
+                $validator = Validator::make([], []);
+                $validator->errors()->add('pdfFile', 'File yang diupload wajib berformat .pdf');
+                $validator->errors()->add('title', 'Judul dokumen tidak boleh kosong.');
+                session()->flash('errors', $validator->errors());
+                break;
+        }
+
+        // Redirect kembali ke halaman sebelumnya (halaman tempat Anda menaruh tombol test)
+        return redirect()->back();
+    })->name('test.session');
     });
 
 Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(function () {

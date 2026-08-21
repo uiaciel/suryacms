@@ -415,11 +415,14 @@
             <!-- PAGE CONTENT -->
             <main class="flex-1 overflow-y-auto main-scroll p-4 lg:p-6 bg-[#f0f3fb]">
 
+
+                <x-suryacms::alert-tester/>
                 @hasSection('content')
                     @yield('content')
                 @else
                     {{ $slot ?? '' }}
                 @endif
+
             </main>
 
             <!-- Footer -->

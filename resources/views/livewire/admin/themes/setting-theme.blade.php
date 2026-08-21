@@ -20,17 +20,8 @@
             </a>
         </div>
 
-        {{-- SUCCESS ALERT --}}
-        @if (session()->has('success'))
-            <div x-data="{ show: true }" x-show="show" x-transition
-                 class="flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-3 mb-6" role="alert">
-                <i class="fa-solid fa-check-circle-fill text-lg mt-0.5 shrink-0 text-emerald-500"></i>
-                <div class="flex-1 text-sm">{{ session('success') }}</div>
-                <button @click="show = false" class="text-emerald-400 hover:text-emerald-600 ml-2 transition-colors">
-                    <i class="fa-solid fa-x-lg text-xs"></i>
-                </button>
-            </div>
-        @endif
+        <x-suryacms::session-status />
+    <x-suryacms::toast-alert />
 
         {{-- THEME GRID --}}
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10">

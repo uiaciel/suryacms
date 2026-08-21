@@ -37,7 +37,7 @@ composer require uiaciel/suryacms
 
 ### 2. Publish Configuration & Assets
 ```bash
-php artisan vendor:publish --tag=suryacms-frontend-config
+php artisan vendor:publish --tag=suryacms-config
 php artisan vendor:publish --tag=suryacms-frontend-views
 php artisan vendor:publish --tag=suryacms-frontend-assets
 ```

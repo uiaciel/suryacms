@@ -47,6 +47,7 @@
         </div>
 
         <x-suryacms::session-status />
+        <x-suryacms::toast-alert />
 
         <!-- TAB NAVIGATION (Perbaikan Alpine :class) -->
         <div class="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-gray-100 bg-white p-1.5 shadow-sm">
