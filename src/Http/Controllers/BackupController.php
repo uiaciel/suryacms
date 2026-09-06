@@ -12,11 +12,15 @@ class BackupController extends Controller
      * Download a backup file securely.
      * Requires authentication and authorization (handled by middleware in routes).
      */
-    public function download(string $filename): BinaryFileResponse
+    public function download(string $filename, ?string $folder = null): BinaryFileResponse
     {
-        $path = storage_path('app/private/suryacms_backups/' . $filename);
+        $root = realpath(storage_path('app/private'));
+        $relativePath = $folder === null
+            ? 'suryacms_backups/' . $filename
+            : 'backups/' . $folder . '/' . $filename;
+        $path = realpath($root . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath));
 
-        if (!File::exists($path)) {
+        if ($path === false || ! File::isFile($path) || ! str_starts_with($path, $root . DIRECTORY_SEPARATOR)) {
             abort(404, 'Backup file not found.');
         }
 

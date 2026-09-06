@@ -5,7 +5,6 @@ namespace Uiaciel\SuryaCms\Livewire\Admin\Post;
 use Illuminate\Support\Facades\Session;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Livewire\WithPagination; // Import WithPagination trait
 use Maatwebsite\Excel\Facades\Excel; // Import Session facade
 use Uiaciel\SuryaCms\Exports\PostExport;
 use Uiaciel\SuryaCms\Imports\PostImport;
@@ -15,10 +14,6 @@ use Uiaciel\SuryaCms\Models\Setting;
 
 class PostIndex extends Component
 {
-    use WithPagination; // Use the trait for pagination
-
-    protected $paginationTheme = 'bootstrap';
-
     use WithFileUploads;
 
     public $titlePage = 'All Posts';
@@ -29,21 +24,7 @@ class PostIndex extends Component
 
     public $date;
 
-    // Properties for filters
-    public $searchFilter = '';
-
-    public $categoryFilter = '';
-
-    public $statusFilter = '';
-
     public $importFile;
-
-    // Query string configuration to persist filters in URL
-    protected $queryString = [
-        'searchFilter' => ['except' => '', 'as' => 'searchFilter'],
-        'categoryFilter' => ['except' => '', 'as' => 'categoryFilter'],
-        'statusFilter' => ['except' => '', 'as' => 'statusFilter'],
-    ];
 
     // Listeners for SweetAlert and other dispatches
     protected $listeners = ['deletePostConfirmed'];
@@ -53,21 +34,6 @@ class PostIndex extends Component
         $this->categories = Category::all();
         $this->setting = Setting::first();
         $this->date = now()->format('d-m-Y');
-    }
-
-    // Method to reset pagination when a filter changes
-    public function updating($name, $value)
-    {
-        if (in_array($name, ['searchFilter', 'categoryFilter', 'statusFilter'])) {
-            $this->resetPage();
-        }
-    }
-
-    // Method to reset all filters
-    public function resetFilters()
-    {
-        $this->reset(['searchFilter', 'categoryFilter', 'statusFilter']);
-        $this->resetPage(); // Reset pagination after clearing filters
     }
 
     // This method is called from the Blade via @click on the delete button
@@ -126,27 +92,10 @@ class PostIndex extends Component
 
     public function render()
     {
-        $query = Post::query();
-
-        // Apply search filter
-        if ($this->searchFilter) {
-            $query->where('title', 'like', '%'.$this->searchFilter.'%');
-        }
-
-        // Apply category filter
-        if ($this->categoryFilter) {
-            $query->whereHas('category', function ($q) {
-                $q->where('name', $this->categoryFilter);
-            });
-        }
-
-        // Apply status filter
-        if ($this->statusFilter) {
-            $query->where('status', $this->statusFilter);
-        }
-
         return view('suryacms::livewire.admin.post.post-index', [
-            'posts' => Post::with('category')->OrderBy('created_at', 'desc')->get(),
+            'postsz' => Post::with('category')
+                ->orderBy('created_at', 'desc')
+                ->get(),
             'categories' => Category::all(),
 
             'titlePage' => 'Post List',

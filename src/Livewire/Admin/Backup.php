@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
 use Maatwebsite\Excel\Facades\Excel;
+use Uiaciel\SuryaCms\Jobs\ProcessPartialBackup;
 use Uiaciel\SuryaCms\Exports\GalleryExport;
 use Uiaciel\SuryaCms\Exports\MenuExport;
 use Uiaciel\SuryaCms\Exports\PageExport;
@@ -38,6 +39,14 @@ class Backup extends Component
 
     public $backupMessage = '';
 
+    public array $partialBackupFolders = [];
+
+    public bool $isPartialBackingUp = false;
+
+    public string $partialBackupProgressStep = '';
+
+    public int $partialBackupProgressPercentage = 0;
+
     public $titlePage = 'Backup';
 
     public $date;
@@ -52,6 +61,7 @@ class Backup extends Component
         $this->menus = Menu::all();
         $this->setting = Setting::where('id', 1)->first();
         $this->loadBackupFiles();
+        $this->loadPartialBackupFolders();
     }
 
     public function loadBackupFiles()
@@ -71,6 +81,65 @@ class Backup extends Component
                 'modified' => Carbon::createFromTimestamp($file->getMTime())->diffForHumans(),
             ];
         })->sortByDesc('modified')->values()->toArray();
+    }
+
+    public function loadPartialBackupFolders(): void
+    {
+        $path = storage_path('app/private/backups');
+        File::ensureDirectoryExists($path);
+
+        $this->partialBackupFolders = collect(File::directories($path))
+            ->map(function ($directory) {
+                $files = collect(File::files($directory))->map(fn ($file) => [
+                    'name' => $file->getFilename(),
+                    'size' => $this->formatBytes($file->getSize()),
+                    'modified' => Carbon::createFromTimestamp($file->getMTime())->diffForHumans(),
+                ])->sortBy('name')->values()->toArray();
+
+                return [
+                    'name' => basename($directory),
+                    'modified' => Carbon::createFromTimestamp(File::lastModified($directory))->diffForHumans(),
+                    'files' => $files,
+                ];
+            })
+            ->sortByDesc('name')
+            ->values()
+            ->toArray();
+    }
+
+    public function generatePartialBackup(): void
+    {
+        $this->isPartialBackingUp = true;
+        $this->partialBackupProgressStep = 'Initializing partial backup...';
+        $this->partialBackupProgressPercentage = 0;
+        cache()->forget('suryacms_partial_backup_status');
+        ProcessPartialBackup::dispatch();
+    }
+
+    public function checkPartialBackupProgress(): void
+    {
+        if (! $this->isPartialBackingUp) {
+            return;
+        }
+
+        $status = cache('suryacms_partial_backup_status');
+        if (! $status) {
+            return;
+        }
+
+        $this->partialBackupProgressStep = $status['step'];
+        $this->partialBackupProgressPercentage = $status['percentage'];
+
+        if ($this->partialBackupProgressPercentage === 100) {
+            $this->isPartialBackingUp = false;
+            cache()->forget('suryacms_partial_backup_status');
+            $this->loadPartialBackupFolders();
+            session()->flash('message', 'Partial backup generated successfully.');
+        } elseif ($this->partialBackupProgressPercentage === -1) {
+            $this->isPartialBackingUp = false;
+            cache()->forget('suryacms_partial_backup_status');
+            $this->addError('partial_backup', $this->partialBackupProgressStep);
+        }
     }
 
     public function formatSize(int $bytes): string

@@ -30,23 +30,23 @@
             search: '',
             category: '',
             status: '',
-        
+
             phpFormat: '{{ get_date_format() ?? 'm/d/Y' }}',
-        
+
             format_tanggal(dateString) {
                 if (!dateString) return '';
-        
+
                 const date = new Date(dateString);
                 if (isNaN(date)) return dateString; // Fallback jika tanggal tidak valid
-        
+
                 const pad = (num) => String(num).padStart(2, '0');
-        
+
                 const Y = date.getFullYear(); // Tahun (YYYY)
                 const m = pad(date.getMonth() + 1); // Bulan (01-12)
                 const d = pad(date.getDate()); // Hari (01-31)
-        
+
                 const M = date.toLocaleDateString('id-ID', { month: 'short' });
-        
+
                 switch (this.phpFormat) {
                     case 'd/m/Y':
                         // Contoh: 16/10/2025
@@ -65,8 +65,8 @@
                         return date.toLocaleDateString('id-ID');
                 }
             },
-        
-            posts: {{ Js::from($posts) }},
+
+            posts: {{ Js::from($postsz) }},
             filteredPosts() {
                 return this.posts.filter(post => {
                     let matchSearch = this.search === '' ||
@@ -119,8 +119,8 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             x-model="status" aria-label="Filter by status">
                             <option value="">All Statuses</option>
-                            <option value="Publish">Published</option>
-                            <option value="Draft">Drafted</option>
+                            <option value="Publish">Publish</option>
+                            <option value="Draft">Draft</option>
                         </select>
                     </div>
                     <div>
@@ -174,7 +174,8 @@
                                         </template>
                                     </td>
                                 @endif
-                                <td class="px-4 py-3 text-sm hidden md:table-cell" x-text="post.category.name"></td>
+                                <td class="px-4 py-3 text-sm hidden md:table-cell"
+                                    x-text="post.category ? post.category.name : 'Tanpa kategori'"></td>
                                 <td class="px-4 py-3 text-sm hidden md:table-cell"
                                     x-text="format_tanggal(post.datepublish)"></td>
                                 <td class="px-4 py-3 hidden md:table-cell">
@@ -182,7 +183,7 @@
                                         :class="post.status === 'Publish' ?
                                             'px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium' :
                                             'px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium'">
-                                        <span x-text="post.status === 'Publish' ? 'Published' : 'Drafted'"></span>
+                                        <span x-text="post.status === 'Publish' ? 'Published' : 'Draft'"></span>
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
@@ -205,7 +206,7 @@
                     </tbody>
                 </table>
             </div>
-            {{-- Pagination removed --}}
+
         </div>
     </div>
 </div>

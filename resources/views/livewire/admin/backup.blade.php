@@ -110,6 +110,77 @@
     </div>
 
     <div class="space-y-3 mt-4">
+        <div class="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-slate-800">Partial Backup</h2>
+                <p class="mt-1 text-xs text-slate-500">Membuat vendor, storage, core, dan database sebagai arsip terpisah.</p>
+            </div>
+            <button type="button" wire:click="generatePartialBackup" wire:loading.attr="disabled" @disabled($isPartialBackingUp)
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                <i class="fas fa-spinner animate-spin" wire:loading wire:target="generatePartialBackup"></i>
+                <i class="fas fa-layer-group" wire:loading.remove wire:target="generatePartialBackup"></i>
+                <span wire:loading.remove wire:target="generatePartialBackup">Backup Partial</span>
+                <span wire:loading wire:target="generatePartialBackup">Starting...</span>
+            </button>
+        </div>
+
+        @if ($isPartialBackingUp)
+            <div wire:poll.1s="checkPartialBackupProgress" class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                <div class="flex items-center justify-between text-xs font-semibold text-blue-800">
+                    <span>{{ $partialBackupProgressStep }}</span>
+                    <span>{{ max($partialBackupProgressPercentage, 0) }}%</span>
+                </div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-blue-100">
+                    <div class="h-full rounded-full bg-blue-600 transition-all" style="width: {{ max($partialBackupProgressPercentage, 5) }}%"></div>
+                </div>
+            </div>
+        @endif
+
+        @error('partial_backup')
+            <p class="flex items-center gap-1 text-xs font-medium text-rose-600"><i class="fas fa-exclamation-circle"></i> {{ $message }}</p>
+        @enderror
+
+        @if (session('message'))
+            <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{{ session('message') }}</div>
+        @endif
+
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500">Partial Backup Folders</h3>
+        <div class="space-y-2">
+            @forelse ($partialBackupFolders as $folder)
+                <details class="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-4 hover:bg-slate-50">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-chevron-right text-xs text-slate-400 transition-transform group-open:rotate-90"></i>
+                            <i class="fas fa-folder text-amber-500"></i>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-800">{{ $folder['name'] }}</span>
+                                <span class="ml-2 text-xs text-slate-400">{{ $folder['modified'] }}</span>
+                            </div>
+                        </div>
+                        <span class="text-xs text-slate-400">{{ count($folder['files']) }} files</span>
+                    </summary>
+                    <div class="border-t border-slate-100 bg-slate-50/60">
+                        @foreach ($folder['files'] as $file)
+                            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 last:border-0">
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <i class="fas fa-file-archive text-xs text-blue-500"></i>
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium text-slate-700">{{ $file['name'] }}</p>
+                                        <p class="text-xs text-slate-400">{{ $file['size'] }} · {{ $file['modified'] }}</p>
+                                    </div>
+                                </div>
+                                <a href="{{ route('admin.suryacms.admin.partial-backup.download', ['folder' => $folder['name'], 'filename' => $file['name']]) }}"
+                                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600 transition hover:bg-blue-100 hover:text-blue-800">
+                                    <i class="fas fa-download text-[10px]"></i> Download
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </details>
+            @empty
+                <div class="rounded-xl border border-dashed border-slate-300 bg-white px-4 py-6 text-center text-sm text-slate-500">Belum ada partial backup.</div>
+            @endforelse
+        </div>
 
         <div
             class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-[#1e2356] to-[#343a8d] px-6 py-5">

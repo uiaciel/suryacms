@@ -4,17 +4,22 @@ namespace Uiaciel\SuryaCms\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 class AdminAuth
 {
     public function handle($request, Closure $next)
     {
         if (! Auth::check()) {
-            return redirect('/login'); // atau route login khusus admin
+            return redirect()->route('login');
         }
 
         if ($request->is('dashboard') || $request->is('*/dashboard')) {
-            return redirect()->route('admin.dashboard'); // Ganti 'admin.dashboard' dengan route admin dashboard Anda
+            $dashboardRoute = Route::has('admin.dashboard')
+                ? 'admin.dashboard'
+                : 'admin.admin';
+
+            return redirect()->route($dashboardRoute);
         }
 
         return $next($request);

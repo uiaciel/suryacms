@@ -668,3 +668,19 @@ if (! function_exists('seo_meta')) {
         return view('suryacms::layouts.seo-meta', compact('data'))->render();
     }
 }
+
+if (!function_exists('suryacms_version')) {
+    /**
+     * Mengambil versi dari paket uiaciel/suryacms.
+     *
+     * @return string
+     */
+    function suryacms_version()
+    {
+        try {
+            return \Composer\InstalledVersions::getPrettyVersion('uiaciel/suryacms');
+        } catch (\OutOfBoundsException $e) {
+            return 'Unknown'; // Mengembalikan teks jika paket tidak ditemukan
+        }
+    }
+}

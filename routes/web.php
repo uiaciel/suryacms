@@ -22,7 +22,7 @@ use Uiaciel\SuryaCms\Livewire\Admin\{
 use Uiaciel\SuryaCms\Livewire\Admin\Menu\{MenuCreate, MenuList};
 use Uiaciel\SuryaCms\Livewire\Admin\Page\{PageCreate, PageEdit, PageIndex};
 use Uiaciel\SuryaCms\Livewire\Admin\PageBuilder\{HomepageBuilder, IndexPageBuilder};
-use Uiaciel\SuryaCms\Livewire\Admin\Post\{PostCreate, PostEdit, PostIndex};
+use Uiaciel\SuryaCms\Livewire\Admin\Post\{PostCreate, PostEdit, PostIndex, GeneratePost};
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\{
     BuilderTheme,
     ConvertTheme,
@@ -40,6 +40,8 @@ use Uiaciel\SuryaCms\Livewire\System\FullRestore;
 Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
+
+Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware(['web', 'guest']);
 
 Route::prefix(config('suryacms.admin_prefix', 'admin'))
     ->name('admin.')
@@ -71,6 +73,7 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
                 Route::get('create', PostCreate::class)->name('create');
                 Route::get('edit/{id}', PostEdit::class)->name('edit');
                 Route::get('translations/{language_id}', [PostCreate::class, 'getTranslations'])->name('get-translations');
+                Route::get('generate', GeneratePost::class)->name('generate');
             });
 
         Route::prefix('youtube')
@@ -90,8 +93,11 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
             });
 
         Route::get('/system/restore', FullRestore::class)->name('suryacms.admin.restore');
+        Route::get('/system/backups', Backup::class)->name('suryacms.admin.backups');
         Route::get('/system/backup/download/{filename}', [BackupController::class, 'download'])
         ->name('suryacms.admin.backup.download');
+        Route::get('/system/backups/download/{folder}/{filename}', [BackupController::class, 'download'])
+            ->name('suryacms.admin.partial-backup.download');
 
         Route::get('contacts', Contact::class)->name('contact.index');
 

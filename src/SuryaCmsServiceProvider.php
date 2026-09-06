@@ -6,6 +6,7 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +25,7 @@ use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
 use Uiaciel\SuryaCms\Models\YoutubeVideo;
+use Uiaciel\SuryaCms\Livewire\Auth\Login;
 
 class SuryaCmsServiceProvider extends ServiceProvider
 {
@@ -31,7 +33,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
-        $router = $this->app['router'];
+        $router = $this->app->make(Router::class);
         $router->pushMiddlewareToGroup('web', CheckRegistrationStatus::class);
 
         $helperPath = __DIR__.'/helpers.php';
@@ -46,6 +48,11 @@ class SuryaCmsServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'suryacms');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        // Register after application routes so SuryaCMS owns the login page.
+        $this->app->booted(function (): void {
+            Route::get('login', Login::class)->middleware(['web', 'guest'])->name('login');
+        });
 
         $this->registerCommands();
         $this->publishAssets();
@@ -293,5 +300,6 @@ class SuryaCmsServiceProvider extends ServiceProvider
                 // Silently fail during service provider boot
             }
         });
+
     }
 }
