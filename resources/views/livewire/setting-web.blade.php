@@ -422,15 +422,14 @@
                             {{-- Email Forwarder Input --}}
                             <div>
                                 <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
-                                    for="email_forwader">
-                                    <i class="fas fa-paper-plane mr-1 text-blue-400"></i> Forward Email Destination
+                                    for="email_forwarder">
+                                    <i class="fas fa-paper-plane mr-1 text-blue-400"></i> Email Forwarder
                                 </label>
-                                <input type="email" id="email_forwader"
+                                <input type="email" id="email_forwarder"
                                     class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                                    wire:model="email_forwader" placeholder="forward-inbox@perusahaan.com">
-                                <p class="mt-1 text-[11px] text-gray-400">Email yang menerima pesan otomatis saat form
-                                    kontak diisi.</p>
-                                @error('email_forwader')
+                                    wire:model="email_forwarder" placeholder="forward-inbox@perusahaan.com">
+                                <p class="mt-1 text-[11px] text-gray-400">Email Destination for Inbox Messages.</p>
+                                @error('email_forwarder')
                                     <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -447,11 +446,11 @@
                                         <div class="flex items-center gap-1.5">
                                             <i class="fas fa-shield-alt text-amber-500 text-xs"></i>
                                             <span
-                                                class="text-xs font-bold uppercase tracking-wide text-gray-700">Honeypot
+                                                class="text-xs font-bold uppercase tracking-wide text-gray-700">Spam
                                                 Protection</span>
                                         </div>
                                         <p class="mt-1 text-[11px] leading-relaxed text-gray-500">
-                                            Cegah bot spam pada contact form secara transparan tanpa reCAPTCHA.
+                                            Spam Prevention for Contact Form.
                                         </p>
                                     </div>
                                     <label class="relative inline-flex cursor-pointer items-center">
@@ -473,7 +472,7 @@
                                                 Forward</span>
                                         </div>
                                         <p class="mt-1 text-[11px] leading-relaxed text-gray-500">
-                                            Teruskan seluruh pesan masuk secara instan ke email forwarder.
+                                            Forward Message to Email Forwarder Automatically.
                                         </p>
                                     </div>
                                     <label class="relative inline-flex cursor-pointer items-center">

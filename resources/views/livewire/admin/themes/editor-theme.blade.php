@@ -1,7 +1,7 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 py-6 px-4" x-data="{ showVariableModal: false, mobileSidebar: false, fullscreenEditor: false }">
+<div class="min-h-screen py-6 -px-4" x-data="{ showVariableModal: false, mobileSidebar: false, fullscreenEditor: false }">
 
     {{-- HEADER --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 gap-4 mb-6">
         <div>
             <h3 class="text-xl font-bold text-slate-800 tracking-tight">Theme Editor</h3>
             <p class="text-slate-500 text-sm mt-0.5">
@@ -124,14 +124,14 @@
                                        {{ $currentLocation === 'views'
                                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
                                            : 'border border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-white' }}">
-                            <i class="fas fa-eye text-[10px]"></i> Views (Blade)
+                            <i class="fas fa-eye text-[10px]"></i> Views
                         </button>
                         <button wire:click="switchLocation('public')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all
                                        {{ $currentLocation === 'public'
                                            ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
                                            : 'border border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-white' }}">
-                            <i class="fas fa-globe text-[10px]"></i> Public (Assets)
+                            <i class="fas fa-globe text-[10px]"></i> Assets
                         </button>
                     </div>
                 </div>
@@ -141,6 +141,7 @@
                     <div class="p-0" x-data="{
                         editor: null,
                         content: @entangle('fileContent'),
+                        clipboardStatus: '',
                         initEditor() {
                             const container = this.$refs.codeeditor;
                             this.editor = CodeMirror.fromTextArea(container, {
@@ -158,6 +159,36 @@
                             this.editor.on('change', (cm) => { this.content = cm.getValue(); });
                             setTimeout(() => this.editor.refresh(), 50);
                         },
+                        selectAll() {
+                            this.editor.focus();
+                            this.editor.execCommand('selectAll');
+                            this.clipboardStatus = 'Semua kode dipilih';
+                        },
+                        async copyCode() {
+                            if (!this.editor) return;
+
+                            const selectedText = this.editor.getSelection();
+                            const text = selectedText || this.editor.getValue();
+
+                            try {
+                                await navigator.clipboard.writeText(text);
+                                this.clipboardStatus = selectedText ? 'Kode terpilih disalin' : 'Semua kode disalin';
+                            } catch (error) {
+                                this.clipboardStatus = 'Copy tidak tersedia di browser ini';
+                            }
+                        },
+                        async pasteCode() {
+                            if (!this.editor) return;
+
+                            try {
+                                const text = await navigator.clipboard.readText();
+                                this.editor.replaceSelection(text);
+                                this.editor.focus();
+                                this.clipboardStatus = 'Kode ditempel';
+                            } catch (error) {
+                                this.clipboardStatus = 'Paste perlu izin clipboard browser';
+                            }
+                        },
                         save() {
                             this.content = this.editor.getValue();
                             $wire.saveFile();
@@ -167,13 +198,31 @@
                         <div wire:ignore>
                             <textarea x-ref="codeeditor" class="hidden"></textarea>
                         </div>
+                        <div class="flex items-center gap-2 px-3 py-2 bg-slate-800 border-t border-slate-700 lg:hidden"
+                            aria-label="Aksi editor mobile">
+                            <button type="button" @click="selectAll()" title="Pilih semua kode"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-semibold transition-colors">
+                                <i class="fas fa-check-double text-[10px]"></i>
+                                <span>Pilih semua</span>
+                            </button>
+                            <button type="button" @click="copyCode()" title="Salin kode terpilih atau semua kode"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs font-semibold transition-colors">
+                                <i class="fas fa-copy text-[10px]"></i>
+                                <span>Copy</span>
+                            </button>
+                            <button type="button" @click="pasteCode()" title="Tempel dari clipboard"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors">
+                                <i class="fas fa-paste text-[10px]"></i>
+                                <span>Paste</span>
+                            </button>
+                        </div>
                         <div class="flex items-center justify-between px-4 py-2 bg-slate-50 border-t border-slate-100">
                             <span class="text-slate-400 text-xs font-mono uppercase tracking-wide">
                                 {{ strtoupper($fileLanguage) }} Mode
                             </span>
                             <span class="text-emerald-600 text-xs flex items-center gap-1.5 font-medium">
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Auto-sync enabled
+                                <span x-text="clipboardStatus || 'Auto-sync enabled'">Auto-sync enabled</span>
                             </span>
                         </div>
                     </div>

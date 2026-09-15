@@ -551,6 +551,12 @@ class SettingWeb extends Component
 
             'email_forwarder' => ['nullable', 'email'],
 
+            'contact_form_honeypot' => ['boolean'],
+
+            'contact_form_auto_forward' => ['boolean'],
+
+            'contact_form_rate_limit' => ['nullable', 'integer', 'min:1'],
+
             'date_format' => 'in:'.implode(',', array_keys($this->dateFormats)),
 
         ]);
@@ -595,6 +601,9 @@ class SettingWeb extends Component
         $setting->site_maintenance = $this->site_maintenance ?? false;
         $setting->email_forwarder = $this->email_forwarder;
         $setting->date_format = $this->date_format ?? 'd/m/Y';
+        $setting->contact_form_honeypot = $this->contact_form_honeypot ?? true;
+        $setting->contact_form_auto_forward = $this->contact_form_auto_forward ?? false;
+        $setting->contact_form_rate_limit = $this->contact_form_rate_limit ?? 3;
 
         // Handle logo upload
         if ($this->logo instanceof UploadedFile) {

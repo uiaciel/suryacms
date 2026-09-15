@@ -1,11 +1,12 @@
-<div class="p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+<div class="p-4 md:p-6 lg:p-8 min-h-screen">
     <x-suryacms::import-export-offcanvas />
+    <x-suryacms::toast-alert />
 
     <!-- Header -->
     <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
             <h3 class="text-2xl font-bold text-gray-900 flex items-center ">
-                <i class="bi bi-list-nested text-blue-600"></i> {{ $titlePage }}
+                {{ $titlePage }}
             </h3>
             <nav aria-label="breadcrumb">
                 <ol class="flex gap-2 text-sm text-gray-500 mt-1">
@@ -21,6 +22,14 @@
 
     </header>
 
+    <div class="mb-6">
+        @error('name') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+        @error('type') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+        @error('link') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+        @error('category') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+        @error('parent_id') <p class="text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
     <!-- Main Content -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Form Section -->
@@ -28,14 +37,12 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                 <div class="p-4 border-b  border-gray-100 bg-slate-800">
                     <h5 class="font-bold text-white flex items-center gap-2">
-                        <i class="bi bi-plus-square-dotted text-blue-600"></i> Create New Menu
+                        Create New Menu
                     </h5>
                 </div>
 
                 <div class="p-6">
-                    <x-suryacms::session-status />
-
-                    <form wire:submit.prevent="storeMenu" class="space-y-4" x-data="menuForm()" x-cloak>
+                    <form wire:submit.prevent="storeMenu" class="space-y-2" x-data="menuForm()" x-cloak>
                         @csrf
 
                         <!-- Menu Group -->
@@ -44,9 +51,9 @@
                             <div id="category-container">
                                 <template x-if="!isAddingNewCategory">
                                     <select
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                        class="w-full px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                         id="category-select" wire:model.defer="category" x-model="selectedCategory"
-                                        @change="handleCategoryChange">
+                                        @change="handleCategoryChange(); announceCategorySelection()">
                                         <option value="">Select a menu</option>
                                         @foreach ($categoriesmenu as $cat)
                                             <option value="{{ $cat }}">{{ $cat }}</option>
@@ -64,7 +71,8 @@
                                         <input type="text"
                                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                                             id="category-input" wire:model.defer="category" x-model="newCategory"
-                                            placeholder="Enter new category">
+                                            placeholder="Enter new category"
+                                            @input="announceCategorySelection(newCategory)">
                                         <button type="button"
                                             class="px-3 py-2 bg-gray-100 text-red-600 rounded-lg hover:bg-red-200"
                                             @click="cancelNewCategory">
@@ -163,7 +171,7 @@
 
                         <button type="submit" @click.prevent="syncToLivewireThenSubmit"
                             class="w-full mt-4 px-6 py-3 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-2">
-                            <i class="bi bi-plus-lg"></i> Add to Menu
+                            Add to Menu
                         </button>
                     </form>
                 </div>
@@ -183,6 +191,8 @@
         <script>
             function menuForm() {
                 return {
+                    adminPrefix: '{{ config('suryacms.admin_prefix', 'admin') }}',
+
                     pages: [],
                     posts: [],
                     categoryPost: [],
@@ -209,9 +219,14 @@
                         }
                     },
 
+                    announceCategorySelection(category = this.selectedCategory) {
+                        this.$dispatch('menu-category-selected', { category });
+                    },
+
                     cancelNewCategory() {
                         this.isAddingNewCategory = false;
                         this.selectedCategory = '';
+                        this.announceCategorySelection('');
                         this.filterParentOptions();
                     },
 
@@ -219,11 +234,11 @@
                         if (this.selectedType === 'custom') {
                             this.customLink = '';
                         } else if (this.selectedType === 'post') {
-                            this.fetchOptions('/admin/getmenus/posts', 'post');
+                            this.fetchOptions(`/${this.adminPrefix}/menus/getmenus/posts`, 'post');
                         } else if (this.selectedType === 'page') {
-                            this.fetchOptions('/admin/getmenus/pages', 'page');
+                            this.fetchOptions(`/${this.adminPrefix}/menus/getmenus/pages`, 'page');
                         } else if (this.selectedType === 'categoryPost') {
-                            this.fetchOptions('/admin/getmenus/categories', 'categoryPost');
+                            this.fetchOptions(`/${this.adminPrefix}/menus/getmenus/categories`, 'categoryPost');
                         }
                     },
 

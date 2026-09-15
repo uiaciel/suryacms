@@ -68,6 +68,8 @@ class FrontendController extends Controller
             $post->increment('view');
         }
 
+        $post->incrementViewCount($post);
+
         $recentpost = Cache::remember("recent_posts.{$post->id}.{$locale}", 3600, function () use ($post) {
             return Post::where('id', '!=', $post->id)
                 ->where('status', 'Publish')
@@ -203,7 +205,7 @@ class FrontendController extends Controller
         $isImportant = false;
         $importantKeywords = ['Quotation', 'Project', 'Urgent', 'Kerjasama', 'Inquiry', 'Business'];
         $contentToSearch = $validated['subject'] . ' ' . $validated['message'];
-        
+
         foreach ($importantKeywords as $keyword) {
             if (stripos($contentToSearch, $keyword) !== false) {
                 $isImportant = true;
@@ -231,7 +233,7 @@ class FrontendController extends Controller
             try {
                 \Illuminate\Support\Facades\Mail::to($setting->email_forwarder)
                     ->send(new \Uiaciel\SuryaCms\Mail\ForwardInbox($contact));
-                
+
                 $contact->update(['forwarded_at' => now()]);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Failed to auto-forward contact: " . $e->getMessage());

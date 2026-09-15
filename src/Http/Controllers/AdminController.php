@@ -23,14 +23,16 @@ class AdminController extends Controller
 
     public function manifest()
     {
-        
+
         $setting = Setting::first();
-    
+        $adminPrefix = config('suryacms.admin_prefix', 'admin');
+
         return response()->json([
+
             "name" => $setting->url,
             "short_name" => $setting->url,
-            "start_url" => "/admin",
-            "scope" => "/admin",
+            "start_url" => '/' . $adminPrefix,
+            "scope" => '/' . $adminPrefix,
             "display" => "standalone",
             "background_color" => "#ffffff",
             "theme_color" => "#0f172a",

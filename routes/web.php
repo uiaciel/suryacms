@@ -76,6 +76,16 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
                 Route::get('generate', GeneratePost::class)->name('generate');
             });
 
+        Route::prefix('menus')
+            ->name('menu.')
+            ->group(function () {
+                Route::get('/', MenuCreate::class)->name('create');
+                // Route::get('menus', MenuList::class)->name('index');
+                Route::get('getmenus/posts', [FrontendController::class, 'getPosts'])->name('getPosts');
+                Route::get('getmenus/pages', [FrontendController::class, 'getPages'])->name('getPages');
+                Route::get('getmenus/categories', [FrontendController::class, 'getCategories'])->name('getCategories');
+            });
+
         Route::prefix('youtube')
             ->name('youtube.')
             ->group(function () {
@@ -102,13 +112,6 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
         Route::get('contacts', Contact::class)->name('contact.index');
 
         Route::get('backups', Backup::class)->name('backup.index');
-
-        Route::get('menu', MenuCreate::class)->name('menu.create');
-        Route::get('menus', MenuList::class)->name('menus.index');
-
-        Route::get('getmenus/posts', [FrontendController::class, 'getPosts'])->name('menus.getPosts');
-        Route::get('getmenus/pages', [FrontendController::class, 'getPages'])->name('menus.getPages');
-        Route::get('getmenus/categories', [FrontendController::class, 'getCategories'])->name('menus.getCategories');
 
         Route::get('homepage-builder/{pageSlug}', HomepageBuilder::class)->name('homepage.builder');
         Route::get('page-builder', IndexPageBuilder::class)->name('page.builder');

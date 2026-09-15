@@ -74,13 +74,7 @@
                     <p class="text-slate-400 text-xs mb-3">Variabel untuk header dan footer template</p>
                     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-50">
                         @foreach ([['$header', 'Header'], ['$footer', 'Footer']] as [$var, $label])
-                            <div
-                                class="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50/70 transition-colors group">
-                                <div>
-                                    <code class="text-indigo-600 text-xs font-mono">@{{ $var }}</code>
-                                    <span class="text-slate-400 text-xs ml-2">— {{ $label }}</span>
-                                </div>
-                            </div>
+
                         @endforeach
                     </div>
                 </div>
@@ -91,16 +85,14 @@
                     x-transition:enter-end="opacity-100 translate-x-0">
                     <p class="text-slate-400 text-xs mb-3">Variabel setting dasar untuk template</p>
                     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-50">
-                        @foreach ([['$settings->sitename', 'Nama situs'], ['$settings->description', 'Deskripsi situs'], ['$settings->url', 'URL situs'], ['$settings->logo', 'Path logo'], ['$settings->images', 'Path gambar utama'], ['$settings->email', 'Email kontak'], ['$settings->address', 'Alamat'], ['$settings->phone', 'Nomor telepon']] as [$var, $label])
+                        @foreach ([['$setting->sitename', 'Nama situs'], ['$setting->description', 'Deskripsi situs'], ['$setting->url', 'URL situs'], ['$setting->logo', 'Path logo'], ['$setting->images', 'Path gambar utama'], ['$setting->email', 'Email kontak'], ['$setting->address', 'Alamat'], ['$setting->phone', 'Nomor telepon']] as [$var, $label])
                             <div
                                 class="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50/70 transition-colors group">
                                 <div>
-                                    <code class="text-indigo-600 text-xs font-mono">@{{ $var }}</code>
+                                    <code class="text-indigo-600 text-xs font-mono">{{ $var }}</code>
                                     <span class="text-slate-400 text-xs ml-2">— {{ $label }}</span>
                                 </div>
-                                <button onclick="copyVar(this, '@{{ {
-    {
-        $var }} }}')"
+                                <button onclick="copyVar(this, @js($var))"
                                     class="opacity-0 group-hover:opacity-100 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-600 text-[10px] font-semibold rounded-lg transition-all flex items-center gap-1">
                                     <i class="fa-solid fa-clipboard"></i> Copy
                                 </button>
@@ -115,21 +107,17 @@
                     x-transition:enter-end="opacity-100 translate-x-0" style="display:none">
                     <p class="text-slate-400 text-xs mb-3">Variabel sosial media untuk template</p>
                     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-50">
-                        @foreach ([['$settings->whatsapp', 'bi-whatsapp', 'text-green-500', 'WhatsApp'], ['$settings->facebook', 'bi-facebook', 'text-blue-500', 'Facebook'], ['$settings->instagram', 'bi-instagram', 'text-pink-500', 'Instagram'], ['$settings->linkedin', 'bi-linkedin', 'text-blue-600', 'LinkedIn'], ['$settings->youtube', 'bi-youtube', 'text-red-500', 'YouTube'], ['$settings->tiktok', 'bi-tiktok', 'text-slate-700', 'TikTok']] as [$var, $icon, $iconColor, $platform])
+                        @foreach ([['$setting->whatsapp', 'bi-whatsapp', 'text-green-500', 'WhatsApp'], ['$setting->facebook', 'bi-facebook', 'text-blue-500', 'Facebook'], ['$setting->instagram', 'bi-instagram', 'text-pink-500', 'Instagram'], ['$setting->linkedin', 'bi-linkedin', 'text-blue-600', 'LinkedIn'], ['$setting->youtube', 'bi-youtube', 'text-red-500', 'YouTube'], ['$setting->tiktok', 'bi-tiktok', 'text-slate-700', 'TikTok']] as [$var, $icon, $iconColor, $platform])
                             <div
                                 class="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50/70 transition-colors group">
                                 <div class="flex items-center gap-3">
                                     <i class="bi {{ $icon }} {{ $iconColor }} text-base w-5 text-center"></i>
                                     <div>
-                                        <code class="text-indigo-600 text-xs font-mono">@{{ {
-    {
-        $var }} }}</code>
+                                        <code class="text-indigo-600 text-xs font-mono">{{ $var }}</code>
                                         <span class="text-slate-400 text-xs ml-2">— {{ $platform }}</span>
                                     </div>
                                 </div>
-                                <button onclick="copyVar(this, '@{{ {
-    {
-        $var }} }}')"
+                                <button onclick="copyVar(this, @js($var))"
                                     class="opacity-0 group-hover:opacity-100 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-600 text-[10px] font-semibold rounded-lg transition-all flex items-center gap-1">
                                     <i class="fa-solid fa-clipboard"></i> Copy
                                 </button>

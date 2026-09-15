@@ -1,4 +1,5 @@
-<div class="min-h-screen bg-slate-50 p-6">
+<div class="min-h-screen bg-slate-50 p-6" x-data="menuManager()"
+    @menu-category-selected.window="focusCategory($event.detail.category)">
 
     @if (session()->has('message'))
         <div
@@ -12,8 +13,7 @@
 
     <div class="mb-8 flex items-center justify-between">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-slate-800">Menu Manager</h1>
-            <p class="mt-1 text-sm text-slate-500">Manage and organize your navigation menus by category.</p>
+            <h1 class="text-lg font-bold tracking-tight text-slate-800">Menu List</h1>
         </div>
 
     </div>
@@ -22,9 +22,12 @@
         $grouped = $menus->groupBy('category');
     @endphp
 
+    <div class="flex flex-col gap-5">
     @forelse ($grouped as $category => $categoryMenus)
-        <div x-data="{ open: false }"
-            class="mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div x-data="{ open: false, category: @js($category) }"
+            :class="focusedCategory === category ? 'order-first ring-2 ring-blue-400 ring-offset-2' : 'order-none'"
+            @menu-category-selected.window="open = $event.detail.category === category"
+            class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300">
             {{-- Category Header --}}
             <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/60 px-5 py-4">
                 <button @click="open = !open" class="flex items-center gap-3 text-left">
@@ -304,6 +307,7 @@
             <p class="mt-1 text-xs text-slate-400">Start by adding a menu item.</p>
         </div>
     @endforelse
+    </div>
 
     @if ($showModalEdit)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -511,3 +515,17 @@
         </div>
     @endif
 </div>
+
+@push('scripts')
+    <script>
+        function menuManager() {
+            return {
+                focusedCategory: '',
+
+                focusCategory(category) {
+                    this.focusedCategory = category || '';
+                }
+            };
+        }
+    </script>
+@endpush

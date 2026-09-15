@@ -86,6 +86,10 @@
         }">
             <div class="flex justify-between items-center mb-6">
                 <h5 class="font-bold text-lg text-blue-600 mb-0">All Posts</h5>
+                <a href="{{ route('admin.post.generate') }}"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-full shadow-sm text-sm hover:bg-blue-700 transition">
+                    <i class="fas fa-plus mr-2"></i>Generate Post
+                </a>
             </div>
 
             {{-- Search and Filter Section --}}
@@ -155,12 +159,19 @@
                         <template x-for="(post, index) in filteredPosts()" :key="post.id">
                             <tr class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="px-4 py-3 text-sm" x-text="index + 1"></td>
-                                <td class="px-4 py-3">
+                                <td class="px-4 py-3 md:flex md:items-center md:gap-2 text-sm">
                                     <a :href="`/media/${post.slug}`" target="_blank"
                                         class="text-blue-600 hover:text-blue-700 font-semibold" :title="post.title">
                                         <span
                                             x-text="post.title.length > 50 ? post.title.substring(0, 50) + '...' : post.title"></span>
                                     </a>
+                                    <span class="md:inline-block lg:hidden text-gray-500 text-xs"
+                                        :class="post.status === 'Publish' ?
+                                            ' text-blue-800  text-xs font-medium' :
+                                            ' text-gray-800  text-xs font-medium'">
+                                        <span x-text="post.status === 'Publish' ? 'Published' : 'Draft'"></span> /
+                                        <span x-text="post.category ? post.category.name : 'Tanpa kategori'"></span>
+                                    </span>
                                 </td>
                                 @if ($setting->is_multilingual === 'Yes')
                                     <td class="px-4 py-3 hidden md:table-cell">

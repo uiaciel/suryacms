@@ -3,7 +3,7 @@
         <x-suryacms::toast-alert />
 
         <div class="mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:*:text-sm">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
                         <div

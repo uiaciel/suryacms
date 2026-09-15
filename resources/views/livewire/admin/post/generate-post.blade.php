@@ -8,18 +8,27 @@
     })"
 >
 
+    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+        <div class="flex flex-wrap items-center gap-4">
+            <h3 class="font-bold text-gray-800 text-2xl mb-0">Generate Posts</h3>
+
+        </div>
+
+        <nav aria-label="breadcrumb" class="hidden sm:block">
+            <ol class="flex gap-2 text-sm text-gray-600">
+                <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
+                <li>/</li>
+                <li><a href="/{{ config('suryacms.admin_prefix') }}/posts"
+                        class="text-blue-600 hover:text-blue-700">Posts</a></li>
+                <li>/</li>
+                <li class="text-gray-600">Generate</li>
+            </ol>
+        </nav>
+    </header>
+
 {{-- Header --}}
-<div>
-    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-        Generate Post
-    </h2>
-
-    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Buat prompt artikel menggunakan informasi website, lalu import
-        hasil artikel dari AI sebagai Draft.
-    </p>
-</div>
-
+<x-suryacms::session-status />
+<x-suryacms::toast-alert />
 {{-- Success Message --}}
 @if ($message)
     <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">

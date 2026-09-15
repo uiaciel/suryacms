@@ -1,4 +1,4 @@
-<div class="p-3 md:p-6 h-screen flex flex-col bg-gray-50 overflow-hidden" x-data="{ showDataModal: false }">
+<div class="p-3 md:p-6 h-screen flex flex-col overflow-hidden" x-data="{ showDataModal: false }">
 
     <!-- Header Section -->
     <header class="flex items-center justify-between gap-4 mb-4 shrink-0">
@@ -114,10 +114,10 @@
                 <!-- Navigation Bar Mobile (Top Bar Back Button) -->
                 <div
                     class="sticky top-0 bg-white/95 backdrop-blur border-b border-gray-100 p-3 px-4 flex items-center gap-3 lg:hidden z-20 shrink-0">
-                    <button wire:click="$set('selectedContact', null)"
+                    <a href="#" wire:click="unselectContact"
                         class="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-2 text-sm font-semibold">
                         <i class="fas fa-arrow-left text-base text-blue-600"></i> Back
-                    </button>
+                    </a>
                     <div class="h-4 w-[1px] bg-gray-200"></div>
                     <span class="font-bold truncate text-sm text-gray-800">{{ $selectedContact->subject }}</span>
                 </div>

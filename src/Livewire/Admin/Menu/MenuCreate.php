@@ -55,8 +55,9 @@ class MenuCreate extends Component
 
         Excel::import(new MenuImport, $this->importFile);
 
-        session()->flash('success', 'Menus imported successfully!');
-        $this->redirectRoute('admin.menu.create', navigate: true);
+        $this->refreshMenuData();
+        $this->reset('importFile');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menus imported successfully!']);
     }
 
     public function dataExport()
@@ -70,9 +71,20 @@ class MenuCreate extends Component
     public function mount()
     {
         $this->date = now()->format('d-m-Y');
-        $this->language = Language::All();
-        $this->setting = Setting::first();
-        $this->menux = Menu::whereNull('parent_id')->with('children')->get();
+        $this->language = Language::all();
+        $this->setting = Setting::first() ?? (object) [
+            'is_multilingual' => 'No',
+            'url' => config('app.url', ''),
+        ];
+        $this->refreshMenuData();
+    }
+
+    private function refreshMenuData(): void
+    {
+        $this->menux = Menu::whereNull('parent_id')
+            ->with(['children' => fn ($query) => $query->orderBy('order')])
+            ->orderBy('order')
+            ->get();
         $categories = Menu::distinct()->pluck('category')->filter()->values()->toArray();
         $this->categoriesmenu = array_values(array_unique(array_merge(['Primary', 'Secondary'], $categories)));
     }
@@ -100,10 +112,10 @@ class MenuCreate extends Component
 
         $this->dispatch('menu-created');
 
-        session()->flash('message', 'Menu created successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu created successfully.']);
         $this->reset(['name', 'type', 'link', 'category', 'parent_id']);
 
-        return $this->redirectRoute('admin.menu.index');
+        $this->refreshMenuData();
     }
 
     public function render()

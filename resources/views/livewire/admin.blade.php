@@ -102,7 +102,7 @@
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <p class="text-sm text-gray-500 font-medium mb-1">Inbox</p>
-                            <h3 class="text-3xl font-bold text-gray-800">{{ $contacts->count() }}</h3>
+                            <h3 class="text-3xl font-bold text-gray-800">{{ $contacts->where('is_read', false)->count() }}</h3>
                         </div>
                         <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
                             <i class="fas fa-envelope text-emerald-600"></i>

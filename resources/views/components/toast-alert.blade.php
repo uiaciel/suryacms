@@ -3,7 +3,9 @@
             alertType: 'success',
             alertMessage: '',
             alertTitle: '',
+            timeoutId: null,
             closeAlert() {
+                clearTimeout(this.timeoutId);
                 this.showAlert = false;
             },
             handleNotification(event) {
@@ -16,8 +18,8 @@
                 this.alertMessage = data.text || '';
                 this.showAlert = true;
 
-                // Auto close setelah 3 detik
-                setTimeout(() => { this.showAlert = false; }, 8000);
+                clearTimeout(this.timeoutId);
+                this.timeoutId = setTimeout(() => { this.showAlert = false; }, 8000);
             }
         }"
         x-on:swal.window="handleNotification($event)"
@@ -65,6 +67,11 @@
                 </template>
                 <p class="text-sm" :class="alertTitle ? 'mt-1' : ''" x-text="alertMessage"></p>
             </div>
+            <button type="button" @click="closeAlert()"
+                class="shrink-0 rounded p-1 text-current/60 transition hover:bg-black/5 hover:text-current"
+                aria-label="Close notification">
+                <span aria-hidden="true" class="text-lg leading-none">&times;</span>
+            </button>
 
         </div>
     </div>

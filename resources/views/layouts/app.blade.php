@@ -112,11 +112,11 @@
     <link rel="manifest" href="{{ route('admin.manifest') }}">
     <meta name="theme-color" content="#0f172a">
 
-    <link href="{{ $setting->favicon }}" rel="icon" />
+    <link href="/{{ $setting->favicon }}" rel="icon" />
 
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ $setting->logo }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ $setting->logo }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ $setting->logo }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="/{{ $setting->logo }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="/{{ $setting->logo }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="/{{ $setting->logo }}">
 
     <link rel="mask-icon" href="{{ $setting->logo }}" color="#5bbad5">
 
@@ -167,43 +167,93 @@
 
             <!-- Sidebar Menu -->
             <nav class="flex-1 px-3 py-4 overflow-y-auto sidebar-scroll space-y-2 gap-3">
-                <div>
+                @if ($menus->where('category', 'Admin')->count() > 0)
+                    <div>
+                        <p x-show="!sidebarMinimized"
+                            class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">
+                            QUICK MENU
+                        </p>
 
+                        @foreach ($menus->where('category', 'Admin') as $menu)
+                            @if ($menu->children->count())
+                                {{-- Dropdown Menu (Alpine.js State) --}}
+                                <div x-data="{ open: false }" class="relative">
+                                    <button type="button" @click="open = !open"
+                                        class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold text-white/60 hover:bg-white/10 hover:text-white"
+                                        :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                                        <span class="flex items-center">
+                                            <i class="{{ $menu->icon ?? 'fas fa-folder' }} w-4 text-center"
+                                                :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                                            <span x-show="!sidebarMinimized">{{ $menu->name }}</span>
+                                        </span>
+                                        <i x-show="!sidebarMinimized" class="fas fa-chevron-down text-xs transition-transform duration-200"
+                                            :class="{ 'rotate-180': open }"></i>
+                                    </button>
+
+                                    {{-- Submenu Dropdown --}}
+                                    <div x-show="open && !sidebarMinimized" @click.away="open = false" x-transition
+                                        class="pl-7 mt-1 space-y-1">
+                                        @foreach ($menu->children as $submenu)
+                                            <a href="{{ $submenu->link ?? '#' }}" wire:navigate
+                                                class="block px-3 py-2 rounded-lg text-xs font-semibold text-white/50 hover:bg-white/10 hover:text-white transition-all">
+                                                {{ $submenu->name }}
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                {{-- Single Menu Item --}}
+                                <a href="{{ $menu->link ?? '#' }}" wire:navigate
+                                    class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is(trim($menu->link, '/')) ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
+                                    :class="sidebarMinimized ? 'justify-center px-0' : ''">
+                                    <i class="{{ $menu->icon ?? 'fas fa-link' }} w-4 text-center"
+                                        :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                                    <span x-show="!sidebarMinimized">{{ $menu->name }}</span>
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+
+                <div>
                     <p x-show="!sidebarMinimized"
-                        class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">Main Menu
+                        class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">
+                        Main Menu
                     </p>
                     <a href="/{{ config('suryacms.admin_prefix') }}" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin') && !Request::is('admin/*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
-                        <i class="fas fa-th-large w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
-                            x-show="!sidebarMinimized">Dashboard</span>
+                        <i class="fas fa-th-large w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Dashboard</span>
                     </a>
                     <a href="/{{ config('suryacms.admin_prefix') }}/posts" wire:navigate
-                        class="sidebar-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/posts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
-                        :class="sidebarMinimized ? 'justify-center px-0' : ''">
-                        <span class="flex items-center"><i class="fas fa-file-alt w-4 text-center"
-                                :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
-                                x-show="!sidebarMinimized">Posts</span></span>
+                        class="sidebar-menu-item w-full flex items-center  py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/posts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
+                        :class="sidebarMinimized ? 'justify-center px-0' : 'justify-between px-3'">
+                        <span class="flex items-center">
+                            <i class="fas fa-file-alt w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                            <span x-show="!sidebarMinimized">Posts</span>
+                        </span>
                         <span x-show="!sidebarMinimized"
                             class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ $posts->count() }}</span>
                     </a>
+
                     <a href="/{{ config('suryacms.admin_prefix') }}/pages" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/pages*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
-                        <i class="fas fa-copy w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
-                            x-show="!sidebarMinimized">Pages</span>
+                        <i class="fas fa-copy w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Pages</span>
                     </a>
                     <a href="/{{ config('suryacms.admin_prefix') }}/galleries" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/galleries*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
-                        <i class="fas fa-photo-video w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
-                            x-show="!sidebarMinimized">Media</span>
+                        <i class="fas fa-photo-video w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Media</span>
                     </a>
                     <a href="/{{ config('suryacms.admin_prefix') }}/contacts" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/contacts*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
-                        <i class="fas fa-envelope w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
-                            x-show="!sidebarMinimized">Inbox</span>
+                        <i class="fas fa-envelope w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Inbox</span>
                     </a>
                 </div>
 
@@ -286,7 +336,7 @@
                     <p x-show="!sidebarMinimized"
                         class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">Tools &
                         Settings</p>
-                    <a href="/{{ config('suryacms.admin_prefix') }}/menu" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/menus" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/menu*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
                         <i class="fas fa-bars w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
@@ -414,7 +464,6 @@
 
             <!-- PAGE CONTENT -->
             <main class="flex-1 overflow-y-auto main-scroll p-4 lg:p-6 bg-[#f0f3fb]">
-
 
                 {{-- <x-suryacms::alert-tester/> --}}
                 @hasSection('content')

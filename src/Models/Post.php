@@ -44,6 +44,11 @@ class Post extends Model
         return $this->belongsTo(Language::class);
     }
 
+    public function incrementViewCount()
+    {
+        $this->increment('view');
+    }
+
     public function gambar()
     {
         preg_match_all('@src="([^"]+)"@', $this->content, $match);
@@ -213,6 +218,5 @@ class Post extends Model
         // Gabungkan jadi string
         return implode(', ', $topWords);
     }
-
 
 }

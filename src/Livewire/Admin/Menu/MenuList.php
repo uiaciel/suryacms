@@ -39,7 +39,10 @@ class MenuList extends Component
 
     public $newCategory;
 
-    protected $listeners = ['refreshMenus' => 'refreshMenus'];
+    protected $listeners = [
+        'refreshMenus' => 'refreshMenus',
+        'menu-created' => 'refreshMenus',
+    ];
 
     public function mount()
     {
@@ -101,7 +104,7 @@ class MenuList extends Component
             ->orderBy('order')
             ->get();
 
-        session()->flash('message', 'Menu order updated successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu order updated successfully.']);
     }
 
     public function saveSubmenuOrder($parentId, $orderData)
@@ -117,7 +120,7 @@ class MenuList extends Component
             ->orderBy('order')
             ->get();
 
-        session()->flash('message', 'Submenu order updated successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Submenu order updated successfully.']);
     }
 
     public function moveUp($menuId, $parentId = null)
@@ -139,6 +142,7 @@ class MenuList extends Component
         }
 
         $this->refreshMenus();
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu order updated successfully.']);
     }
 
     public function moveDown($menuId, $parentId = null)
@@ -160,6 +164,7 @@ class MenuList extends Component
         }
 
         $this->refreshMenus();
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu order updated successfully.']);
     }
 
     public function showEditModal($menuId)
@@ -195,7 +200,7 @@ class MenuList extends Component
             ]);
             $this->refreshMenus();
             $this->showModalEdit = false;
-            session()->flash('message', 'Menu updated successfully.');
+            $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu updated successfully.']);
         }
     }
 
@@ -213,9 +218,9 @@ class MenuList extends Component
 
             $this->refreshMenus();
 
-            session()->flash('message', 'Menu and its submenus deleted successfully.');
+            $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu and its submenus deleted successfully.']);
         } else {
-            session()->flash('message', 'Menu not found.');
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Menu not found.']);
         }
     }
 
@@ -226,9 +231,9 @@ class MenuList extends Component
         if ($menus->count() > 0) {
             Menu::where('category', $category)->delete();
             $this->refreshMenus();
-            session()->flash('message', "Menu group '$category' deleted successfully.");
+            $this->dispatch('swal', ['icon' => 'success', 'text' => "Menu group '$category' deleted successfully."]);
         } else {
-            session()->flash('error', 'Menu group not found.');
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Menu group not found.']);
         }
     }
 
@@ -261,7 +266,7 @@ class MenuList extends Component
         $this->showCopyModal = false;
         $this->reset(['sourceCategory', 'newCategory']);
         $this->refreshMenus();
-        session()->flash('message', 'Menu group copied successfully.');
+        $this->dispatch('swal', ['icon' => 'success', 'text' => 'Menu group copied successfully.']);
     }
 
     public function render()
