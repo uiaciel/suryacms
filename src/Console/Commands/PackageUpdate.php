@@ -303,7 +303,7 @@ class PackageUpdate extends Command
     {
         try {
             $this->info('🔄 Restoring from backup...');
-
+            
             $backupArchive = $this->backupPath . DIRECTORY_SEPARATOR . 'backup.tar.gz';
             $backupMd5 = $backupArchive . '.md5';
 
@@ -315,7 +315,7 @@ class PackageUpdate extends Command
             if (file_exists($backupMd5)) {
                 $expectedChecksum = trim(file_get_contents($backupMd5));
                 $actualChecksum = md5_file($backupArchive);
-
+                
                 if ($expectedChecksum !== $actualChecksum) {
                     throw new \Exception("Backup file korup! Checksum tidak cocok.");
                 }
@@ -338,7 +338,7 @@ class PackageUpdate extends Command
             // Extract backup (selalu tar.gz)
             $basePathEsc = escapeshellarg($this->basePath);
             $backupArchiveEsc = escapeshellarg($backupArchive);
-
+            
             if ($this->isWindows) {
                 $command = "cd /d {$basePathEsc} && tar -xzf {$backupArchiveEsc}";
             } else {
@@ -355,7 +355,8 @@ class PackageUpdate extends Command
 
             $this->info('✅ Rollback berhasil');
         } catch (\Exception $e) {
-            $this->error("❌ Rollback gagal: " . $9e->getMessage());
+            
+            $this->error("❌ Rollback gagal: " . $e->getMessage()); 
             $this->error("Backup location: {$this->backupPath}");
         }
     }
@@ -378,9 +379,6 @@ class PackageUpdate extends Command
         exec($command);
     }
 
-    /**
-     * Pindahkan direktori menggunakan native CLI (Atomic & Fast)
-     */
     private function moveDirectory($source, $dest)
     {
         $sourceEsc = escapeshellarg($source);
@@ -400,8 +398,7 @@ class PackageUpdate extends Command
         } else {
             // Linux/Mac: mv (instant atomic move)
             exec("mv {$sourceEsc} {$destEsc}");
- “}
-        }
+        } // <-- Typo "“}" dihapus dan diganti dengan kurung kurawal yang benar
     }
 
     /**
