@@ -128,11 +128,13 @@
 
                 scripts: themeAssets.scripts.map(script => {
                     // Jika sudah URL lengkap (http/https)
-                    if (script.startsWith('http')) {
+                    if (script.startsWith('http') || style.startsWith('/'))  {
                         return script;
                     }
                     // Jika path relatif, prefix dengan theme
                     return `/frontend/${path_theme}/${script}`;
+                    console.log('Script loaded:', script);
+                    
                 }),
             },
             styleManager: {

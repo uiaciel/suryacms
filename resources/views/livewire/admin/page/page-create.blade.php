@@ -16,7 +16,7 @@
                         </div>
                         {{ $titlePage }}
                     </h1>
-                    <p class="text-gray-600 mt-2">Create a new page with rich content and multimedia</p>
+                    <p class="text-gray-600 mt-2"></p>
                 </div>
 
                 {{-- Breadcrumb --}}

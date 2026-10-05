@@ -157,7 +157,7 @@
             <!-- Footer / Watermark SuryaCMS -->
             <div class="text-center mt-8">
                 <p class="text-xs text-slate-400 dark:text-slate-500">
-                    Powered by <span class="font-semibold text-slate-600 dark:text-slate-400">SuryaCMS v{{ suryacms_version() }}</span>
+                    Powered by <span class="font-semibold text-slate-600 dark:text-slate-400">SuryaCMSaa {{ suryacms_version() }}</span>
                 </p>
             </div>
 

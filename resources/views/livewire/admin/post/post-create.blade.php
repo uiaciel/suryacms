@@ -2,19 +2,17 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <x-suryacms::toast-alert />
 
-        <div class="mb-8">
+        <div class="mb-6">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between sm:*:text-sm">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                    <h1 class="text-lg md:text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <div class="w-6 h-6 md:w-12 md:h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
+                            <svg class="w-3 h-3 m:w-6 m:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                 </path>
                             </svg>
                         </div>
-                        {{ $titlePage }}
+                        {{ $titlePage }}asdfasdfa
                     </h1>
 
                 </div>

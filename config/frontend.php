@@ -35,6 +35,7 @@ return [
     */
     'available_themes' => [
         'default',
+        'builder-example',
     ],
 
     /*

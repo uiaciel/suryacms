@@ -15,7 +15,7 @@
                 <li><a href="{{ route('dashboard') }}" class="text-blue-600 hover:text-blue-700">Admin</a></li>
                 <li>/</li>
                 <li><a href="/{{ config('suryacms.admin_prefix') }}/pages"
-                        class="text-blue-600 hover:text-blue-700">Page Builder</a></li>
+                        class="text-blue-600 hover:text-blue-700">Page Buildersss</a></li>
                 <li>/</li>
                 <li class="text-gray-600">{{ $titlePage }}</li>
             </ol>

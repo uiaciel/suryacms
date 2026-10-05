@@ -106,6 +106,14 @@ class FrontendController extends Controller
             abort(404);
         }
 
+        if (! is_null($page->html)) {
+            return view('frontend::page.show', [
+                'page' => $page,
+                'html' => $this->processShortcodes($page->html),
+                'css' => $page->css,
+            ]);
+        }
+
         return view('frontend::page.show', [
             'page' => $page,
         ]);

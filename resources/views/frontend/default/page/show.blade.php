@@ -11,6 +11,10 @@ $seo = (object)[
 @endphp
 @endsection
 @section('content')
+@if (! is_null($page->html))
+<style>{!! $css ?? $page->css !!}</style>
+{!! $html ?? $page->html !!}
+@else
 <section class="bg-page-header">
     <div class="page-header-overlay">
         <div class="container">
@@ -104,4 +108,5 @@ $seo = (object)[
     </div>
 
 </div>
+@endif
 @endsection
