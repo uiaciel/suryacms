@@ -53,7 +53,7 @@ class SettingMapperService
 
             // Matches <script>...</script>, <style>...</style>, and any tag <...>, skipping them,
             // while matching the placeholder only as a whole word outside of them.
-            $pattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b' . preg_quote($placeholder, '~') . '\b~is';
+            $pattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b'.preg_quote($placeholder, '~').'\b~is';
             $html = preg_replace($pattern, $replacement, $html);
         }
 
@@ -96,7 +96,7 @@ class SettingMapperService
         $autoMappings = $this->detectCommonPatterns($html);
 
         foreach ($autoMappings as $pattern => $replacement) {
-            $regexPattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b' . preg_quote($pattern, '~') . '\b~is';
+            $regexPattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b'.preg_quote($pattern, '~').'\b~is';
             $html = preg_replace($regexPattern, $replacement, $html);
         }
 

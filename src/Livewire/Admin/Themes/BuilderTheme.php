@@ -5,6 +5,7 @@ namespace Uiaciel\SuryaCms\Livewire\Admin\Themes;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Uiaciel\SuryaCms\Services\FooterNormalizerService;
@@ -23,14 +24,20 @@ class BuilderTheme extends Component
 
     // Step 1: Upload & Metadata
     public $themeName = '';
+
     public $indexFile = null;
+
     public $sessionId = '';
+
     public $tempPath = '';
+
     public $indexPreview = '';
 
     // Step 2: Component Selectors
     public $selectorNav = '';
+
     public $selectorFooter = '';
+
     public $selectorHero = '';
 
     // Step 3: Variables & Placeholder Mapping
@@ -41,22 +48,31 @@ class BuilderTheme extends Component
 
     // Step 5: Preview & Compile
     public $generatedFiles = []; // array of ['path' => ..., 'content' => ...]
+
     public $activePreviewFile = 'index.blade.php';
+
     public $editingFileContent = ''; // Current file being edited
 
     // HTML Contents
     public $htmlRaw = '';
+
     public $htmlNormalized = '';
+
     public $htmlOriginalContent = ''; // Original HTML before any modifications
+
     public $htmlSourcePreview = ''; // Original HTML for Step 5 reference
+
     public $allHtmlFiles = []; // All HTML files from ZIP: ['filename' => 'content']
 
     // Step 2: HTML Structure Indexing
     public $htmlStructureIndex = []; // Structure elements for indexing
+
     public $htmlLines = []; // HTML split by lines for scroll reference
+
     public $selectedIndexItem = null; // Track clicked index item
 
     public $sidebarMinimized = true;
+
     public $sidebarOpen = true;
 
     // Validation Errors list
@@ -78,7 +94,7 @@ class BuilderTheme extends Component
         $this->sidebarMinimized = true;
         $this->sidebarOpen = true;
         $this->sessionId = (string) Str::uuid();
-        $this->tempPath = storage_path("app/temp/themes/builder/" . $this->sessionId);
+        $this->tempPath = storage_path('app/temp/themes/builder/'.$this->sessionId);
         $this->indexPreview = asset("storage/temp/themes/builder/{$this->sessionId}/index.html");
     }
 
@@ -89,7 +105,7 @@ class BuilderTheme extends Component
         if (isset($this->rules[$this->step])) {
             try {
                 $this->validate($this->rules[$this->step]);
-            } catch (\Illuminate\Validation\ValidationException $e) {
+            } catch (ValidationException $e) {
                 $this->validationErrors = $e->errors();
                 throw $e;
             }
@@ -139,7 +155,7 @@ class BuilderTheme extends Component
      */
     public function addManualMapping($original, $replacement, $type = 'text')
     {
-        if (!empty($original) && !empty($replacement)) {
+        if (! empty($original) && ! empty($replacement)) {
             $this->mappings[] = [
                 'original' => $original,
                 'replacement' => $replacement,
@@ -170,6 +186,7 @@ class BuilderTheme extends Component
         if (isset($this->allHtmlFiles[$filename])) {
             return $this->allHtmlFiles[$filename]['content'];
         }
+
         return '';
     }
 
@@ -184,7 +201,7 @@ class BuilderTheme extends Component
             // Move uploaded ZIP file to temp directory
             $uploadedFilePath = $this->indexFile->getRealPath();
             $zipDestPath = "{$this->tempPath}/theme.zip";
-            if (!copy($uploadedFilePath, $zipDestPath)) {
+            if (! copy($uploadedFilePath, $zipDestPath)) {
                 throw new \Exception('Gagal menyalin file ZIP ke storage temp');
             }
 
@@ -203,17 +220,17 @@ class BuilderTheme extends Component
                     }
 
                     // Collect all HTML files
-                    if (preg_match('/\.html?$/i', $name) && !$zip->statIndex($i)['size'] == 0) {
+                    if (preg_match('/\.html?$/i', $name) && ! $zip->statIndex($i)['size'] == 0) {
                         $content = $zip->getFromIndex($i);
                         $filename = basename($name);
                         $this->allHtmlFiles[$filename] = [
                             'path' => $name,
-                            'content' => $content
+                            'content' => $content,
                         ];
                     }
                 }
 
-                if (!$indexPath) {
+                if (! $indexPath) {
                     throw new \Exception('index.html tidak ditemukan dalam file ZIP.');
                 }
 
@@ -238,7 +255,7 @@ class BuilderTheme extends Component
             $this->generateHtmlStructureIndex();
 
         } catch (\Exception $e) {
-            Log::error('Builder Upload failed: ' . $e->getMessage());
+            Log::error('Builder Upload failed: '.$e->getMessage());
             $this->validationErrors = [$e->getMessage()];
             throw $e;
         }
@@ -261,7 +278,7 @@ class BuilderTheme extends Component
         // 1. Detect Navigation
         $navNode = $xpath->query('//nav|//*[@id="navigation"]|//*[contains(@class, "navbar") or contains(@class, "menu")]')->item(0);
         if ($navNode) {
-            $this->selectorNav = $navNode->hasAttribute('id') ? '#' . $navNode->getAttribute('id') : 'nav';
+            $this->selectorNav = $navNode->hasAttribute('id') ? '#'.$navNode->getAttribute('id') : 'nav';
         } else {
             $this->selectorNav = 'nav';
         }
@@ -269,7 +286,7 @@ class BuilderTheme extends Component
         // 2. Detect Footer
         $footerNode = $xpath->query('//footer|//*[@id="footer"]|//*[contains(@class, "footer")]')->item(0);
         if ($footerNode) {
-            $this->selectorFooter = $footerNode->hasAttribute('id') ? '#' . $footerNode->getAttribute('id') : 'footer';
+            $this->selectorFooter = $footerNode->hasAttribute('id') ? '#'.$footerNode->getAttribute('id') : 'footer';
         } else {
             $this->selectorFooter = 'footer';
         }
@@ -277,7 +294,7 @@ class BuilderTheme extends Component
         // 3. Detect Hero Section
         $heroNode = $xpath->query('//section[contains(@id, "hero") or contains(@id, "banner") or contains(@class, "hero") or contains(@class, "banner")]')->item(0);
         if ($heroNode) {
-            $this->selectorHero = $heroNode->hasAttribute('id') ? '#' . $heroNode->getAttribute('id') : 'section:first-of-type';
+            $this->selectorHero = $heroNode->hasAttribute('id') ? '#'.$heroNode->getAttribute('id') : 'section:first-of-type';
         } else {
             $this->selectorHero = 'header';
         }
@@ -317,7 +334,7 @@ class BuilderTheme extends Component
         if ($headerNodes !== false) {
             foreach ($headerNodes as $node) {
                 $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
-                $label = 'header' . ($id ? "#$id" : '');
+                $label = 'header'.($id ? "#$id" : '');
                 $this->htmlStructureIndex[] = [
                     'type' => 'header',
                     'label' => $label,
@@ -332,7 +349,7 @@ class BuilderTheme extends Component
             foreach ($navNodes as $node) {
                 $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
                 $class = $node->hasAttribute('class') ? explode(' ', $node->getAttribute('class'))[0] : '';
-                $label = 'nav' . ($id ? "#$id" : ($class ? ".$class" : ''));
+                $label = 'nav'.($id ? "#$id" : ($class ? ".$class" : ''));
                 $this->htmlStructureIndex[] = [
                     'type' => 'nav',
                     'label' => $label,
@@ -347,7 +364,7 @@ class BuilderTheme extends Component
             foreach ($sectionNodes as $node) {
                 $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
                 $class = $node->hasAttribute('class') ? explode(' ', $node->getAttribute('class'))[0] : '';
-                $label = 'section' . ($id ? "#$id" : ($class ? ".$class" : ''));
+                $label = 'section'.($id ? "#$id" : ($class ? ".$class" : ''));
                 $this->htmlStructureIndex[] = [
                     'type' => 'section',
                     'label' => $label,
@@ -362,7 +379,7 @@ class BuilderTheme extends Component
             foreach ($footerNodes as $node) {
                 $id = $node->hasAttribute('id') ? $node->getAttribute('id') : '';
                 $class = $node->hasAttribute('class') ? explode(' ', $node->getAttribute('class'))[0] : '';
-                $label = 'footer' . ($id ? "#$id" : ($class ? ".$class" : ''));
+                $label = 'footer'.($id ? "#$id" : ($class ? ".$class" : ''));
                 $this->htmlStructureIndex[] = [
                     'type' => 'footer',
                     'label' => $label,
@@ -382,6 +399,7 @@ class BuilderTheme extends Component
                 return $lineNum + 1; // 1-based line number
             }
         }
+
         return 1;
     }
 
@@ -431,8 +449,8 @@ class BuilderTheme extends Component
             $this->mappings = $mappingService->getScanResults();
 
         } catch (\Exception $e) {
-            Log::error('Builder Selector process failed: ' . $e->getMessage());
-            $this->validationErrors = ['Format selector CSS tidak valid atau tidak ditemukan dalam dokumen: ' . $e->getMessage()];
+            Log::error('Builder Selector process failed: '.$e->getMessage());
+            $this->validationErrors = ['Format selector CSS tidak valid atau tidak ditemukan dalam dokumen: '.$e->getMessage()];
             throw $e;
         }
     }
@@ -444,12 +462,13 @@ class BuilderTheme extends Component
     {
         $selector = trim($selector);
         if (strpos($selector, '#') === 0) {
-            return '//*[@id="' . substr($selector, 1) . '"]';
+            return '//*[@id="'.substr($selector, 1).'"]';
         }
         if (strpos($selector, '.') === 0) {
-            return '//*[contains(@class, "' . substr($selector, 1) . '")]';
+            return '//*[contains(@class, "'.substr($selector, 1).'")]';
         }
-        return '//' . $selector;
+
+        return '//'.$selector;
     }
 
     /**
@@ -485,7 +504,7 @@ class BuilderTheme extends Component
     {
         $dom = new \DOMDocument;
         libxml_use_internal_errors(true);
-        @$dom->loadHTML('<?xml encoding="UTF-8">' . $this->htmlNormalized, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        @$dom->loadHTML('<?xml encoding="UTF-8">'.$this->htmlNormalized, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         libxml_clear_errors();
         $xpath = new \DOMXPath($dom);
 
@@ -521,21 +540,21 @@ class BuilderTheme extends Component
                 $title = $heading ? trim($heading->textContent) : null;
 
                 // Fallback: use first paragraph text or element type + counter
-                if (!$title) {
+                if (! $title) {
                     $firstText = $xpath->query('.//p', $element)->item(0);
                     if ($firstText) {
                         $text = trim($firstText->textContent);
-                        $title = strlen($text) > 50 ? substr($text, 0, 50) . '...' : $text;
+                        $title = strlen($text) > 50 ? substr($text, 0, 50).'...' : $text;
                     } else {
-                        $title = 'Section ' . $counter;
+                        $title = 'Section '.$counter;
                     }
                 }
 
-                $id = $elementId ?: 'section-' . $counter;
+                $id = $elementId ?: 'section-'.$counter;
 
                 // Avoid duplicate IDs in processing
                 if (in_array($id, $processedIds)) {
-                    $id = 'section-' . $counter;
+                    $id = 'section-'.$counter;
                 }
                 $processedIds[] = $id;
 
@@ -579,11 +598,12 @@ class BuilderTheme extends Component
         foreach ($this->sections as $section) {
             if ($section['type'] === 'homepage') {
                 $content .= "<!-- Section: {$section['label']} -->\n";
-                $content .= $section['content'] . "\n\n";
+                $content .= $section['content']."\n\n";
             }
         }
 
-        $content .= "@endsection";
+        $content .= '@endsection';
+
         return $content;
     }
 
@@ -630,11 +650,11 @@ class BuilderTheme extends Component
                 'page/financial.blade.php' => $generator->generatePageReport('Financial Reports'),
                 'page/share.blade.php' => $generator->generatePageReport('Share Reports'),
                 'page/maintenance.blade.php' => $generator->generatePageMaintenance(),
-                'theme.php' => "<?php\n\nreturn " . $generator->generateThemeConfig() . ";",
+                'theme.php' => "<?php\n\nreturn ".$generator->generateThemeConfig().';',
             ];
 
         } catch (\Exception $e) {
-            Log::error('Builder generate failed: ' . $e->getMessage());
+            Log::error('Builder generate failed: '.$e->getMessage());
             $this->validationErrors = [$e->getMessage()];
             throw $e;
         }
@@ -689,13 +709,14 @@ class BuilderTheme extends Component
 
                         // Skip directories
                         if (substr($filename, -1) === '/') {
-                            $dirPath = $publicAssetPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $filename);
+                            $dirPath = $publicAssetPath.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $filename);
                             $this->ensureDirectoryExists($dirPath);
+
                             continue;
                         }
 
                         $content = $zip->getFromIndex($i);
-                        $filePath = $publicAssetPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $filename);
+                        $filePath = $publicAssetPath.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $filename);
 
                         $this->ensureDirectoryExists(dirname($filePath));
                         file_put_contents($filePath, $content);
@@ -728,37 +749,39 @@ class BuilderTheme extends Component
             $this->deleteDirectory($this->tempPath);
 
             session()->flash('message', "✅ Tema '{$this->themeName}' berhasil di-build dan di-install secara interaktif!");
+
             return redirect()->route('admin.themes.index');
 
         } catch (\Exception $e) {
-            Log::error('Interactive Theme Builder installation failed: ' . $e->getMessage());
-            $this->validationErrors = ['Gagal menginstall tema: ' . $e->getMessage()];
+            Log::error('Interactive Theme Builder installation failed: '.$e->getMessage());
+            $this->validationErrors = ['Gagal menginstall tema: '.$e->getMessage()];
             session()->flash('error', $e->getMessage());
         }
     }
 
     private function ensureDirectoryExists($path)
     {
-        if (!file_exists($path)) {
-            if (!mkdir($path, 0755, true)) {
-                throw new \Exception('Gagal membuat direktori: ' . $path);
+        if (! file_exists($path)) {
+            if (! mkdir($path, 0755, true)) {
+                throw new \Exception('Gagal membuat direktori: '.$path);
             }
         }
     }
 
     private function deleteDirectory($path)
     {
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             return true;
         }
-        if (!is_dir($path)) {
+        if (! is_dir($path)) {
             return unlink($path);
         }
         foreach (array_diff(scandir($path), ['.', '..']) as $item) {
-            if (!$this->deleteDirectory("{$path}/{$item}")) {
+            if (! $this->deleteDirectory("{$path}/{$item}")) {
                 return false;
             }
         }
+
         return rmdir($path);
     }
 

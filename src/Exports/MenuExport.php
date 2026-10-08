@@ -2,6 +2,7 @@
 
 namespace Uiaciel\SuryaCms\Exports;
 
+use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Uiaciel\SuryaCms\Models\Menu;
@@ -9,7 +10,7 @@ use Uiaciel\SuryaCms\Models\Menu;
 class MenuExport implements FromCollection, WithHeadings
 {
     /**
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function collection()
     {

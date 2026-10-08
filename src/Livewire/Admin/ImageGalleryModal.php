@@ -4,32 +4,39 @@ namespace Uiaciel\SuryaCms\Livewire\Admin;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Livewire\Component;
+use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
-use Uiaciel\SuryaCms\Models\Gallery;
+use Livewire\Component;
 use Livewire\WithFileUploads;
+use Spatie\PdfToImage\Enums\OutputFormat;
 use Spatie\PdfToImage\Pdf;
-use Illuminate\Support\Str;
+use Uiaciel\SuryaCms\Models\Gallery;
 
 class ImageGalleryModal extends Component
 {
     use WithFileUploads;
 
     public $isOpen = false;
+
     public $galleries = [];
+
     public $search = '';
+
     public $selectedImage = null;
 
     protected $listeners = [
         'openGalleryModal' => 'open',
-        'closeGalleryModal' => 'close'
+        'closeGalleryModal' => 'close',
     ];
 
     public $uploadImage;
+
     public $uploadName;
+
     public $uploadCategory = 'POST';
+
     public $status = 'Publish';
 
     public function mount()
@@ -51,7 +58,7 @@ class ImageGalleryModal extends Component
         $extension = strtolower($file->getClientOriginalExtension());
 
         try {
-            $fileSize = round($file->getSize() / 1024, 2) . ' KB';
+            $fileSize = round($file->getSize() / 1024, 2).' KB';
 
             if ($extension === 'pdf') {
                 $fileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
@@ -61,14 +68,14 @@ class ImageGalleryModal extends Component
                 // Generate cover
                 $coverPath = $this->generatePdfCover($path, $this->uploadName, $timestamp);
             } else {
-                $manager = new ImageManager(new Driver());
+                $manager = new ImageManager(new Driver);
                 $fileName = "{$timestamp}_gallery_{$slugTitle}.webp";
 
                 $convertedImage = $manager->read($file->getRealPath())
-                                         ->encode(new WebpEncoder(quality: 70));
+                    ->encode(new WebpEncoder(quality: 70));
 
-                Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
-                $path = 'galleries/' . $fileName;
+                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
+                $path = 'galleries/'.$fileName;
                 $coverPath = $path;
                 $mimeType = 'image';
             }
@@ -92,7 +99,7 @@ class ImageGalleryModal extends Component
             $this->dispatch('swal', ['icon' => 'success', 'title' => 'Success', 'text' => 'File uploaded successfully!']);
 
         } catch (\Exception $e) {
-            Log::error('Modal upload error: ' . $e->getMessage());
+            Log::error('Modal upload error: '.$e->getMessage());
             $this->dispatch('swal', ['icon' => 'error', 'title' => 'Error', 'text' => $e->getMessage()]);
         }
     }
@@ -105,18 +112,19 @@ class ImageGalleryModal extends Component
             $imageRelativePath = "galleries/covers/{$slugName}_{$timestamp}_cover.jpg";
             $imageFullPath = Storage::disk('public')->path($imageRelativePath);
 
-            if (!file_exists(dirname($imageFullPath))) {
+            if (! file_exists(dirname($imageFullPath))) {
                 mkdir(dirname($imageFullPath), 0755, true);
             }
 
             (new Pdf($pdfFullPath))
                 ->selectPage(1)
-                ->format(\Spatie\PdfToImage\Enums\OutputFormat::Jpg)
+                ->format(OutputFormat::Jpg)
                 ->save($imageFullPath);
 
             return $imageRelativePath;
         } catch (\Exception $e) {
-            Log::warning('PDF Cover generation skipped: ' . $e->getMessage());
+            Log::warning('PDF Cover generation skipped: '.$e->getMessage());
+
             return null;
         }
     }
@@ -159,14 +167,14 @@ class ImageGalleryModal extends Component
                     'url' => $fileUrl,
                     'cover_url' => $coverUrl,
                     'name' => $image->name,
-                    'path' => $image->image_path
+                    'path' => $image->image_path,
                 ]);
             } else {
                 $this->selectedImage = $fileUrl;
                 $this->dispatch('imageSelectedFromGallery', [
                     'url' => $this->selectedImage,
                     'name' => $image->name,
-                    'alt_text' => $image->alt_text ?? $image->name
+                    'alt_text' => $image->alt_text ?? $image->name,
                 ]);
             }
 

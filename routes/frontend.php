@@ -1,8 +1,7 @@
 <?php
 
-use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
+use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
 
 /*
 |--------------------------------------------------------------------------
@@ -31,10 +30,13 @@ if (is_multilingual()) {
     $excludedSlugs = array_merge($excludedSlugs, $activeLangs);
 }
 
-$excludedPattern = implode('|', array_map('preg_quote', $excludedSlugs));
+$excludedPattern = implode('|', array_map(
+    fn ($slug) => preg_quote($slug, '/'),
+    $excludedSlugs
+));
 
 // Helper untuk register frontend routes
-$registerFrontendRoutes = function() use ($excludedPattern) {
+$registerFrontendRoutes = function () use ($excludedPattern) {
     Route::get('/', [FrontendController::class, 'index'])->name('homepage');
     Route::get('category', [FrontendController::class, 'categoryIndex'])->name('frontend.category.index');
     Route::get('category/{slug}', [FrontendController::class, 'category'])->name('frontend.category.show');
@@ -45,7 +47,7 @@ $registerFrontendRoutes = function() use ($excludedPattern) {
     // Wildcard page route - MUST BE LAST
     // Exclude: admin routes, API, debugbars, categories, media, dan language codes
     Route::get('{slug}', [FrontendController::class, 'pageshow'])
-        ->where('slug', '^(?!' . $excludedPattern . ').*$')
+        ->where('slug', '^(?!'.$excludedPattern.').*$')
         ->name('frontend.page.show');
 };
 
@@ -58,7 +60,7 @@ if (is_multilingual()) {
     | Akan set locale ke default language (e.g., 'id')
     */
     Route::middleware($routeMiddleware)
-        ->group(function() use ($registerFrontendRoutes) {
+        ->group(function () use ($registerFrontendRoutes) {
             $registerFrontendRoutes();
         });
 
@@ -72,7 +74,7 @@ if (is_multilingual()) {
     Route::group([
         'prefix' => '{lang}',
         'where' => ['lang' => '[a-z]{2}'],
-        'middleware' => $routeMiddleware
+        'middleware' => $routeMiddleware,
     ], $registerFrontendRoutes);
 } else {
     /*

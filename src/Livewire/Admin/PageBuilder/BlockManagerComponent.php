@@ -2,12 +2,19 @@
 
 namespace Uiaciel\SuryaCms\Livewire\Admin\PageBuilder;
 
-use Livewire\Component;
 use App\Models\CustomBlock;
+use Livewire\Component;
 
 class BlockManagerComponent extends Component
 {
-    public $name, $category, $html, $css;
+    public $name;
+
+    public $category;
+
+    public $html;
+
+    public $css;
+
     protected $listeners = ['saveBlockFromJs' => 'handleSaveBlock'];
 
     public function handleSaveBlock($data)
@@ -18,7 +25,7 @@ class BlockManagerComponent extends Component
             'category' => $data['category'],
             'html' => $data['html'],
             'css' => $data['css'],
-            'settings' => ['type' => 'custom']
+            'settings' => ['type' => 'custom'],
         ]);
 
         // Dispatch event untuk memberitahu UI bahwa blok baru telah disimpan

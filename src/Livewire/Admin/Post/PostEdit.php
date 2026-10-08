@@ -4,12 +4,13 @@ namespace Uiaciel\SuryaCms\Livewire\Admin\Post;
 
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\HttpClient\HttpClient;
+use Uiaciel\SuryaCms\Events\PostPublished;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Services\KeywordExtractionService;
-use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Component\HttpClient\HttpClient;
 
 class PostEdit extends Component
 {
@@ -181,16 +182,16 @@ class PostEdit extends Component
                 if ($crawler->filter('.photo__wrap img')->count()) {
                     $image = $crawler->filter('.photo__wrap img')->first()->attr('src');
                 }
-                } else {
-                    // Jika domain tidak terdaftar dalam selector yang didukung
-                    $this->dispatch('swal', [
-                        'icon' => 'error',
-                        'title' => 'Unsupported Site',
-                        'text' => 'Scraping is only supported for Detik, CNN Indonesia, Tribunnews, and Kompas.',
-                    ]);
+            } else {
+                // Jika domain tidak terdaftar dalam selector yang didukung
+                $this->dispatch('swal', [
+                    'icon' => 'error',
+                    'title' => 'Unsupported Site',
+                    'text' => 'Scraping is only supported for Detik, CNN Indonesia, Tribunnews, and Kompas.',
+                ]);
 
-                    return;
-                }
+                return;
+            }
 
             // Normalize image URL if relative
             if ($image && ! preg_match('#^https?://#i', $image)) {
@@ -344,7 +345,7 @@ class PostEdit extends Component
         }
 
         try {
-            $keywordService = new KeywordExtractionService();
+            $keywordService = new KeywordExtractionService;
 
             // Generate tags dari title dan konten
             $generatedTags = $keywordService->generateTags(
@@ -379,7 +380,7 @@ class PostEdit extends Component
     {
         if (! empty($this->scrapeResult['content'])) {
             try {
-                $keywordService = new KeywordExtractionService();
+                $keywordService = new KeywordExtractionService;
 
                 // Generate keywords dari scraped content
                 $generatedTags = $keywordService->generateTags(
@@ -450,9 +451,9 @@ class PostEdit extends Component
                 // 'user_id' tidak perlu diupdate karena ini edit
             ]);
 
-            if($post->status === 'Publish') {
-                event(new \Uiaciel\SuryaCms\Events\PostPublished($post));
-                }
+            if ($post->status === 'Publish') {
+                event(new PostPublished($post));
+            }
 
             session()->flash('success', 'Post updated successfully.');
             $this->dispatch('swal', [

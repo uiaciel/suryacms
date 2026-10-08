@@ -1,26 +1,18 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {{-- Header Section --}}
-        <div class="mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
-                            </svg>
-                        </div>
-                        {{ $titlePage }}
-                    </h1>
-                    <p class="text-gray-600 mt-2"></p>
-                </div>
+<div class="min-h-screen">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
 
-                {{-- Breadcrumb --}}
-                <nav aria-label="breadcrumb" class="mt-4 sm:mt-0">
+        {{-- Toast & Session --}}
+        <x-suryacms::toast-alert />
+        <x-suryacms::session-status />
+
+        {{-- Header --}}
+        <div class="mb-3 sm:mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h1 class="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-gray-900">
+                    {{ $titlePage }}
+                </h1>
+                <nav aria-label="breadcrumb" class="hidden sm:block">
                     <ol class="flex flex-wrap gap-2 text-sm text-gray-600">
                         <li><a href="/{{ config('suryacms.admin_prefix') }}"
                                 class="text-blue-600 hover:text-blue-700 hover:underline">Admin</a></li>
@@ -34,9 +26,6 @@
                 </nav>
             </div>
         </div>
-
-        <x-suryacms::session-status />
-        <x-suryacms::toast-alert />
 
         <div x-data="{
             showAlert: false,
@@ -124,47 +113,30 @@
 
                         <div class="space-y-4">
                             <div>
-                                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Page Title
-                                    <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" id="title" wire:model.live="title"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white"
-                                    placeholder="Enter an engaging page title...">
+                                <label for="title" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">Title</label>
+                                <input type="text" id="title" wire:model="title"
+                                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter post title">
                                 @error('title')
-                                    <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd"
-                                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                                clip-rule="evenodd"></path>
-                                        </svg>
-                                        {{ $message }}
-                                    </p>
+                                    <span class="text-red-600 text-xs sm:text-sm mt-1">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            {{-- Multilingual Support --}}
                             @if ($setting->is_multilingual == 'Yes')
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label for="language_id" class="block text-sm font-medium text-gray-700 mb-2">
-                                            Language
-                                        </label>
+                                        <label for="language_id" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Language</label>
                                         <select id="language_id" wire:model="language_id"
-                                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                            class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             @foreach ($languages as $lang)
                                                 <option value="{{ $lang->id }}">{{ $lang->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
-
                                     <div>
-                                        <label for="translation_id"
-                                            class="block text-sm font-medium text-gray-700 mb-2">
-                                            Translate From
-                                        </label>
+                                        <label for="translation_id" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Translate From</label>
                                         <select id="translation_id" wire:model="translation_id"
-                                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                            class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                             <option value="">-- None --</option>
                                             @foreach ($pages as $page)
                                                 <option value="{{ $page->id }}">{{ $page->title }}</option>
@@ -177,61 +149,38 @@
                     </div>
 
                     {{-- Content Editor Section --}}
-                    <div
-                        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                    </path>
+                    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-5 lg:p-6">
+                        <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-semibold text-gray-900">Page Content</h3>
+                            <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">Page Content</h3>
                         </div>
 
                         <div class="space-y-3">
-                            <div class="flex flex-wrap gap-2">
-
+                            <div class="flex gap-2">
                                 <button type="button"
-                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                                    onclick="Livewire.dispatch('openGalleryModal');">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                        </path>
-                                    </svg>
-                                    Insert Media
+                                    class="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 font-semibold"
+                                    wire:click="$dispatch('openGalleryModal')">
+                                    <i class="fas fa-images mr-1 sm:mr-2"></i>Insert Media
                                 </button>
                                 <button type="button"
-                                    class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                                    onclick="Livewire.dispatch('openYoutubeVideoModal');">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6z">
-                                        </path>
-                                    </svg>
-                                    Insert Video
+                                    class="flex-1 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-red-500 text-red-600 rounded-lg hover:bg-red-50 font-semibold"
+                                    wire:click="$dispatch('openYoutubeVideoModal')">
+                                    <i class="fab fa-youtube mr-1 sm:mr-2"></i>Insert Video
                                 </button>
                             </div>
 
-                            <div wire:ignore
-                                class="border-4 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50 hover:bg-white transition-colors">
-                                <textarea id="content" wire:model="konten" name="konten" rows="12"
-                                    class="w-full p-4 border-0 focus:ring-0 bg-transparent text-gray-800 resize-none"
-                                    placeholder="Start typing your page content here... You can use bold, italic, lists, and more..."></textarea>
+                            <div wire:ignore>
+                                <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">Content</label>
+                                <textarea id="content" wire:model="konten" name="konten"
+                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">{{ old('konten', $konten) }}</textarea>
+                                @error('konten')
+                                    <span class="text-red-600 text-xs sm:text-sm mt-1">{{ $message }}</span>
+                                @enderror
                             </div>
-
-                            @error('konten')
-                                <p class="text-red-500 text-sm flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                            clip-rule="evenodd"></path>
-                                    </svg>
-                                    {{ $message }}
-                                </p>
-                            @enderror
                         </div>
                     </div>
 
@@ -312,65 +261,53 @@
                 {{-- Sidebar: Settings & Actions --}}
                 <div class="space-y-6">
 
-                    {{-- Status & Publishing Settings --}}
-                    <div
-                        class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center gap-3 mb-5">
-                            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-5 lg:p-6">
+                        <div class="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                             </div>
-                            <h3 class="text-lg font-semibold text-gray-900">Publication Settings</h3>
+                            <h3 class="text-sm sm:text-base lg:text-lg font-semibold text-gray-900">Publication</h3>
                         </div>
 
-                        <div class="space-y-4">
+                        <div class="space-y-3">
+                            <div>
+                                <label for="datepublish" class="block text-xs sm:text-sm font-semibold text-gray-700 mb-1.5">Date Publish</label>
+                                <input type="date" id="datepublish" wire:model="datepublish"
+                                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
 
                             <div>
                                 <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
                                     Status
                                 </label>
                                 <select id="status" wire:model="status"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                                    class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                                     <option value="Publish">
-                                        ✓ Publish
+                                        Publish
                                     </option>
                                     <option value="Draft">
-                                        ✎ Draft
+                                        Draft
                                     </option>
                                 </select>
                             </div>
 
-                            <div>
-                                <label for="datepublish" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Publish Date
-                                </label>
-                                <input type="date" id="datepublish" wire:model="datepublish"
-                                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
-                                @error('datepublish')
-                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
                         </div>
                     </div>
+
+                    {{-- Status & Publishing Settings --}}
 
                     {{-- Save & Cancel Buttons --}}
                     <div class="space-y-3">
 
                         <button type="submit"
-                            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 group">
-                            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none"
-                                stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                            </svg>
-                            Publish Page
+                            class="w-full py-2 px-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 group">
+                            Submit
                         </button>
 
                         <a href="/{{ config('suryacms.admin_prefix') }}/pages"
-                            class="w-full py-3 px-4 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-xl transition-colors text-center block">
+                            class="w-full py-2 px-3 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold rounded-xl transition-colors text-center block">
                             Cancel
                         </a>
                     </div>

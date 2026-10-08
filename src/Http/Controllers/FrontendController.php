@@ -4,43 +4,41 @@ namespace Uiaciel\SuryaCms\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\View\View;
+use Uiaciel\SuryaCms\Mail\ForwardInbox;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Contact;
 use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 
 class FrontendController extends Controller
 {
     protected int $cacheTtl = 1440; // 24 hours
 
-    public function index(): \Illuminate\View\View
+    public function index(): View
     {
         $setting = $this->getSetting();
-        $locale = App::getLocale();
 
         if (($setting->homepage_type ?? 'index') === 'homepage') {
-            $slug = "homepage-{$locale}";
-
-            // $page = Cache::remember("page.static.{$slug}", $this->cacheTtl, function () use ($slug) {
-            //     return Page::where('slug', $slug)
-            //         ->where('status', 'Publish')
-            //         ->first();
-            // });
-
-            $page = Page::where('slug', $slug)
+            $page = $setting->homepage_id
+                ? Page::whereKey($setting->homepage_id)
                     ->where('status', 'Publish')
-                    ->first();
+                    ->first()
+                : null;
 
             if ($page) {
                 return view('frontend::homepage', [
-                    'html'  => $this->processShortcodes($page->html),
-                    'css'   => $page->css,
-                    'title' => $page->title, // Asumsi ada helper getLocalized
+                    'page' => $page,
+                    'html' => $this->processShortcodes($page->html),
+                    'css' => $page->css,
+                    'title' => $page->title,
                 ]);
             }
         }
@@ -48,7 +46,7 @@ class FrontendController extends Controller
         return view('frontend::index');
     }
 
-    public function postshow(Request $request, $lang, $slug = null): \Illuminate\View\View
+    public function postshow(Request $request, $lang, $slug = null): View
     {
         /**
          * Logika Penentuan Slug:
@@ -82,7 +80,7 @@ class FrontendController extends Controller
         return view('frontend::page.post', compact('post', 'recentpost'));
     }
 
-    public function pageshow(Request $request, $lang, $slug = null): \Illuminate\View\View
+    public function pageshow(Request $request, $lang, $slug = null): View
     {
         /**
          * Logika Penentuan Slug:
@@ -97,12 +95,12 @@ class FrontendController extends Controller
         $cacheKey = "page_content_{$actualSlug}_{$locale}";
 
         $page = Cache::remember($cacheKey, $this->cacheTtl, function () use ($actualSlug) {
-            return \Uiaciel\SuryaCms\Models\Page::where('slug', $actualSlug)
+            return Page::where('slug', $actualSlug)
                 ->where('status', 'Publish')
                 ->first();
         });
 
-        if (!$page) {
+        if (! $page) {
             abort(404);
         }
 
@@ -122,7 +120,7 @@ class FrontendController extends Controller
     /**
      * Display all categories with featured posts
      */
-    public function categoryIndex(Request $request, $lang = null): \Illuminate\View\View
+    public function categoryIndex(Request $request, $lang = null): View
     {
         $locale = app()->getLocale();
         $languageId = $this->getLanguageIdFromCode($locale);
@@ -140,7 +138,7 @@ class FrontendController extends Controller
 
         $categories = Category::All();
         $posts = Post::where('status', 'Publish')
-            ->when($languageId, fn($q) => $q->where('language_id', $languageId))
+            ->when($languageId, fn ($q) => $q->where('language_id', $languageId))
             ->latest()
             ->paginate(12);
 
@@ -150,7 +148,7 @@ class FrontendController extends Controller
     /**
      * Category Posts List
      */
-    public function category(Request $request, $lang, $slug = null): \Illuminate\View\View
+    public function category(Request $request, $lang, $slug = null): View
     {
         // Jika $slug null, berarti diakses tanpa prefix lang (param 1 adalah slugnya)
         $actualSlug = $slug ?: $lang;
@@ -163,8 +161,8 @@ class FrontendController extends Controller
 
         $posts = Post::where('category_id', $category->id)
             ->where('status', 'Publish')
-            ->when(is_multilingual(), function($q) use ($locale) {
-                return $q->whereHas('language', fn($l) => $l->where('code', $locale));
+            ->when(is_multilingual(), function ($q) use ($locale) {
+                return $q->whereHas('language', fn ($l) => $l->where('code', $locale));
             })
             ->latest()
             ->paginate(12);
@@ -172,7 +170,7 @@ class FrontendController extends Controller
         return view('frontend::page.category', compact('category', 'posts'));
     }
 
-    public function contact(Request $request): \Illuminate\View\View
+    public function contact(Request $request): View
     {
         return view('frontend::page.contact');
     }
@@ -203,8 +201,8 @@ class FrontendController extends Controller
         }
 
         $validated = $request->validate([
-            'sender'  => 'required|string|max:255',
-            'email'   => 'required|email|max:255',
+            'sender' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
             'subject' => 'required|string|max:255',
             'message' => 'required|string|max:5000',
         ]);
@@ -212,7 +210,7 @@ class FrontendController extends Controller
         // 3. Auto-Flagging Keywords
         $isImportant = false;
         $importantKeywords = ['Quotation', 'Project', 'Urgent', 'Kerjasama', 'Inquiry', 'Business'];
-        $contentToSearch = $validated['subject'] . ' ' . $validated['message'];
+        $contentToSearch = $validated['subject'].' '.$validated['message'];
 
         foreach ($importantKeywords as $keyword) {
             if (stripos($contentToSearch, $keyword) !== false) {
@@ -222,14 +220,14 @@ class FrontendController extends Controller
         }
 
         $contact = Contact::create([
-            'name'         => $validated['sender'],
-            'email'        => $validated['email'],
-            'subject'      => $validated['subject'],
-            'message'      => $validated['message'],
-            'ip_address'   => $ip,
-            'user_agent'   => $request->userAgent(),
-            'referrer'     => $request->header('referer'),
-            'is_spam'      => $isSpam,
+            'name' => $validated['sender'],
+            'email' => $validated['email'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'ip_address' => $ip,
+            'user_agent' => $request->userAgent(),
+            'referrer' => $request->header('referer'),
+            'is_spam' => $isSpam,
             'is_important' => $isImportant,
         ]);
 
@@ -237,14 +235,14 @@ class FrontendController extends Controller
         Cache::put($cacheKey, $attempts + 1, now()->addMinutes(10));
 
         // 4. Auto Forwarding
-        if (!$isSpam && $setting && $setting->contact_form_auto_forward && $setting->email_forwarder) {
+        if (! $isSpam && $setting && $setting->contact_form_auto_forward && $setting->email_forwarder) {
             try {
-                \Illuminate\Support\Facades\Mail::to($setting->email_forwarder)
-                    ->send(new \Uiaciel\SuryaCms\Mail\ForwardInbox($contact));
+                Mail::to($setting->email_forwarder)
+                    ->send(new ForwardInbox($contact));
 
                 $contact->update(['forwarded_at' => now()]);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Failed to auto-forward contact: " . $e->getMessage());
+                Log::error('Failed to auto-forward contact: '.$e->getMessage());
             }
         }
 
@@ -314,10 +312,13 @@ class FrontendController extends Controller
 
     private function processShortcodes($html): string
     {
-        if (!$html) return '';
+        if (! $html) {
+            return '';
+        }
 
         return preg_replace_callback('/\[\[(.*?)\]\]/', function ($matches) {
-            $viewPath = "frontend::plugin." . trim($matches[1]);
+            $viewPath = 'frontend::plugin.'.trim($matches[1]);
+
             return view()->exists($viewPath) ? view($viewPath)->render() : $matches[0];
         }, $html);
     }

@@ -1,41 +1,43 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Schema;
-use Uiaciel\SuryaCms\Http\Controllers\{
-    AboutController,
-    AdminController,
-    AuthenticatedSessionController,
-    FrontendController,
-    GuideController,
-    ProfileController
-};
-use Uiaciel\SuryaCms\Livewire\Admin;
-use Uiaciel\SuryaCms\Livewire\Admin\{
-    Backup,
-    Contact,
-    FileCheck,
-    Gallery,
-    SearchResult
-};
-use Uiaciel\SuryaCms\Livewire\Admin\Menu\{MenuCreate, MenuList};
-use Uiaciel\SuryaCms\Livewire\Admin\Page\{PageCreate, PageEdit, PageIndex};
-use Uiaciel\SuryaCms\Livewire\Admin\PageBuilder\{HomepageBuilder, IndexPageBuilder};
-use Uiaciel\SuryaCms\Livewire\Admin\Post\{PostCreate, PostEdit, PostIndex, GeneratePost};
-use Uiaciel\SuryaCms\Livewire\Admin\Themes\{
-    BuilderTheme,
-    ConvertTheme,
-    CreateTheme,
-    DocsTheme,
-    EditorTheme,
-    SettingTheme
-};
-use Uiaciel\SuryaCms\Livewire\Admin\Youtube\{YoutubeCreate, YoutubeList};
-use Uiaciel\SuryaCms\Livewire\SettingWeb;
-
+use Illuminate\Support\Facades\Validator;
+use Uiaciel\SuryaCms\Http\Controllers\AboutController;
+use Uiaciel\SuryaCms\Http\Controllers\AdminController;
+use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
 use Uiaciel\SuryaCms\Http\Controllers\BackupController;
+use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
+use Uiaciel\SuryaCms\Http\Controllers\GuideController;
+use Uiaciel\SuryaCms\Http\Controllers\ProfileController;
+use Uiaciel\SuryaCms\Livewire\Admin;
+use Uiaciel\SuryaCms\Livewire\Admin\Backup;
+use Uiaciel\SuryaCms\Livewire\Admin\Contact;
+use Uiaciel\SuryaCms\Livewire\Admin\FileCheck;
+use Uiaciel\SuryaCms\Livewire\Admin\Gallery;
+use Uiaciel\SuryaCms\Livewire\Admin\Menu\MenuCreate;
+use Uiaciel\SuryaCms\Livewire\Admin\Menu\MenuList;
+use Uiaciel\SuryaCms\Livewire\Admin\Page\PageCreate;
+use Uiaciel\SuryaCms\Livewire\Admin\Page\PageEdit;
+use Uiaciel\SuryaCms\Livewire\Admin\Page\PageIndex;
+use Uiaciel\SuryaCms\Livewire\Admin\PageBuilder\HomepageBuilder;
+use Uiaciel\SuryaCms\Livewire\Admin\PageBuilder\IndexPageBuilder;
+use Uiaciel\SuryaCms\Livewire\Admin\Post\GeneratePost;
+use Uiaciel\SuryaCms\Livewire\Admin\Post\PostCreate;
+use Uiaciel\SuryaCms\Livewire\Admin\Post\PostEdit;
+use Uiaciel\SuryaCms\Livewire\Admin\Post\PostIndex;
+use Uiaciel\SuryaCms\Livewire\Admin\SearchResult;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\BuilderTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\ConvertTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\CreateTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\DocsTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\EditorTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\SettingTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Youtube\YoutubeCreate;
+use Uiaciel\SuryaCms\Livewire\Admin\Youtube\YoutubeList;
+use Uiaciel\SuryaCms\Livewire\SettingWeb;
 use Uiaciel\SuryaCms\Livewire\System\FullRestore;
+use Uiaciel\SuryaCms\Models\Setting;
 
 Route::middleware(['web', 'auth'])->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -101,11 +103,11 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
                 Route::post('/', [AdminController::class, 'saveGallery'])->name('store');
                 Route::post('{id}/edit', [AdminController::class, 'editGallery'])->name('edit');
             });
-
+        Route::get('/system', FileCheck::class)->name('suryacms.admin.system');
         Route::get('/system/restore', FullRestore::class)->name('suryacms.admin.restore');
         Route::get('/system/backups', Backup::class)->name('suryacms.admin.backups');
         Route::get('/system/backup/download/{filename}', [BackupController::class, 'download'])
-        ->name('suryacms.admin.backup.download');
+            ->name('suryacms.admin.backup.download');
         Route::get('/system/backups/download/{folder}/{filename}', [BackupController::class, 'download'])
             ->name('suryacms.admin.partial-backup.download');
 
@@ -140,32 +142,32 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
                 Route::get('/create/{theme?}', CreateTheme::class)->name('create');
             });
 
-    Route::get('/test-session/{type}', function ($type) {
-        switch ($type) {
-            case 'success':
-                session()->flash('success', 'Data PDF berhasil diupload dan disimpan ke galeri!');
-                break;
-            case 'error':
-                session()->flash('error', 'Gagal terhubung ke server storage. Silakan coba lagi.');
-                break;
-            case 'info':
-                session()->flash('info', 'Sistem akan melakukan maintenance pada pukul 00:00 WIB.');
-                break;
-            case 'warning':
-                session()->flash('warning', 'Ukuran file Anda mendekati batas maksimal 20MB.');
-                break;
-            case 'validation':
-                // Membuat instance error bag palsu untuk mengetes $errors->any()
-                $validator = Validator::make([], []);
-                $validator->errors()->add('pdfFile', 'File yang diupload wajib berformat .pdf');
-                $validator->errors()->add('title', 'Judul dokumen tidak boleh kosong.');
-                session()->flash('errors', $validator->errors());
-                break;
-        }
+        Route::get('/test-session/{type}', function ($type) {
+            switch ($type) {
+                case 'success':
+                    session()->flash('success', 'Data PDF berhasil diupload dan disimpan ke galeri!');
+                    break;
+                case 'error':
+                    session()->flash('error', 'Gagal terhubung ke server storage. Silakan coba lagi.');
+                    break;
+                case 'info':
+                    session()->flash('info', 'Sistem akan melakukan maintenance pada pukul 00:00 WIB.');
+                    break;
+                case 'warning':
+                    session()->flash('warning', 'Ukuran file Anda mendekati batas maksimal 20MB.');
+                    break;
+                case 'validation':
+                    // Membuat instance error bag palsu untuk mengetes $errors->any()
+                    $validator = Validator::make([], []);
+                    $validator->errors()->add('pdfFile', 'File yang diupload wajib berformat .pdf');
+                    $validator->errors()->add('title', 'Judul dokumen tidak boleh kosong.');
+                    session()->flash('errors', $validator->errors());
+                    break;
+            }
 
-        // Redirect kembali ke halaman sebelumnya (halaman tempat Anda menaruh tombol test)
-        return redirect()->back();
-    })->name('test.session');
+            // Redirect kembali ke halaman sebelumnya (halaman tempat Anda menaruh tombol test)
+            return redirect()->back();
+        })->name('test.session');
     });
 
 Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(function () {
@@ -177,20 +179,20 @@ Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(fun
     */
     try {
         $setting = Schema::hasTable('settings')
-            ? \Uiaciel\SuryaCms\Models\Setting::first()
+            ? Setting::first()
             : null;
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
         $setting = null;
     }
 });
 
-    require __DIR__.'/frontend.php';
-    require __DIR__.'/api.php';
+require __DIR__.'/frontend.php';
+require __DIR__.'/api.php';
 
-    Route::get('suryacms/test', fn () => 'SuryaCMS aktif!');
-    Route::get('suryacms/sw.js', function () {
+Route::get('suryacms/test', fn () => 'SuryaCMS aktif!');
+Route::get('suryacms/sw.js', function () {
 
-        return response(<<<'JS'
+    return response(<<<'JS'
     self.addEventListener('install', event => {
         self.skipWaiting();
     });
@@ -201,5 +203,5 @@ Route::middleware(['web', 'suryacms.maintenance', 'suryacms.locale'])->group(fun
     JS
         , 200)->header('Content-Type', 'application/javascript');
 
-    });
-    Route::get('suryacms/manifest.json', [AdminController::class, 'manifest'])->name('admin.manifest');
+});
+Route::get('suryacms/manifest.json', [AdminController::class, 'manifest'])->name('admin.manifest');

@@ -9,7 +9,9 @@ use Uiaciel\SuryaCms\Models\Language;
 class LanguageSwitcher extends Component
 {
     public $currentLocale;
+
     public $languages = [];
+
     public $isMultilingual = false;
 
     public function mount(): void
@@ -24,7 +26,7 @@ class LanguageSwitcher extends Component
 
     public function switchLanguage(string $langCode): void
     {
-        if (!in_array($langCode, active_languages())) {
+        if (! in_array($langCode, active_languages())) {
             return;
         }
 

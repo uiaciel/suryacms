@@ -9,8 +9,6 @@ class PackageGuideService
 {
     /**
      * Get all installed packages with their guide information
-     *
-     * @return array
      */
     public static function getInstalledPackages(): array
     {
@@ -35,15 +33,12 @@ class PackageGuideService
 
     /**
      * Get a specific package guide
-     *
-     * @param string $packageName
-     * @return array|null
      */
     public static function getPackageGuide(string $packageName): ?array
     {
         $guideViewPath = "guide.{$packageName}";
 
-        if (!View::exists($guideViewPath)) {
+        if (! View::exists($guideViewPath)) {
             return null;
         }
 
@@ -63,18 +58,16 @@ class PackageGuideService
 
     /**
      * Get package information from composer.json
-     *
-     * @param string $composerPath
-     * @return array
      */
     private static function getPackageInfo(string $composerPath): array
     {
-        if (!File::exists($composerPath)) {
+        if (! File::exists($composerPath)) {
             return [];
         }
 
         try {
             $content = json_decode(File::get($composerPath), true);
+
             return [
                 'display_name' => $content['extra']['display_name'] ?? null,
                 'description' => $content['description'] ?? null,
@@ -86,9 +79,6 @@ class PackageGuideService
 
     /**
      * Get icon for package based on name
-     *
-     * @param string $packageName
-     * @return string
      */
     private static function getPackageIcon(string $packageName): string
     {
@@ -105,9 +95,6 @@ class PackageGuideService
 
     /**
      * Check if a package guide exists
-     *
-     * @param string $packageName
-     * @return bool
      */
     public static function hasGuide(string $packageName): bool
     {
@@ -116,15 +103,12 @@ class PackageGuideService
 
     /**
      * Get published guide files for a package
-     *
-     * @param string $packageName
-     * @return array
      */
     public static function getPublishedGuideFiles(string $packageName): array
     {
         $guidePath = resource_path("views/vendor/guide/{$packageName}");
 
-        if (!File::isDirectory($guidePath)) {
+        if (! File::isDirectory($guidePath)) {
             return [];
         }
 
@@ -142,8 +126,6 @@ class PackageGuideService
 
     /**
      * Get core packages (suryacms and main packages)
-     *
-     * @return array
      */
     public static function getCorePackages(): array
     {
@@ -152,15 +134,13 @@ class PackageGuideService
 
         return array_filter(
             $allPackages,
-            fn($name) => in_array($name, $core),
+            fn ($name) => in_array($name, $core),
             ARRAY_FILTER_USE_KEY
         );
     }
 
     /**
      * Get addon packages (non-core packages)
-     *
-     * @return array
      */
     public static function getAddonPackages(): array
     {
@@ -169,7 +149,7 @@ class PackageGuideService
 
         return array_filter(
             $allPackages,
-            fn($name) => !in_array($name, $core),
+            fn ($name) => ! in_array($name, $core),
             ARRAY_FILTER_USE_KEY
         );
     }

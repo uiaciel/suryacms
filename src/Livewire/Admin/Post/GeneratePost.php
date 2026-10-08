@@ -40,6 +40,7 @@ class GeneratePost extends Component
 
         if (trim($this->importJson) === '') {
             $this->error = 'Silakan masukkan hasil JSON dari AI terlebih dahulu.';
+
             return;
         }
 
@@ -53,20 +54,23 @@ class GeneratePost extends Component
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error = 'Format JSON tidak valid: ' . json_last_error_msg();
+            $this->error = 'Format JSON tidak valid: '.json_last_error_msg();
+
             return;
         }
 
         if (
-            !isset($data['articles']) ||
-            !is_array($data['articles'])
+            ! isset($data['articles']) ||
+            ! is_array($data['articles'])
         ) {
             $this->error = 'Format JSON tidak sesuai. Field "articles" tidak ditemukan.';
+
             return;
         }
 
         if (count($data['articles']) === 0) {
             $this->error = 'Tidak ada artikel yang ditemukan dalam JSON.';
+
             return;
         }
 
@@ -87,7 +91,7 @@ class GeneratePost extends Component
 
             $slug = $article['slug'] ?? '';
 
-            if (!$slug) {
+            if (! $slug) {
                 $slug = str()->slug($article['title']);
             }
 
@@ -135,6 +139,7 @@ class GeneratePost extends Component
 
         if ($imported === 0) {
             $this->error = 'Tidak ada artikel valid yang berhasil diimport.';
+
             return;
         }
 
@@ -148,7 +153,7 @@ class GeneratePost extends Component
      */
     protected function resolveCategory(?string $categoryName): ?int
     {
-        if (!$categoryName) {
+        if (! $categoryName) {
             return $this->selectedCategory ?: null;
         }
 
@@ -170,7 +175,7 @@ class GeneratePost extends Component
         $counter = 1;
 
         while (Post::where('slug', $slug)->exists()) {
-            $slug = $original . '-' . $counter;
+            $slug = $original.'-'.$counter;
             $counter++;
         }
 

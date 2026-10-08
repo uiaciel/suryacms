@@ -26,7 +26,7 @@ class GuideController extends Controller
      */
     public function show(string $package)
     {
-        if (!PackageGuideService::hasGuide($package)) {
+        if (! PackageGuideService::hasGuide($package)) {
             abort(404, "Guide for package '{$package}' not found");
         }
 

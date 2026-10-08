@@ -12,25 +12,25 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('contacts', function (Blueprint $table) {
-            if (!Schema::hasColumn('contacts', 'forwarded_at')) {
+            if (! Schema::hasColumn('contacts', 'forwarded_at')) {
                 $table->timestamp('forwarded_at')->nullable()->after('referrer');
             }
-            if (!Schema::hasColumn('contacts', 'is_important')) {
+            if (! Schema::hasColumn('contacts', 'is_important')) {
                 $table->boolean('is_important')->default(false)->after('forwarded_at');
             }
-            if (!Schema::hasColumn('contacts', 'notes')) {
+            if (! Schema::hasColumn('contacts', 'notes')) {
                 $table->text('notes')->nullable()->after('is_important');
             }
         });
 
         Schema::table('settings', function (Blueprint $table) {
-            if (!Schema::hasColumn('settings', 'contact_form_honeypot')) {
+            if (! Schema::hasColumn('settings', 'contact_form_honeypot')) {
                 $table->boolean('contact_form_honeypot')->default(true)->after('email_forwarder');
             }
-            if (!Schema::hasColumn('settings', 'contact_form_rate_limit')) {
+            if (! Schema::hasColumn('settings', 'contact_form_rate_limit')) {
                 $table->integer('contact_form_rate_limit')->default(3)->after('contact_form_honeypot');
             }
-            if (!Schema::hasColumn('settings', 'contact_form_auto_forward')) {
+            if (! Schema::hasColumn('settings', 'contact_form_auto_forward')) {
                 $table->boolean('contact_form_auto_forward')->default(false)->after('contact_form_rate_limit');
             }
         });

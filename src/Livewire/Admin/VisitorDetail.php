@@ -169,31 +169,31 @@ class VisitorDetail extends Component
 
         $analysis = [
             'today' => sprintf(
-                "%s %s%% compared to yesterday.",
+                '%s %s%% compared to yesterday.',
                 $isTodayUp ? 'Visitors are up' : 'Visitors are down',
                 abs($stats['growth_today'])
             ),
             'week' => sprintf(
-                "%s %s%% compared to last week.",
+                '%s %s%% compared to last week.',
                 $isWeekUp ? 'This week is stronger' : 'This week is weaker',
                 abs($stats['growth_week'])
             ),
             'month' => sprintf(
-                "%s %s%% compared to last month.",
+                '%s %s%% compared to last month.',
                 $isMonthUp ? 'Monthly traffic is increasing' : 'Monthly traffic is decreasing',
                 abs($stats['growth_month'])
             ),
             'repeat' => sprintf(
-                "Repeat visitor rate today is %s%% (%s repeat hits).",
+                'Repeat visitor rate today is %s%% (%s repeat hits).',
                 $stats['repeat_rate'],
                 number_format($stats['repeat_today'])
             ),
             'average' => sprintf(
-                "Average daily visits during the last 7 days: %s.",
+                'Average daily visits during the last 7 days: %s.',
                 number_format($stats['avg_last_7_days'], 2)
             ),
             'online' => sprintf(
-                "%s visitors are currently active within the last 5 minutes.",
+                '%s visitors are currently active within the last 5 minutes.',
                 number_format($stats['online'])
             ),
         ];

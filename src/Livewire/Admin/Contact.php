@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Uiaciel\SuryaCms\Mail\ForwardInbox;
 use Uiaciel\SuryaCms\Models\Contact as ContactModel;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class Contact extends Component
 {
@@ -57,14 +58,16 @@ class Contact extends Component
 
         if (! $contact) {
             $this->dispatch('swal', ['icon' => 'error', 'text' => 'Pesan tidak ditemukan.']);
+
             return;
         }
 
-        $setting = \Uiaciel\SuryaCms\Models\Setting::first();
+        $setting = Setting::first();
         $emailTo = $setting->email_forwarder ?? config('mail.from.address');
 
-        if (!$emailTo) {
+        if (! $emailTo) {
             $this->dispatch('swal', ['icon' => 'error', 'text' => 'Email penerus belum dikonfigurasi di Pengaturan.']);
+
             return;
         }
 
@@ -73,9 +76,9 @@ class Contact extends Component
 
             $contact->update(['forwarded_at' => now()]);
 
-            $this->dispatch('swal', ['icon' => 'success', 'text' => 'Pesan berhasil diteruskan ke ' . $emailTo]);
+            $this->dispatch('swal', ['icon' => 'success', 'text' => 'Pesan berhasil diteruskan ke '.$emailTo]);
         } catch (\Exception $e) {
-            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Gagal meneruskan pesan: ' . $e->getMessage()]);
+            $this->dispatch('swal', ['icon' => 'error', 'text' => 'Gagal meneruskan pesan: '.$e->getMessage()]);
         }
     }
 
@@ -83,7 +86,7 @@ class Contact extends Component
     {
         $contact = ContactModel::find($id);
         if ($contact) {
-            $contact->is_important = !$contact->is_important;
+            $contact->is_important = ! $contact->is_important;
             $contact->save();
         }
     }

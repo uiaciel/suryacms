@@ -41,7 +41,7 @@ class SetLocaleFromUrl
                 session(['locale' => $default]);
             }
         } catch (\Exception $e) {
-            Log::error('SetLocaleFromUrl Middleware Error: ' . $e->getMessage());
+            Log::error('SetLocaleFromUrl Middleware Error: '.$e->getMessage());
         }
 
         return $next($request);

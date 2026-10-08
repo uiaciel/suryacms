@@ -450,6 +450,10 @@
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fas fa-cog mr-3 w-4 text-center text-gray-400"></i> Settings
                             </a>
+                            <a href="/{{ config('suryacms.admin_prefix') }}/system" wire:navigate
+                                class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
+                                <i class="fa-brands fa-php mr-3 w-4 text-center text-gray-400"></i> System Info
+                            </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
@@ -463,7 +467,7 @@
             </header>
 
             <!-- PAGE CONTENT -->
-            <main class="flex-1 overflow-y-auto main-scroll p-4 lg:p-6 bg-[#f0f3fb]">
+            <main class="flex-1 overflow-y-auto main-scroll p-0 lg:p-6 bg-[#f0f3fb]">
 
                 {{-- <x-suryacms::alert-tester/> --}}
                 @hasSection('content')

@@ -1,7 +1,7 @@
 <?php
 
-use Uiaciel\SuryaCms\Http\Controllers\Api\MonitorController;
 use Illuminate\Support\Facades\Route;
+use Uiaciel\SuryaCms\Http\Controllers\Api\MonitorController;
 
 Route::prefix('api')->group(function () {
     Route::get('/system/monitor', [MonitorController::class, 'index']);

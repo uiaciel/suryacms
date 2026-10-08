@@ -19,7 +19,9 @@ use DOMXPath;
 class ThemeSnippetExtractorService
 {
     private string $html;
+
     private ?DOMDocument $dom = null;
+
     private ?DOMXPath $xpath = null;
 
     public function __construct(string $htmlContent)
@@ -46,12 +48,12 @@ class ThemeSnippetExtractorService
     public function extractAll(): array
     {
         return [
-            'inline_css'  => $this->extractInlineCSS(),
-            'css_links'   => $this->extractCSSLinks(),
-            'fonts'       => $this->extractFonts(),
-            'icons'       => $this->extractIcons(),
-            'inline_js'   => $this->extractInlineJS(),
-            'js_links'    => $this->extractJSLinks(),
+            'inline_css' => $this->extractInlineCSS(),
+            'css_links' => $this->extractCSSLinks(),
+            'fonts' => $this->extractFonts(),
+            'icons' => $this->extractIcons(),
+            'inline_js' => $this->extractInlineJS(),
+            'js_links' => $this->extractJSLinks(),
         ];
     }
 
@@ -65,12 +67,12 @@ class ThemeSnippetExtractorService
 
         foreach ($styleNodes as $style) {
             $content = trim($style->textContent);
-            if (!empty($content)) {
+            if (! empty($content)) {
                 $results[] = [
-                    'tag'     => '<style>',
+                    'tag' => '<style>',
                     'content' => $content,
-                    'lines'   => substr_count($content, "\n") + 1,
-                    'copy'    => "<style>\n" . $content . "\n</style>",
+                    'lines' => substr_count($content, "\n") + 1,
+                    'copy' => "<style>\n".$content."\n</style>",
                 ];
             }
         }
@@ -92,17 +94,21 @@ class ThemeSnippetExtractorService
             $crossorigin = $link->getAttribute('crossorigin');
 
             $attrs = "rel=\"stylesheet\" href=\"{$href}\"";
-            if ($integrity) $attrs .= " integrity=\"{$integrity}\"";
-            if ($crossorigin) $attrs .= " crossorigin=\"{$crossorigin}\"";
+            if ($integrity) {
+                $attrs .= " integrity=\"{$integrity}\"";
+            }
+            if ($crossorigin) {
+                $attrs .= " crossorigin=\"{$crossorigin}\"";
+            }
 
             $tag = "<link {$attrs}>";
 
             $results[] = [
-                'href'        => $href,
-                'tag'         => $tag,
+                'href' => $href,
+                'tag' => $tag,
                 'is_external' => $this->isExternal($href),
-                'type'        => $this->guessCSSType($href),
-                'copy'        => $tag,
+                'type' => $this->guessCSSType($href),
+                'copy' => $tag,
             ];
         }
 
@@ -122,14 +128,16 @@ class ThemeSnippetExtractorService
             $href = $link->getAttribute('href');
             $crossorigin = $link->getAttribute('crossorigin');
             $attrs = "rel=\"preconnect\" href=\"{$href}\"";
-            if ($crossorigin) $attrs .= " crossorigin=\"{$crossorigin}\"";
+            if ($crossorigin) {
+                $attrs .= " crossorigin=\"{$crossorigin}\"";
+            }
             $tag = "<link {$attrs}>";
 
             $results[] = [
-                'href'  => $href,
-                'tag'   => $tag,
-                'type'  => 'preconnect',
-                'copy'  => $tag,
+                'href' => $href,
+                'tag' => $tag,
+                'type' => 'preconnect',
+                'copy' => $tag,
             ];
         }
 
@@ -140,10 +148,10 @@ class ThemeSnippetExtractorService
             $tag = "<link rel=\"stylesheet\" href=\"{$href}\">";
 
             $results[] = [
-                'href'  => $href,
-                'tag'   => $tag,
-                'type'  => 'google-font',
-                'copy'  => $tag,
+                'href' => $href,
+                'tag' => $tag,
+                'type' => 'google-font',
+                'copy' => $tag,
             ];
         }
 
@@ -156,7 +164,7 @@ class ThemeSnippetExtractorService
                 $tag = "@import url('{$url}');";
                 $results[] = [
                     'href' => $url,
-                    'tag'  => $tag,
+                    'tag' => $tag,
                     'type' => 'css-import',
                     'copy' => $tag,
                 ];
@@ -173,14 +181,14 @@ class ThemeSnippetExtractorService
     {
         $results = [];
         $iconPatterns = [
-            'font-awesome'     => ['fontawesome', 'font-awesome', 'fa.'],
-            'bootstrap-icons'  => ['bootstrap-icons', 'bi.'],
-            'material-icons'   => ['material-icons', 'material.icons'],
-            'ionicons'         => ['ionicons'],
-            'feather'          => ['feather'],
-            'remixicon'        => ['remixicon'],
-            'heroicons'        => ['heroicons'],
-            'phosphor'         => ['phosphor'],
+            'font-awesome' => ['fontawesome', 'font-awesome', 'fa.'],
+            'bootstrap-icons' => ['bootstrap-icons', 'bi.'],
+            'material-icons' => ['material-icons', 'material.icons'],
+            'ionicons' => ['ionicons'],
+            'feather' => ['feather'],
+            'remixicon' => ['remixicon'],
+            'heroicons' => ['heroicons'],
+            'phosphor' => ['phosphor'],
         ];
 
         // Check <link> tags
@@ -193,15 +201,17 @@ class ThemeSnippetExtractorService
                         $originalHref = $link->getAttribute('href');
                         $attrs = "rel=\"stylesheet\" href=\"{$originalHref}\"";
                         $integrity = $link->getAttribute('integrity');
-                        if ($integrity) $attrs .= " integrity=\"{$integrity}\"";
+                        if ($integrity) {
+                            $attrs .= " integrity=\"{$integrity}\"";
+                        }
                         $tag = "<link {$attrs}>";
 
                         $results[] = [
                             'library' => $library,
-                            'href'    => $originalHref,
-                            'tag'     => $tag,
-                            'type'    => 'link',
-                            'copy'    => $tag,
+                            'href' => $originalHref,
+                            'tag' => $tag,
+                            'type' => 'link',
+                            'copy' => $tag,
                         ];
                         break 2;
                     }
@@ -220,10 +230,10 @@ class ThemeSnippetExtractorService
                         $tag = "<script src=\"{$originalSrc}\"></script>";
                         $results[] = [
                             'library' => $library,
-                            'href'    => $originalSrc,
-                            'tag'     => $tag,
-                            'type'    => 'script',
-                            'copy'    => $tag,
+                            'href' => $originalSrc,
+                            'tag' => $tag,
+                            'type' => 'script',
+                            'copy' => $tag,
                         ];
                         break 2;
                     }
@@ -244,13 +254,13 @@ class ThemeSnippetExtractorService
 
         foreach ($scripts as $script) {
             $content = trim($script->textContent);
-            if (!empty($content) && strlen($content) > 10) {
+            if (! empty($content) && strlen($content) > 10) {
                 $preview = mb_strimwidth($content, 0, 80, '...');
                 $results[] = [
                     'content' => $content,
                     'preview' => $preview,
-                    'lines'   => substr_count($content, "\n") + 1,
-                    'copy'    => "<script>\n" . $content . "\n</script>",
+                    'lines' => substr_count($content, "\n") + 1,
+                    'copy' => "<script>\n".$content."\n</script>",
                 ];
             }
         }
@@ -273,20 +283,26 @@ class ThemeSnippetExtractorService
             $integrity = $script->getAttribute('integrity');
 
             $attrs = "src=\"{$src}\"";
-            if ($defer) $attrs .= ' defer';
-            if ($async) $attrs .= ' async';
-            if ($integrity) $attrs .= " integrity=\"{$integrity}\"";
+            if ($defer) {
+                $attrs .= ' defer';
+            }
+            if ($async) {
+                $attrs .= ' async';
+            }
+            if ($integrity) {
+                $attrs .= " integrity=\"{$integrity}\"";
+            }
 
             $tag = "<script {$attrs}></script>";
 
             $results[] = [
-                'src'         => $src,
-                'tag'         => $tag,
-                'defer'       => $defer,
-                'async'       => $async,
+                'src' => $src,
+                'tag' => $tag,
+                'defer' => $defer,
+                'async' => $async,
                 'is_external' => $this->isExternal($src),
-                'type'        => $this->guessJSType($src),
-                'copy'        => $tag,
+                'type' => $this->guessJSType($src),
+                'copy' => $tag,
             ];
         }
 
@@ -307,15 +323,34 @@ class ThemeSnippetExtractorService
     private function guessCSSType(string $href): string
     {
         $href = strtolower($href);
-        if (str_contains($href, 'bootstrap')) return 'Bootstrap';
-        if (str_contains($href, 'tailwind')) return 'Tailwind';
-        if (str_contains($href, 'bulma')) return 'Bulma';
-        if (str_contains($href, 'normalize')) return 'Normalize';
-        if (str_contains($href, 'reset')) return 'Reset';
-        if (str_contains($href, 'animate')) return 'Animate';
-        if (str_contains($href, 'owl') || str_contains($href, 'slick') || str_contains($href, 'swiper')) return 'Slider';
-        if (str_contains($href, 'font') || str_contains($href, 'icon')) return 'Font/Icon';
-        if ($this->isExternal($href)) return 'External';
+        if (str_contains($href, 'bootstrap')) {
+            return 'Bootstrap';
+        }
+        if (str_contains($href, 'tailwind')) {
+            return 'Tailwind';
+        }
+        if (str_contains($href, 'bulma')) {
+            return 'Bulma';
+        }
+        if (str_contains($href, 'normalize')) {
+            return 'Normalize';
+        }
+        if (str_contains($href, 'reset')) {
+            return 'Reset';
+        }
+        if (str_contains($href, 'animate')) {
+            return 'Animate';
+        }
+        if (str_contains($href, 'owl') || str_contains($href, 'slick') || str_contains($href, 'swiper')) {
+            return 'Slider';
+        }
+        if (str_contains($href, 'font') || str_contains($href, 'icon')) {
+            return 'Font/Icon';
+        }
+        if ($this->isExternal($href)) {
+            return 'External';
+        }
+
         return 'Local';
     }
 
@@ -325,15 +360,34 @@ class ThemeSnippetExtractorService
     private function guessJSType(string $src): string
     {
         $src = strtolower($src);
-        if (str_contains($src, 'jquery')) return 'jQuery';
-        if (str_contains($src, 'bootstrap')) return 'Bootstrap';
-        if (str_contains($src, 'alpine')) return 'AlpineJS';
-        if (str_contains($src, 'livewire')) return 'Livewire';
-        if (str_contains($src, 'vue')) return 'Vue';
-        if (str_contains($src, 'react')) return 'React';
-        if (str_contains($src, 'owl') || str_contains($src, 'slick') || str_contains($src, 'swiper')) return 'Slider';
-        if (str_contains($src, 'gsap') || str_contains($src, 'wow') || str_contains($src, 'aos')) return 'Animation';
-        if ($this->isExternal($src)) return 'External';
+        if (str_contains($src, 'jquery')) {
+            return 'jQuery';
+        }
+        if (str_contains($src, 'bootstrap')) {
+            return 'Bootstrap';
+        }
+        if (str_contains($src, 'alpine')) {
+            return 'AlpineJS';
+        }
+        if (str_contains($src, 'livewire')) {
+            return 'Livewire';
+        }
+        if (str_contains($src, 'vue')) {
+            return 'Vue';
+        }
+        if (str_contains($src, 'react')) {
+            return 'React';
+        }
+        if (str_contains($src, 'owl') || str_contains($src, 'slick') || str_contains($src, 'swiper')) {
+            return 'Slider';
+        }
+        if (str_contains($src, 'gsap') || str_contains($src, 'wow') || str_contains($src, 'aos')) {
+            return 'Animation';
+        }
+        if ($this->isExternal($src)) {
+            return 'External';
+        }
+
         return 'Local';
     }
 }

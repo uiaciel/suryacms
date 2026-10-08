@@ -25,7 +25,7 @@ return [
         'horizon',
         'telescope',
         'category',
-        'media'
+        'media',
     ],
 
     /*
@@ -50,11 +50,11 @@ return [
         'youtube_videos',
         'users',
         'custom_blocks',
-        //'announcements',
-        //'reports',
-        //'stocks',
+        // 'announcements',
+        // 'reports',
+        // 'stocks',
     ],
 
     'monitor_token' => env('SURYACMS_MONITOR_TOKEN', null),
-    'version'       => '2.1.18',
+    'version' => '2.0.25',
 ];

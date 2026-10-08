@@ -21,7 +21,7 @@ class ProcessPartialBackup implements ShouldQueue
         try {
             $backupService->run();
         } catch (Throwable $exception) {
-            cache()->put('suryacms_partial_backup_status', ['step' => 'Partial backup failed: ' . $exception->getMessage(), 'percentage' => -1], now()->addHours(2));
+            cache()->put('suryacms_partial_backup_status', ['step' => 'Partial backup failed: '.$exception->getMessage(), 'percentage' => -1], now()->addHours(2));
             $this->fail($exception);
         }
     }

@@ -10,16 +10,15 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
-use Illuminate\Validation\ValidationException;
 use Livewire\Component;
-use Uiaciel\SuryaCms\Jobs\ProcessRestore;
-use Uiaciel\SuryaCms\Services\RestoreService;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 use Uiaciel\SuryaCms\Imports\SettingImport;
+use Uiaciel\SuryaCms\Jobs\ProcessRestore;
 use Uiaciel\SuryaCms\Models\Gallery;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Setting;
+use Uiaciel\SuryaCms\Services\RestoreService;
 
 class SettingWeb extends Component
 {
@@ -304,17 +303,17 @@ class SettingWeb extends Component
     public function loadRestoreBackupFiles()
     {
         $path = storage_path('app/private/suryacms_backups');
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             File::makeDirectory($path, 0755, true);
         }
 
         $files = File::files($path);
-        $this->availableRestoreBackups = collect($files)->map(function($file) {
+        $this->availableRestoreBackups = collect($files)->map(function ($file) {
             return [
                 'name' => $file->getFilename(),
                 'path' => $file->getRealPath(),
-                'size' => round($file->getSize() / 1024 / 1024, 2) . ' MB',
-                'modified' => \Carbon\Carbon::createFromTimestamp($file->getMTime())->diffForHumans(),
+                'size' => round($file->getSize() / 1024 / 1024, 2).' MB',
+                'modified' => Carbon::createFromTimestamp($file->getMTime())->diffForHumans(),
             ];
         })->sortByDesc('modified')->values()->toArray();
 
@@ -329,11 +328,12 @@ class SettingWeb extends Component
             'restoreBackupFileName' => 'required|string',
         ]);
 
-        $backupPath = storage_path('app/private/suryacms_backups/' . $this->restoreBackupFileName);
+        $backupPath = storage_path('app/private/suryacms_backups/'.$this->restoreBackupFileName);
         if (! File::exists($backupPath)) {
             $this->restoreInfo = null;
             $this->restorePreviewed = false;
             $this->restoreMessage = 'File backup tidak valid atau tidak ditemukan di storage/app/private.';
+
             return;
         }
 
@@ -354,12 +354,14 @@ class SettingWeb extends Component
     {
         if (! $this->restorePreviewed || ! $this->restoreInfo) {
             $this->restoreMessage = 'Silakan tampilkan informasi backup terlebih dahulu sebelum melanjutkan.';
+
             return;
         }
 
-        $backupPath = storage_path('app/private/suryacms_backups/' . $this->restoreBackupFileName);
+        $backupPath = storage_path('app/private/suryacms_backups/'.$this->restoreBackupFileName);
         if (! File::exists($backupPath)) {
             $this->restoreMessage = 'File backup tidak ditemukan saat mencoba memulai restore.';
+
             return;
         }
 
@@ -378,7 +380,7 @@ class SettingWeb extends Component
 
     public function pollRestoreStatus()
     {
-        if (!$this->restoreStarted) {
+        if (! $this->restoreStarted) {
             return;
         }
 
@@ -400,7 +402,7 @@ class SettingWeb extends Component
 
                 // Refresh after restore
                 return $this->redirectRoute('admin.setting', navigate: true);
-            } else if ($this->restoreProgress == -1) {
+            } elseif ($this->restoreProgress == -1) {
                 $this->restoreStarted = false;
                 cache()->forget('suryacms_restore_status');
                 $this->dispatch('swal', [
@@ -637,7 +639,7 @@ class SettingWeb extends Component
             $faviconPath = 'favicons/'.$faviconFileName;
 
             // Save the processed image to storage
-            \Illuminate\Support\Facades\Storage::disk('public')->put($faviconPath, $image->encode());
+            Storage::disk('public')->put($faviconPath, $image->encode());
 
             $setting->favicon = 'storage/'.$faviconPath; // Update the setting with the new path
 
@@ -673,6 +675,7 @@ class SettingWeb extends Component
         $setting->save();
 
         cache()->forget('app_date_format');
+        cache()->forget('cms_settings');
         session()->flash('message', 'Settings updated successfully.');
 
         $this->redirectRoute('admin.setting', navigate: true);
@@ -796,13 +799,15 @@ class SettingWeb extends Component
         if ($this->setup_action === 'restore') {
             if (! $this->restorePreviewed || ! $this->restoreInfo) {
                 $this->restoreMessage = 'Silakan tampilkan informasi backup terlebih dahulu sebelum melanjutkan restore.';
+
                 return;
             }
 
             try {
-                $backupPath = storage_path('app/private/suryacms_backups/' . $this->restoreBackupFileName);
+                $backupPath = storage_path('app/private/suryacms_backups/'.$this->restoreBackupFileName);
                 if (! File::exists($backupPath)) {
                     $this->restoreMessage = 'File backup tidak valid atau tidak ditemukan di storage/app/private.';
+
                     return;
                 }
 
@@ -822,7 +827,7 @@ class SettingWeb extends Component
                 ]);
             } catch (\Exception $e) {
                 $this->restoreStarted = false;
-                $this->restoreMessage = 'Terjadi kesalahan: ' . $e->getMessage();
+                $this->restoreMessage = 'Terjadi kesalahan: '.$e->getMessage();
                 $this->dispatch('swal', [
                     'icon' => 'error',
                     'title' => 'Restore gagal',

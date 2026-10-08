@@ -18,10 +18,10 @@
             </nav>
         </div>
 
-        <button type="button" @click="showDataModal = true"
+        {{-- <button type="button" @click="showDataModal = true"
             class="inline-flex items-center px-3 py-1.5 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-full shadow-sm transition-colors shrink-0">
             <i class="fas fa-database mr-1.5"></i> Data
-        </button>
+        </button> --}}
     </header>
 
     <x-suryacms::session-status />

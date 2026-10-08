@@ -45,11 +45,11 @@ class ScrapedContentDisplay extends Component
         // Combine image dan content
         $fullContent = '';
 
-        if (!empty($image)) {
+        if (! empty($image)) {
             $fullContent .= '<figure style="text-align: center; margin: 20px 0;"><img src="'.$image.'" alt="Featured Image" style="max-width: 100%; height: auto; border-radius: 8px;"></figure>';
         }
 
-        if (!empty($content)) {
+        if (! empty($content)) {
             $fullContent .= '<p>'.$content.'</p>';
         }
 
@@ -65,4 +65,3 @@ class ScrapedContentDisplay extends Component
         return view('suryacms::livewire.admin.post.scraped-content-display');
     }
 }
-

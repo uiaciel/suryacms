@@ -5,22 +5,22 @@ namespace Uiaciel\SuryaCms\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\Drivers\Gd\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Laravel\Facades\Image;
+use Spatie\PdfToImage\Pdf;
 use Uiaciel\SuryaCms\Models\Gallery;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Setting;
-use Spatie\PdfToImage\Pdf;
 use ZipArchive;
 
 class AdminController extends Controller
 {
-
     public function manifest()
     {
 
@@ -29,22 +29,23 @@ class AdminController extends Controller
 
         return response()->json([
 
-            "name" => $setting->url,
-            "short_name" => $setting->url,
-            "start_url" => '/' . $adminPrefix,
-            "scope" => '/' . $adminPrefix,
-            "display" => "standalone",
-            "background_color" => "#ffffff",
-            "theme_color" => "#0f172a",
-            "icons" => [
+            'name' => $setting->url,
+            'short_name' => $setting->url,
+            'start_url' => '/'.$adminPrefix,
+            'scope' => '/'.$adminPrefix,
+            'display' => 'standalone',
+            'background_color' => '#ffffff',
+            'theme_color' => '#0f172a',
+            'icons' => [
                 [
-                    "src" => asset($setting->logo),
-                    "sizes" => "512x512",
-                    "type" => "image/png"
-                ]
-            ]
+                    'src' => asset($setting->logo),
+                    'sizes' => '512x512',
+                    'type' => 'image/png',
+                ],
+            ],
         ]);
     }
+
     public function tinymce(Request $request)
     {
         try {
@@ -74,21 +75,21 @@ class AdminController extends Controller
             $gallery->category = $request->input('category', 'POST');
             $gallery->status = 'Publish';
             $gallery->is_tinymce_upload = true;
-            $gallery->file_size = round($file->getSize() / 1024, 2) . ' KB';
+            $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
 
             if ($extension === 'pdf') {
                 // A. LOGIKA UPLOAD PDF
                 $pdfFileName = "{$timestamp}_{$slugName}.pdf";
                 Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
 
-                $gallery->image_path = 'galleries/' . $pdfFileName;
+                $gallery->image_path = 'galleries/'.$pdfFileName;
                 $gallery->mime_type = 'pdf';
 
                 // Generate Cover Image dari Halaman 1 PDF
-                $pdfPath = storage_path('app/public/' . $gallery->image_path);
-                $tempCoverPath = storage_path('app/public/galleries/temp_' . $timestamp . '.jpg');
+                $pdfPath = storage_path('app/public/'.$gallery->image_path);
+                $tempCoverPath = storage_path('app/public/galleries/temp_'.$timestamp.'.jpg');
 
-                if (!file_exists(storage_path('app/public/galleries/covers'))) {
+                if (! file_exists(storage_path('app/public/galleries/covers'))) {
                     mkdir(storage_path('app/public/galleries/covers'), 0755, true);
                 }
 
@@ -101,8 +102,8 @@ class AdminController extends Controller
                 $coverFileName = "{$timestamp}_cover_{$slugName}.webp";
                 $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
 
-                Storage::disk('public')->put('galleries/covers/' . $coverFileName, $convertedCover->__toString());
-                $gallery->cover_path = 'galleries/covers/' . $coverFileName;
+                Storage::disk('public')->put('galleries/covers/'.$coverFileName, $convertedCover->__toString());
+                $gallery->cover_path = 'galleries/covers/'.$coverFileName;
 
                 // Hapus temp image
                 if (file_exists($tempCoverPath)) {
@@ -116,10 +117,10 @@ class AdminController extends Controller
 
                 $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-                Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
 
-                $gallery->image_path = 'galleries/' . $fileName;
-                $gallery->cover_path = 'galleries/' . $fileName;
+                $gallery->image_path = 'galleries/'.$fileName;
+                $gallery->cover_path = 'galleries/'.$fileName;
                 $gallery->mime_type = 'image';
             }
 
@@ -128,25 +129,25 @@ class AdminController extends Controller
             // 2. Return Response JSON
             // Properti 'location' wajib ada untuk bawaan TinyMCE image plugin
             return response()->json([
-                'location'       => Storage::url($gallery->image_path),
+                'location' => Storage::url($gallery->image_path),
                 'cover_location' => Storage::url($gallery->cover_path),
-                'mime_type'      => $gallery->mime_type,
-                'title'          => $gallery->name,
-                'media_id'       => $gallery->id,
+                'mime_type' => $gallery->mime_type,
+                'title' => $gallery->name,
+                'media_id' => $gallery->id,
             ], 200);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
-                'error' => 'Validation failed: ' . implode(', ', array_merge(...array_values($e->errors()))),
+                'error' => 'Validation failed: '.implode(', ', array_merge(...array_values($e->errors()))),
             ], 422);
         } catch (\Exception $e) {
-            Log::error('TinyMCE upload error: ' . $e->getMessage(), [
+            Log::error('TinyMCE upload error: '.$e->getMessage(), [
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
             ]);
 
             return response()->json([
-                'error' => 'File upload failed: ' . $e->getMessage(),
+                'error' => 'File upload failed: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -230,21 +231,21 @@ class AdminController extends Controller
                 $extension = strtolower($file->getClientOriginalExtension());
 
                 // Simpan metadata awal
-                $gallery->file_size = round($file->getSize() / 1024, 2) . ' KB';
+                $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
 
                 if ($extension === 'pdf') {
                     // 1. Simpan File PDF
                     $pdfFileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
                     Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
-                    $gallery->image_path = 'galleries/' . $pdfFileName;
+                    $gallery->image_path = 'galleries/'.$pdfFileName;
                     $gallery->mime_type = 'pdf';
 
                     // 2. Generate Cover Image dari Halaman 1 PDF
-                    $pdfPath = storage_path('app/public/' . $gallery->image_path);
-                    $tempCoverPath = storage_path('app/public/galleries/temp_' . $timestamp . '.jpg');
+                    $pdfPath = storage_path('app/public/'.$gallery->image_path);
+                    $tempCoverPath = storage_path('app/public/galleries/temp_'.$timestamp.'.jpg');
 
                     // Pastikan folder target ada
-                    if (!file_exists(storage_path('app/public/galleries'))) {
+                    if (! file_exists(storage_path('app/public/galleries'))) {
                         mkdir(storage_path('app/public/galleries'), 0755, true);
                     }
 
@@ -257,8 +258,8 @@ class AdminController extends Controller
                     $coverFileName = "{$timestamp}_cover_{$slugTitle}.webp";
                     $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/covers/' . $coverFileName, $convertedCover->__toString());
-                    $gallery->cover_path = 'galleries/covers/' . $coverFileName;
+                    Storage::disk('public')->put('galleries/covers/'.$coverFileName, $convertedCover->__toString());
+                    $gallery->cover_path = 'galleries/covers/'.$coverFileName;
 
                     // Hapus temp image
                     if (file_exists($tempCoverPath)) {
@@ -272,10 +273,10 @@ class AdminController extends Controller
 
                     $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+                    Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
 
-                    $gallery->image_path = 'galleries/' . $fileName;
-                    $gallery->cover_path = 'galleries/' . $fileName; // Gambar asli berfungsi juga sebagai cover
+                    $gallery->image_path = 'galleries/'.$fileName;
+                    $gallery->cover_path = 'galleries/'.$fileName; // Gambar asli berfungsi juga sebagai cover
                     $gallery->mime_type = 'image';
                 }
             }
@@ -284,7 +285,7 @@ class AdminController extends Controller
 
             return redirect()->back()->with('message', 'Gallery created successfully.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to create gallery: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create gallery: '.$e->getMessage());
         }
     }
 
@@ -302,7 +303,7 @@ class AdminController extends Controller
         try {
             $gallery = Gallery::find($id);
 
-            if (!$gallery) {
+            if (! $gallery) {
                 return redirect()->back()->with('error', 'Gallery not found.');
             }
 
@@ -328,18 +329,18 @@ class AdminController extends Controller
                 $slugTitle = str_replace(' ', '_', strtolower($request->name));
                 $extension = strtolower($file->getClientOriginalExtension());
 
-                $gallery->file_size = round($file->getSize() / 1024, 2) . ' KB';
+                $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
 
                 if ($extension === 'pdf') {
                     // Upload PDF Baru
                     $pdfFileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
                     Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
-                    $gallery->image_path = 'galleries/' . $pdfFileName;
+                    $gallery->image_path = 'galleries/'.$pdfFileName;
                     $gallery->mime_type = 'pdf';
 
                     // Generate Cover Baru
-                    $pdfPath = storage_path('app/public/' . $gallery->image_path);
-                    $tempCoverPath = storage_path('app/public/galleries/temp_' . $timestamp . '.jpg');
+                    $pdfPath = storage_path('app/public/'.$gallery->image_path);
+                    $tempCoverPath = storage_path('app/public/galleries/temp_'.$timestamp.'.jpg');
 
                     $pdf = new Pdf($pdfPath);
                     $pdf->selectPage(1)->saveExtraPageAsPage($tempCoverPath);
@@ -348,8 +349,8 @@ class AdminController extends Controller
                     $coverFileName = "{$timestamp}_cover_{$slugTitle}.webp";
                     $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/covers/' . $coverFileName, $convertedCover->__toString());
-                    $gallery->cover_path = 'galleries/covers/' . $coverFileName;
+                    Storage::disk('public')->put('galleries/covers/'.$coverFileName, $convertedCover->__toString());
+                    $gallery->cover_path = 'galleries/covers/'.$coverFileName;
 
                     if (file_exists($tempCoverPath)) {
                         unlink($tempCoverPath);
@@ -361,10 +362,10 @@ class AdminController extends Controller
 
                     $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/' . $fileName, $convertedImage->__toString());
+                    Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
 
-                    $gallery->image_path = 'galleries/' . $fileName;
-                    $gallery->cover_path = 'galleries/' . $fileName;
+                    $gallery->image_path = 'galleries/'.$fileName;
+                    $gallery->cover_path = 'galleries/'.$fileName;
                     $gallery->mime_type = 'image';
                 }
             }
@@ -373,7 +374,7 @@ class AdminController extends Controller
 
             return redirect()->back()->with('message', 'Gallery updated successfully.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Failed to update gallery: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update gallery: '.$e->getMessage());
         }
     }
 

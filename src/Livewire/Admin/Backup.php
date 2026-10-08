@@ -6,12 +6,12 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\File;
 use Livewire\Component;
 use Maatwebsite\Excel\Facades\Excel;
-use Uiaciel\SuryaCms\Jobs\ProcessPartialBackup;
 use Uiaciel\SuryaCms\Exports\GalleryExport;
 use Uiaciel\SuryaCms\Exports\MenuExport;
 use Uiaciel\SuryaCms\Exports\PageExport;
 use Uiaciel\SuryaCms\Exports\PostExport;
 use Uiaciel\SuryaCms\Exports\SettingExport;
+use Uiaciel\SuryaCms\Jobs\ProcessPartialBackup;
 use Uiaciel\SuryaCms\Models\Menu;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
@@ -67,13 +67,13 @@ class Backup extends Component
     public function loadBackupFiles()
     {
         $path = storage_path('app/private/suryacms_backups');
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             File::makeDirectory($path, 0755, true);
         }
 
         $files = File::files($path);
 
-        $this->backupFiles = collect($files)->map(function($file) {
+        $this->backupFiles = collect($files)->map(function ($file) {
             return [
                 'name' => $file->getFilename(),
                 'path' => $file->getRealPath(),
@@ -145,14 +145,14 @@ class Backup extends Component
     public function formatSize(int $bytes): string
     {
         if ($bytes < 1024) {
-            return $bytes . ' B';
+            return $bytes.' B';
         }
 
         if ($bytes < 1048576) {
-            return round($bytes / 1024, 2) . ' KB';
+            return round($bytes / 1024, 2).' KB';
         }
 
-        return round($bytes / 1048576, 2) . ' MB';
+        return round($bytes / 1048576, 2).' MB';
     }
 
     public function exportPost()
@@ -242,7 +242,7 @@ class Backup extends Component
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 
     public function render()

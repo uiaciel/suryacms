@@ -20,8 +20,11 @@ use DOMXPath;
 class PlaceholderMappingService
 {
     private $html;
+
     private $themeName;
+
     private $dom;
+
     private $xpath;
 
     public function __construct($html, $themeName = 'default')
@@ -37,7 +40,7 @@ class PlaceholderMappingService
         libxml_use_internal_errors(true);
 
         // Handle empty HTML
-        if (!empty($this->html)) {
+        if (! empty($this->html)) {
             @$this->dom->loadHTML(
                 mb_convert_encoding($this->html, 'HTML-ENTITIES', 'UTF-8'),
                 LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
@@ -83,7 +86,7 @@ class PlaceholderMappingService
         // Remove duplicates
         $unique = [];
         foreach ($mappings as $original => $mapping) {
-            if (!isset($unique[$original])) {
+            if (! isset($unique[$original])) {
                 $unique[$original] = $mapping;
             }
         }
@@ -227,7 +230,7 @@ class PlaceholderMappingService
                     stripos($src, 'brand') !== false
                 );
 
-                if ($isLogo && !empty($src)) {
+                if ($isLogo && ! empty($src)) {
                     $replacement = "{{ \$setting->logo ?? 'frontend/{$this->themeName}/img/logo.jpg' }}";
 
                     $mappings[$src] = [
@@ -262,14 +265,14 @@ class PlaceholderMappingService
                 // Check if it's a relative link (not starting with http, /, or #, mailto:, tel:)
                 if (
                     $href &&
-                    !preg_match('/^(https?:|\/|#|mailto:|tel:)/', $href) &&
+                    ! preg_match('/^(https?:|\/|#|mailto:|tel:)/', $href) &&
                     preg_match('/\.(html?|php|aspx?)$/i', $href)
                 ) {
                     // For index.html or similar, replace dengan $setting->url
                     if (preg_match('/^index\.(html?|php)$/i', $href)) {
                         $mappings[$href] = [
                             'original' => $href,
-                            'replacement' => "{{ \$setting->url }}",
+                            'replacement' => '{{ $setting->url }}',
                             'type' => 'index_link',
                             'enabled' => true,
                         ];
@@ -344,7 +347,7 @@ class PlaceholderMappingService
                 $fullCopyright = trim(preg_replace('/<[^>]+>/', '', $fullCopyright));
                 $fullCopyright = html_entity_decode($fullCopyright, ENT_QUOTES);
 
-                if (!empty($fullCopyright) && strlen($fullCopyright) > 5) {
+                if (! empty($fullCopyright) && strlen($fullCopyright) > 5) {
                     $replacement = '© {{ date("Y") }} {{ $setting->sitename }} . All Rights Reserved.';
 
                     $mappings[$fullCopyright] = [
@@ -381,7 +384,7 @@ class PlaceholderMappingService
 
         foreach ($keywords as $keyword => $replacement) {
             // Search for keyword pattern: "Address: Some Value"
-            $pattern = '/(?<![a-zA-Z0-9_-])' . preg_quote($keyword, '/') . '\s*[:=]?\s*([^\n<]{5,100})(?=[<\n]|$)/i';
+            $pattern = '/(?<![a-zA-Z0-9_-])'.preg_quote($keyword, '/').'\s*[:=]?\s*([^\n<]{5,100})(?=[<\n]|$)/i';
 
             if (preg_match_all($pattern, $this->html, $matches)) {
                 foreach ($matches[0] as $match) {
@@ -392,11 +395,11 @@ class PlaceholderMappingService
                         continue;
                     }
 
-                    if (!isset($mappings[$trimmed])) {
+                    if (! isset($mappings[$trimmed])) {
                         $mappings[$trimmed] = [
                             'original' => $trimmed,
                             'replacement' => $replacement,
-                            'type' => 'contact_' . $keyword,
+                            'type' => 'contact_'.$keyword,
                             'enabled' => false, // Disabled by default karena mungkin false positive
                         ];
                     }
@@ -416,7 +419,7 @@ class PlaceholderMappingService
         $html = $this->html;
 
         foreach ($mappings as $mapping) {
-            if (!$mapping['enabled']) {
+            if (! $mapping['enabled']) {
                 continue;
             }
 
@@ -446,7 +449,7 @@ class PlaceholderMappingService
     private function replaceHrefAttribute($html, $original, $replacement)
     {
         // Match href="original" or href='original'
-        $pattern = '/href\s*=\s*["\']' . preg_quote($original, '/') . '["\'](?=[^>]*>)/';
+        $pattern = '/href\s*=\s*["\']'.preg_quote($original, '/').'["\'](?=[^>]*>)/';
 
         return preg_replace($pattern, "href=\"{$replacement}\"", $html);
     }
@@ -457,7 +460,7 @@ class PlaceholderMappingService
     private function replaceSrcAttribute($html, $original, $replacement)
     {
         // Match src="original" atau src='original'
-        $pattern = '/src\s*=\s*["\']' . preg_quote($original, '/') . '["\'](?=[^>]*>)/';
+        $pattern = '/src\s*=\s*["\']'.preg_quote($original, '/').'["\'](?=[^>]*>)/';
 
         return preg_replace($pattern, "src=\"{$replacement}\"", $html);
     }
@@ -469,7 +472,7 @@ class PlaceholderMappingService
     private function replaceTextContent($html, $original, $replacement)
     {
         // Pattern untuk replace text outside tags dan attributes
-        $pattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b' . preg_quote($original, '~') . '\b~is';
+        $pattern = '~<(script|style)[^>]*>.*?<\/\1>|<[^>]+>(*SKIP)(*F)|\b'.preg_quote($original, '~').'\b~is';
 
         return preg_replace($pattern, $replacement, $html);
     }
@@ -507,6 +510,7 @@ class PlaceholderMappingService
             '/<div\s+([^>]*(?:class|id)\s*=\s*["\'](?:[^"\']*)?section[^"\']*["\'][^>]*)>/i',
             function ($matches) {
                 $attrs = $matches[1];
+
                 return "<section {$attrs}>";
             },
             $html

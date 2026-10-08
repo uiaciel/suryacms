@@ -3,12 +3,13 @@
 namespace Uiaciel\SuryaCms\Console\Commands;
 
 use Illuminate\Console\Command;
-use ZipArchive;
 use Illuminate\Support\Facades\File;
+use ZipArchive;
 
 class PackageZip extends Command
 {
     protected $signature = 'suryacms:package-zip {output=vendor_update.zip}';
+
     protected $description = 'Zip vendor, composer.json, dan composer.lock untuk deploy ke server';
 
     public function handle()
@@ -25,7 +26,7 @@ class PackageZip extends Command
         $targets = 'vendor composer.json composer.lock';
 
         // Escape path untuk keamanan
-        $outputPath = escapeshellarg($basePath . '/' . $output);
+        $outputPath = escapeshellarg($basePath.'/'.$output);
         $basePathEsc = escapeshellarg($basePath);
 
         $command = '';
@@ -58,14 +59,15 @@ class PackageZip extends Command
 
         if ($returnVar !== 0) {
             $this->error("❌ Gagal membuat archive. Pastikan 'tar' atau 'zip/7z' terinstall.");
+
             return 1;
         }
 
         // Generate checksum
-        $checksum = md5_file($basePath . '/' . $output);
-        file_put_contents($basePath . '/' . $output . '.md5', $checksum);
+        $checksum = md5_file($basePath.'/'.$output);
+        file_put_contents($basePath.'/'.$output.'.md5', $checksum);
 
-        $fileSize = number_format(filesize($basePath . '/' . $output) / 1024 / 1024, 2);
+        $fileSize = number_format(filesize($basePath.'/'.$output) / 1024 / 1024, 2);
         $this->info("✅ Berhasil membuat {$output} ({$fileSize} MB)");
         $this->info("🔐 Checksum (MD5): {$checksum}");
 
@@ -80,13 +82,13 @@ class PackageZip extends Command
         );
 
         foreach ($files as $file) {
-            if (!$file->isDir()) {
+            if (! $file->isDir()) {
                 $filePath = $file->getRealPath();
-                $relativePath = $zipPath . '/' . substr($filePath, strlen($folderPath) + 1);
+                $relativePath = $zipPath.'/'.substr($filePath, strlen($folderPath) + 1);
 
                 // Set external attributes untuk permission Linux (644 untuk file)
                 $zip->addFile($filePath, $relativePath);
-                $zip->setExternalAttributesName($relativePath, \ZipArchive::OPSYS_UNIX, 0100644 << 16);
+                $zip->setExternalAttributesName($relativePath, ZipArchive::OPSYS_UNIX, 0100644 << 16);
             }
         }
     }

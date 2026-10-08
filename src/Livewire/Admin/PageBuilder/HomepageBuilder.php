@@ -3,11 +3,14 @@
 namespace Uiaciel\SuryaCms\Livewire\Admin\PageBuilder;
 
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use Uiaciel\SuryaCms\Exports\PageExport;
+use Uiaciel\SuryaCms\Models\CustomBlock;
 use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
-use Livewire\Attributes\On;
 
 class HomepageBuilder extends Component
 {
@@ -55,18 +58,18 @@ class HomepageBuilder extends Component
     #[On('handleSaveBlock')]
     public function handleSaveBlock($name, $category, $html, $css)
     {
-        $newBlock = \Uiaciel\SuryaCms\Models\CustomBlock::create([
+        $newBlock = CustomBlock::create([
             'name' => $name,
             'category' => $category,
             'html' => $html,
             'css' => $css,
-            'settings' => ['type' => 'custom']
+            'settings' => ['type' => 'custom'],
         ]);
 
         $this->dispatch('swal', [
             'icon' => 'success',
             'title' => 'Berhasil',
-            'text' => 'Blok berhasil disimpan ke database!'
+            'text' => 'Blok berhasil disimpan ke database!',
         ]);
 
         $this->dispatch('add-block-to-editor', $newBlock);
@@ -75,7 +78,8 @@ class HomepageBuilder extends Component
     public function exportPage()
     {
         $page = Page::findOrFail($this->pageId);
-        return \Maatwebsite\Excel\Facades\Excel::download(new \Uiaciel\SuryaCms\Exports\PageExport($page), 'page-' . $this->slug . '.xlsx');
+
+        return Excel::download(new PageExport($page), 'page-'.$this->slug.'.xlsx');
     }
 
     public function exportPageJson()
@@ -90,14 +94,14 @@ class HomepageBuilder extends Component
         ];
 
         return response()->streamDownload(
-            fn () => print(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)),
-            'page-' . $this->slug . '.json'
+            fn () => print (json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)),
+            'page-'.$this->slug.'.json'
         );
     }
 
     public function exportAllPages()
     {
-        return \Maatwebsite\Excel\Facades\Excel::download(new \Uiaciel\SuryaCms\Exports\PageExport(), 'pages-backup-' . date('Y-m-d-H-i-s') . '.xlsx');
+        return Excel::download(new PageExport, 'pages-backup-'.date('Y-m-d-H-i-s').'.xlsx');
     }
 
     public function importPageJson()
@@ -110,12 +114,13 @@ class HomepageBuilder extends Component
             $content = file_get_contents($this->fileUpload->getRealPath());
             $data = json_decode($content, true);
 
-            if (!$data || !isset($data['html']) || !isset($data['css'])) {
+            if (! $data || ! isset($data['html']) || ! isset($data['css'])) {
                 $this->dispatch('swal', [
                     'icon' => 'error',
                     'title' => 'Invalid JSON',
                     'text' => 'JSON file harus berisi field "html" dan "css"',
                 ]);
+
                 return;
             }
 
@@ -144,7 +149,7 @@ class HomepageBuilder extends Component
             $this->dispatch('swal', [
                 'icon' => 'error',
                 'title' => 'Error',
-                'text' => 'Failed to import JSON: ' . $e->getMessage(),
+                'text' => 'Failed to import JSON: '.$e->getMessage(),
             ]);
         }
     }

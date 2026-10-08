@@ -27,7 +27,7 @@ class SettingTheme extends Component
             $setting = Setting::first();
             $this->activeTheme = $setting ? $setting->active_theme : null;
         } catch (\Exception $e) {
-            \Log::error('SettingTheme mount error: ' . $e->getMessage());
+            \Log::error('SettingTheme mount error: '.$e->getMessage());
             $this->activeTheme = null;
         }
 
@@ -71,7 +71,7 @@ class SettingTheme extends Component
                 ];
             }
         } catch (\Exception $e) {
-            \Log::error('SettingTheme loadThemes error: ' . $e->getMessage());
+            \Log::error('SettingTheme loadThemes error: '.$e->getMessage());
             $this->themes = [];
         }
     }
@@ -107,7 +107,7 @@ class SettingTheme extends Component
 
             // Path ke folder tema
             $resourcePath = resource_path('views/frontend/'.$themeName);
-            $publicPath   = public_path('frontend/'.$themeName);
+            $publicPath = public_path('frontend/'.$themeName);
 
             // Hapus folder jika ada
             if (File::exists($resourcePath)) {
@@ -124,7 +124,7 @@ class SettingTheme extends Component
 
             session()->flash('success', "Tema '{$themeName}' berhasil dihapus.");
         } catch (\Exception $e) {
-            \Log::error('SettingTheme deleteTheme error: ' . $e->getMessage());
+            \Log::error('SettingTheme deleteTheme error: '.$e->getMessage());
             session()->flash('error', '❌ Gagal menghapus tema: '.$e->getMessage());
         }
     }

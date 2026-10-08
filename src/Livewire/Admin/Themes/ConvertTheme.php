@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Uiaciel\SuryaCms\Services\FooterNormalizerService;
@@ -169,7 +170,7 @@ class ConvertTheme extends Component
     {
         try {
             $this->validate();
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             Log::error('Validation error on file upload', [
                 'errors' => $e->errors(),
                 'file_size' => $this->indexFile ? $this->indexFile->getSize() : 'No file',
@@ -180,14 +181,14 @@ class ConvertTheme extends Component
 
         try {
             // Validate file exists
-            if (!$this->indexFile) {
+            if (! $this->indexFile) {
                 throw new \Exception('File tidak ditemukan atau gagal diupload');
             }
 
             // Validate file is actually a file
             $filePath = $this->indexFile->getRealPath();
-            if (!file_exists($filePath)) {
-                throw new \Exception('Path file tidak valid: ' . $filePath);
+            if (! file_exists($filePath)) {
+                throw new \Exception('Path file tidak valid: '.$filePath);
             }
 
             $fileSize = $this->indexFile->getSize();
@@ -199,7 +200,7 @@ class ConvertTheme extends Component
 
             // 1. Create new session
             $sessionId = (string) Str::uuid();
-            $tempPath = storage_path("app" . DIRECTORY_SEPARATOR . "temp" . DIRECTORY_SEPARATOR . "themes" . DIRECTORY_SEPARATOR . $sessionId);
+            $tempPath = storage_path('app'.DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR.'themes'.DIRECTORY_SEPARATOR.$sessionId);
             $this->sessionId = $sessionId;
             $this->tempPath = $tempPath;
             $this->currentThemeName = (string) $this->themeName;
@@ -221,7 +222,7 @@ class ConvertTheme extends Component
             // 4. Save to storage
             $this->htmlEdited = (string) $finalHtml;
             $this->ensureDirectoryExists($tempPath);
-            file_put_contents($tempPath . DIRECTORY_SEPARATOR . "index.html", $finalHtml);
+            file_put_contents($tempPath.DIRECTORY_SEPARATOR.'index.html', $finalHtml);
 
             // 5. Save to cache
             $this->saveToCache($sessionId, $finalHtml);
@@ -245,7 +246,7 @@ class ConvertTheme extends Component
             Log::error('Theme upload and prepare failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'themeName' => $this->themeName
+                'themeName' => $this->themeName,
             ]);
             $this->validationErrors = [(string) $e->getMessage()];
             session()->flash('error', 'Gagal: '.$e->getMessage());
@@ -462,7 +463,7 @@ class ConvertTheme extends Component
         $directories = [
             'category',
             'page',
-            'plugin'
+            'plugin',
         ];
 
         foreach ($directories as $dir) {
@@ -470,21 +471,21 @@ class ConvertTheme extends Component
         }
 
         // Create category files
-        $this->createBladeFile("{$basePath}/category/index.blade.php", '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Category Index</h1> @endsection');
-        $this->createBladeFile("{$basePath}/category/show.blade.php", '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Category Show</h1> @endsection');
+        $this->createBladeFile("{$basePath}/category/index.blade.php", '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Category Index</h1> @endsection');
+        $this->createBladeFile("{$basePath}/category/show.blade.php", '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Category Show</h1> @endsection');
 
         // Create page files (base + corporation specific)
         $pageFiles = [
-            'category.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Page Category</h1> @endsection',
-            'maintenance.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Maintenance Page</h1> @endsection',
-            'post.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Post Page</h1> @endsection',
-            'show.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Page Show</h1> @endsection',
+            'category.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Page Category</h1> @endsection',
+            'maintenance.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Maintenance Page</h1> @endsection',
+            'post.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Post Page</h1> @endsection',
+            'show.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Page Show</h1> @endsection',
             // Corporation specific
-            'acc.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Accounting Page</h1> @endsection',
-            'announcement.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Announcement Page</h1> @endsection',
-            'announcements.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Announcements Page</h1> @endsection',
-            'financial.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Financial Page</h1> @endsection',
-            'share.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Share Page</h1> @endsection',
+            'acc.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Accounting Page</h1> @endsection',
+            'announcement.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Announcement Page</h1> @endsection',
+            'announcements.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Announcements Page</h1> @endsection',
+            'financial.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Financial Page</h1> @endsection',
+            'share.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Share Page</h1> @endsection',
         ];
 
         foreach ($pageFiles as $file => $content) {
@@ -493,13 +494,13 @@ class ConvertTheme extends Component
 
         // Create plugin files (base + corporation specific)
         $pluginFiles = [
-            'blog.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Blog Plugin</h1> @endsection',
-            'slider.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Slider Plugin</h1> @endsection',
-            'gallery.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Gallery Plugin</h1> @endsection',
+            'blog.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Blog Plugin</h1> @endsection',
+            'slider.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Slider Plugin</h1> @endsection',
+            'gallery.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Gallery Plugin</h1> @endsection',
             // Corporation specific
-            'announcement.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Announcement Plugin</h1> @endsection',
-            'report.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Report Plugin</h1> @endsection',
-            'stock.blade.php' => '@extends(\'frontend.' . $this->currentThemeName . '.app\') @section(\'content\') <h1>Stock Plugin</h1> @endsection',
+            'announcement.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Announcement Plugin</h1> @endsection',
+            'report.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Report Plugin</h1> @endsection',
+            'stock.blade.php' => '@extends(\'frontend.'.$this->currentThemeName.'.app\') @section(\'content\') <h1>Stock Plugin</h1> @endsection',
         ];
 
         foreach ($pluginFiles as $file => $content) {
@@ -527,13 +528,13 @@ class ConvertTheme extends Component
         // Get the uploaded file path
         $uploadedFilePath = $this->indexFile->getRealPath();
 
-        if (!file_exists($uploadedFilePath)) {
-            throw new \Exception('File uploaded tidak ditemukan di: ' . $uploadedFilePath);
+        if (! file_exists($uploadedFilePath)) {
+            throw new \Exception('File uploaded tidak ditemukan di: '.$uploadedFilePath);
         }
 
         // Copy ZIP file to temp directory
         $zipDestPath = "{$tempPath}/theme.zip";
-        if (!copy($uploadedFilePath, $zipDestPath)) {
+        if (! copy($uploadedFilePath, $zipDestPath)) {
             throw new \Exception('Gagal menyalin file ZIP ke storage');
         }
 
@@ -846,9 +847,9 @@ class ConvertTheme extends Component
      */
     private function ensureDirectoryExists($path)
     {
-        if (!file_exists($path)) {
-            if (!mkdir($path, 0755, true)) {
-                throw new \Exception('Gagal membuat direktori: ' . $path);
+        if (! file_exists($path)) {
+            if (! mkdir($path, 0755, true)) {
+                throw new \Exception('Gagal membuat direktori: '.$path);
             }
             Log::debug('Directory created', ['path' => $path]);
         }

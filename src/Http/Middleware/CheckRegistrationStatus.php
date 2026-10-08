@@ -11,7 +11,7 @@ class CheckRegistrationStatus
     {
 
         if ($request->is('dashboard*')) {
-                return redirect('/admin')->with('success', 'Selamat datang di Dashboard admin.');
+            return redirect('/admin')->with('success', 'Selamat datang di Dashboard admin.');
         }
 
         if (! config('frontend.registration_enabled')) {

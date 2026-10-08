@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="w-full p-4">
     <x-suryacms::import-export-offcanvas />
 
     <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
@@ -6,7 +6,7 @@
             <h3 class="font-bold text-gray-800 text-2xl mb-0">Posts</h3>
             <a href="{{ route('admin.post.create') }}"
                 class="px-4 py-2 bg-blue-600 text-white rounded-full shadow-sm text-sm hover:bg-blue-700 transition">
-                <i class="fas fa-plus mr-2"></i>Create New Post
+                <i class="fas fa-plus mr-2"></i> New Post
             </a>
         </div>
 
@@ -30,6 +30,7 @@
             search: '',
             category: '',
             status: '',
+            showFilter: false,
 
             phpFormat: '{{ get_date_format() ?? 'm/d/Y' }}',
 
@@ -84,56 +85,72 @@
                 this.status = '';
             }
         }">
-            <div class="flex justify-between items-center mb-6">
-                <h5 class="font-bold text-lg text-blue-600 mb-0">All Posts</h5>
+            <div class="flex justify-between items-center gap-3 mb-4 sm:mb-6">
+            <h5 class="font-bold text-base sm:text-lg text-blue-600 mb-0">All Posts</h5>
+            <div class="flex items-center gap-2">
+
+                <button type="button"
+                    @click="showFilter = !showFilter"
+                    class="px-3 py-2 border border-blue-300 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-50 transition inline-flex items-center"
+                    :aria-expanded="showFilter">
+                    <i class="fas fa-filter mr-1"></i>
+                    <span x-text="showFilter ? 'Hide' : 'Filter'"></span>
+                </button>
+
                 <a href="{{ route('admin.post.generate') }}"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-full shadow-sm text-sm hover:bg-blue-700 transition">
-                    <i class="fas fa-plus mr-2"></i>Generate Post
+                    class="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-full shadow-sm text-sm hover:bg-blue-700 transition whitespace-nowrap">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1 sm:mr-2"></i>Generate
                 </a>
             </div>
+        </div>
 
             {{-- Search and Filter Section --}}
-            <div class="p-4 rounded-lg border border-blue-200 bg-blue-50 mb-6">
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 items-end">
-                    <div class="lg:col-span-2">
-                        <label for="search-input" class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                        <div class="flex items-center border border-gray-300 rounded-lg bg-white">
-                            <span class="px-3 text-gray-400"><i class="fas fa-search"></i></span>
-                            <input type="text" id="search-input"
-                                class="w-full px-3 py-2 border-0 focus:outline-none focus:ring-0"
-                                placeholder="Search by title, category, or status..." x-model.debounce.500ms="search"
-                                aria-label="Search posts">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="filter-category"
-                            class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                        <select id="filter-category"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            x-model="category" aria-label="Filter by category">
-                            <option value="">All Categories</option>
-                            @foreach ($categories as $cat)
-                                <option value="{{ $cat->name }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                        <select id="filter-status"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            x-model="status" aria-label="Filter by status">
-                            <option value="">All Statuses</option>
-                            <option value="Publish">Publish</option>
-                            <option value="Draft">Draft</option>
-                        </select>
-                    </div>
-                    <div>
-                        <button type="button"
-                            class="w-full px-4 py-2 border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 font-medium"
-                            @click="resetFilters()">Reset</button>
-                    </div>
-                </div>
+            {{-- Search and Filter Section --}}
+<div
+    class="rounded-lg border border-blue-200 bg-blue-50 mb-4 sm:mb-6 overflow-hidden"
+    x-show="showFilter"
+    x-cloak
+    x-transition.opacity.duration.200ms
+    :class="{ 'hidden lg:block': !showFilter }">
+    <div class="p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4 items-end">
+        <div class="lg:col-span-2">
+            <label for="search-input" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Search</label>
+            <div class="flex items-center border border-gray-300 rounded-lg bg-white">
+                <span class="px-3 text-gray-400 text-sm"><i class="fas fa-search"></i></span>
+                <input type="text" id="search-input"
+                    class="w-full px-3 py-2 text-sm border-0 focus:outline-none focus:ring-0"
+                    placeholder="Search by title, category, or status..." x-model.debounce.500ms="search"
+                    aria-label="Search posts">
             </div>
+        </div>
+        <div>
+            <label for="filter-category" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Category</label>
+            <select id="filter-category"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                x-model="category" aria-label="Filter by category">
+                <option value="">All Categories</option>
+                @foreach ($categories as $cat)
+                    <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label for="filter-status" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Status</label>
+            <select id="filter-status"
+                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                x-model="status" aria-label="Filter by status">
+                <option value="">All Statuses</option>
+                <option value="Publish">Publish</option>
+                <option value="Draft">Draft</option>
+            </select>
+        </div>
+        <div>
+            <button type="button"
+                class="w-full px-4 py-2 text-sm border border-gray-300 text-gray-700 bg-white rounded-lg hover:bg-gray-50 font-medium"
+                @click="resetFilters()">Reset</button>
+        </div>
+    </div>
+</div>
 
             <div class="overflow-x-auto">
                 <table class="w-full">

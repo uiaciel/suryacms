@@ -271,7 +271,8 @@ class ThemeNormalizerService
         $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
             // Ubah &gt; kembali menjadi > dan &lt; menjadi < di dalam {{ }}
             $cleanContent = htmlspecialchars_decode($matches[1], ENT_QUOTES);
-            return '{{' . $cleanContent . '}}';
+
+            return '{{'.$cleanContent.'}}';
         }, $html);
 
         // Fix 2: Perbaiki double curly braces yang rusak akibat parsing (jika ada)
@@ -281,7 +282,7 @@ class ThemeNormalizerService
         // Hanya mengubah %20 yang ada di dalam path /frontend/themeName/...
         if ($this->themeName) {
             $escapedTheme = preg_quote($this->themeName, '/');
-            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
+            $html = preg_replace_callback('/(\/frontend\/'.$escapedTheme.'\/[^"\'\s>]+)/', function ($matches) {
                 return urldecode($matches[1]);
             }, $html);
         }
@@ -329,7 +330,7 @@ class ThemeNormalizerService
 
     private function normalizeAssets()
     {
-        if (!$this->themeName) {
+        if (! $this->themeName) {
             return;
         }
 

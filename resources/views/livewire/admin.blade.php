@@ -56,61 +56,69 @@
         <div class="lg:col-span-2 gap-4">
             <!-- Stat Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium mb-1">Pages</p>
-                            <h3 class="text-3xl font-bold text-gray-800">{{ $pages->count() }}</h3>
+                <a href="/{{ config('suryacms.admin_prefix') }}/pages" wire:navigate>
+                    <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium mb-1">Pages</p>
+                                <h3 class="text-3xl font-bold text-gray-800">{{ $pages->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file text-blue-600"></i>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-file text-blue-600"></i>
-                        </div>
+                        <p class="text-xs text-gray-400">Published:
+                            {{ $pages->where('status', 'Publish')->count() }}/{{ $pages->count() }}</p>
                     </div>
-                    <p class="text-xs text-gray-400">Published:
-                        {{ $pages->where('status', 'Publish')->count() }}/{{ $pages->count() }}</p>
-                </div>
+                </a>
 
-                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium mb-1">Posts</p>
-                            <h3 class="text-3xl font-bold text-gray-800">{{ $posts->count() }}</h3>
+                <a href="/{{ config('suryacms.admin_prefix') }}/posts" wire:navigate>
+                    <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium mb-1">Posts</p>
+                                <h3 class="text-3xl font-bold text-gray-800">{{ $posts->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file-alt text-purple-600"></i>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-file-alt text-purple-600"></i>
-                        </div>
+                        <p class="text-xs text-gray-400">Published:
+                            {{ $posts->where('status', 'Publish')->count() }}/{{ $posts->count() }}</p>
                     </div>
-                    <p class="text-xs text-gray-400">Published:
-                        {{ $posts->where('status', 'Publish')->count() }}/{{ $posts->count() }}</p>
-                </div>
+                </a>
 
-                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium mb-1">Gallery</p>
-                            <h3 class="text-3xl font-bold text-gray-800">{{ $gallery->count() }}</h3>
+                <a href="/{{ config('suryacms.admin_prefix') }}/galleries" wire:navigate>
+                    <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium mb-1">Gallery</p>
+                                <h3 class="text-3xl font-bold text-gray-800">{{ $gallery->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-images text-amber-600"></i>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-images text-amber-600"></i>
-                        </div>
+                        <p class="text-xs text-gray-400">Published:
+                            {{ $gallery->where('status', 'Publish')->count() }}/{{ $gallery->count() }}</p>
                     </div>
-                    <p class="text-xs text-gray-400">Published:
-                        {{ $gallery->where('status', 'Publish')->count() }}/{{ $gallery->count() }}</p>
-                </div>
+                </a>
 
-                <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <p class="text-sm text-gray-500 font-medium mb-1">Inbox</p>
-                            <h3 class="text-3xl font-bold text-gray-800">{{ $contacts->where('is_read', false)->count() }}</h3>
+                <a href="/{{ config('suryacms.admin_prefix') }}/contacts" wire:navigate>
+                    <div class="stat-card bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium mb-1">Inbox</p>
+                                <h3 class="text-3xl font-bold text-gray-800">{{ $contacts->where('is_read', false)->count() }}</h3>
+                            </div>
+                            <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-envelope text-emerald-600"></i>
+                            </div>
                         </div>
-                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-envelope text-emerald-600"></i>
-                        </div>
+                        <p class="text-xs text-gray-400">Unread:
+                            {{ $contacts->where('is_read', false)->count() }}/{{ $contacts->count() }}</p>
                     </div>
-                    <p class="text-xs text-gray-400">Unread:
-                        {{ $contacts->where('is_read', false)->count() }}/{{ $contacts->count() }}</p>
-                </div>
+                </a>
             </div>
 
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mt-6">
@@ -321,7 +329,7 @@
                     <!-- Container Responsif -->
                     <!-- Card Wrapper dengan batas lebar maksimal agar menyerupai card Open Graph asli -->
                     <div
-                        class="max-w-md mx-auto sm:mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
+                        class="w-full mx-auto sm:mx-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
 
                         <!-- Media / Gambar -->
                         <div class="relative w-full h-40 sm:h-48 overflow-hidden bg-gray-100">
@@ -506,7 +514,34 @@
                             <i class="fas fa-check-circle"></i> {{ session('message') }}
                         </div>
                     @endif
-                    <livewire:suryacms::admin.file-check />
+
+                    <div>
+                        <ul class="space-y-2">
+                            @foreach ($files as $file)
+                                @php
+                                    $status = $this->getStatus($file['path']);
+                                    $isAvailable = $status['status'] === 'Ada';
+                                @endphp
+                                <li class="flex justify-between items-center p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-sm transition-all duration-200">
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-bold text-gray-700">{{ $file['label'] }}</span>
+                                        <span class="text-[10px] text-gray-400 font-mono truncate max-w-[150px]">{{ $file['path'] }}</span>
+                                    </div>
+
+                                    @if ($isAvailable)
+                                        <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+                                            <i class="fas fa-check-circle"></i> Available
+                                        </span>
+                                    @else
+                                        <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider badge-pulse">
+                                            <i class="fas fa-times-circle"></i> Missing
+                                        </span>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>

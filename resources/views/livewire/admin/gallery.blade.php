@@ -1,22 +1,32 @@
-<div class="mb-6" x-data="{
+<div class="mb-6 p-2 md:p-4" x-data="{
     search: '',
     showModal: false,
-}" x-on:notify.window="showModal = false;">
+    showBulkModal: false,
+    isDragging: false,
+}" x-on:notify.window="showModal = false; showBulkModal = false;">
 
     <!-- Header Section -->
     <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-        <div>
-            <h3 class="font-bold text-2xl text-gray-900">Media Library</h3>
-            <p class="text-sm text-gray-500">Kelola berkas gambar dan dokumen PDF perusahaan Anda.</p>
-        </div>
+    <div>
+        <h3 class="font-bold text-2xl text-gray-900">Media Library</h3>
+    </div>
+
+    <div class="flex items-center gap-2">
+        <button type="button"
+            class="inline-flex items-center justify-center px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl shadow-sm transition-colors gap-2 cursor-pointer"
+            @click="$wire.resetFields(); showBulkModal = true;">
+            <i class="fa-solid fa-layer-group text-lg"></i>
+            <span>Bulk Upload</span>
+        </button>
 
         <button type="button"
-            class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm transition-colors gap-2 cursor-pointer"
+            class="inline-flex items-center justify-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl shadow-sm transition-colors gap-2 cursor-pointer"
             @click="$wire.resetFields(); showModal = true;">
             <i class="fa-solid fa-cloud-arrow-up text-lg"></i>
             <span>Upload Media</span>
         </button>
-    </header>
+    </div>
+</header>
 
     <x-suryacms::session-status />
     <x-suryacms::toast-alert />
@@ -29,7 +39,7 @@
             </span>
             <input type="text"
                 class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
-                placeholder="Cari media berdasarkan judul..." x-model="search">
+                placeholder="Find Media by Title..." x-model="search">
         </div>
     </div>
 
@@ -45,7 +55,6 @@
                     </div>
                     <div>
                         <h4 class="font-bold text-gray-800">Image Gallery</h4>
-                        <p class="text-xs text-gray-500">Koleksi berkas gambar (JPG, PNG, WEBP, GIF)</p>
                     </div>
                 </div>
                 <span class="text-xs font-semibold px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full">
@@ -116,7 +125,6 @@
                     </div>
                     <div>
                         <h4 class="font-bold text-gray-800">PDF Documents</h4>
-                        <p class="text-xs text-gray-500">Koleksi dokumen berkas PDF & Cover Preview</p>
                     </div>
                 </div>
                 <span class="text-xs font-semibold px-2.5 py-1 bg-red-50 text-red-600 rounded-full">
@@ -209,7 +217,7 @@
             <!-- Modal Header -->
             <div class="bg-gray-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
                 <div class="flex items-center gap-2">
-                    <i class="bi bi-cloud-arrow-up text-xl text-blue-400" x-show="!$wire.isEdit"></i>
+                    <i class="fa-solid fa-cloud-arrow-up text-xl text-blue-400" x-show="!$wire.isEdit"></i>
                     <i class="fa-solid fa-pen-to-square text-xl text-amber-400" x-show="$wire.isEdit"></i>
                     <h5 class="text-base font-bold" x-text="$wire.isEdit ? 'Edit Media Details' : 'Upload New Media'">
                     </h5>
@@ -292,7 +300,7 @@
                                     <div class="flex flex-col items-center justify-center py-4">
                                         <div
                                             class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-2">
-                                            <i class="bi bi-cloud-arrow-up text-2xl"></i>
+                                            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
                                         </div>
                                         <p class="text-xs font-bold text-gray-700 mb-1">Click or Drop File Here</p>
                                         <p class="text-[10px] text-gray-400">Image (JPG, PNG, WEBP) or PDF (Max 30MB)
@@ -390,7 +398,6 @@
                                         class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-all uppercase"
                                         wire:model="existing_file_path" readonly>
 
-
                             </div>
 
                             <!-- Status Selection -->
@@ -452,5 +459,199 @@
 
         </div>
     </div>
+
+    <!-- ========================================================= -->
+<!-- BULK UPLOAD MODAL: DRAG & DROP + MULTIPLE UPLOAD -->
+<!-- ========================================================= -->
+<div class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 transition-opacity"
+    x-show="showBulkModal" x-transition style="display: none;">
+
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden"
+        @click.away="showBulkModal = false">
+
+        <!-- Header -->
+        <div class="bg-gray-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-layer-group text-xl text-emerald-400"></i>
+                <h5 class="text-base font-bold">Bulk Upload Media</h5>
+            </div>
+            <button type="button" class="text-gray-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+                @click="showBulkModal = false">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 overflow-y-auto flex-1">
+            <form wire:submit.prevent="saveMultipleGallery">
+
+                <!-- DROPZONE -->
+                <div x-data="{
+                    handleDrop(e) {
+                        const files = Array.from(e.dataTransfer.files);
+                        if (files.length === 0) return;
+
+                        const input = this.$refs.fileInput;
+                        const dt = new DataTransfer();
+                        files.forEach(f => dt.items.add(f));
+                        input.files = dt.files;
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }"
+                x-ref="dropzone"
+                @dragover.prevent="isDragging = true"
+                @dragleave.prevent="isDragging = false"
+                @drop.prevent="isDragging = false; handleDrop($event)">
+
+                    <div :class="isDragging
+                            ? 'border-emerald-500 bg-emerald-50 scale-[1.01]'
+                            : 'border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50/30'"
+                        class="relative border-2 border-dashed rounded-2xl p-8 transition-all text-center flex flex-col items-center justify-center min-h-[200px]">
+
+                        <!-- Input File Multiple -->
+                        <input x-ref="fileInput" type="file" multiple wire:model="uploadFiles"
+                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            accept=".jpg,.jpeg,.png,.webp,.gif,.svg,.pdf">
+
+                        <div class="flex flex-col items-center justify-center pointer-events-none">
+                            <div :class="isDragging ? 'bg-emerald-500 text-white scale-110' : 'bg-emerald-100 text-emerald-600'"
+                                class="w-16 h-16 rounded-full flex items-center justify-center mb-3 transition-all">
+                                <i class="fa-solid fa-cloud-arrow-up text-3xl"></i>
+                            </div>
+                            <p class="text-sm font-bold text-gray-800 mb-1">
+                                <span x-text="isDragging ? 'Lepaskan file di sini!' : 'Drag & Drop File ke Sini'"></span>
+                            </p>
+                            <p class="text-xs text-gray-500">atau klik untuk memilih multiple file</p>
+                            <p class="text-[10px] text-gray-400 mt-2">
+                                Gambar (JPG, PNG, WEBP, GIF, SVG) atau PDF &middot; Maks 30MB/file &middot; Maks 20 file
+                            </p>
+                        </div>
+
+                        <!-- Loading Upload -->
+                        <div wire:loading wire:target="uploadFiles"
+                            class="absolute inset-0 bg-white/95 z-20 rounded-2xl flex flex-col items-center justify-center p-4">
+                            <div class="w-10 h-10 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+                            <p class="text-xs font-bold text-gray-800">Mengunggah file...</p>
+                            <p class="text-[10px] text-gray-500 mt-1">Mohon tunggu proses upload selesai</p>
+                        </div>
+                    </div>
+                </div>
+
+                @error('uploadFiles')
+                    <span class="text-red-500 text-xs font-medium block mt-2">{{ $message }}</span>
+                @enderror
+                @error('uploadFiles.*')
+                    <span class="text-red-500 text-xs font-medium block mt-2">{{ $message }}</span>
+                @enderror
+
+                <!-- PREVIEW MULTIPLE FILE QUEUE -->
+                @if (count($uploadFiles) > 0)
+                    <div class="mt-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <h6 class="text-sm font-bold text-gray-800">
+                                File dalam Antrian
+                                <span class="ml-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+                                    {{ count($uploadFiles) }}
+                                </span>
+                            </h6>
+                            <button type="button" wire:click="clearUploadQueue"
+                                class="text-xs text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 cursor-pointer">
+                                <i class="fa-solid fa-trash"></i> Bersihkan Semua
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 max-h-72 overflow-y-auto p-1">
+                            @foreach ($uploadFiles as $index => $file)
+                                @php
+                                    $ext = strtolower($file->getClientOriginalExtension());
+                                    $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']);
+                                @endphp
+                                <div class="relative group rounded-xl overflow-hidden border border-gray-200 bg-white shadow-xs">
+                                    <div class="aspect-square bg-gray-50 flex items-center justify-center overflow-hidden">
+                                        @if ($isImage)
+                                            <img src="{{ $file->temporaryUrl() }}"
+                                                class="w-full h-full object-cover">
+                                        @else
+                                            <div class="flex flex-col items-center text-red-500 p-2 text-center">
+                                                <i class="fa-solid fa-file-pdf text-3xl mb-1"></i>
+                                                <span class="text-[9px] text-gray-500">PDF</span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Remove Button -->
+                                    <button type="button" wire:click="removeUploadFile({{ $index }})"
+                                        class="absolute top-1 right-1 w-6 h-6 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center text-xs shadow-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                                        title="Hapus dari antrian">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+
+                                    <div class="p-1.5 border-t border-gray-100">
+                                        <p class="text-[9px] text-gray-600 truncate" title="{{ $file->getClientOriginalName() }}">
+                                            {{ $file->getClientOriginalName() }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- METADATA GLOBAL -->
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Kategori (Global)
+                        </label>
+                        <input type="text"
+                            class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm uppercase"
+                            wire:model="uploadCategory" placeholder="Contoh: SLIDER, BANNER">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Alt Text Default
+                        </label>
+                        <input type="text"
+                            class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                            wire:model="uploadAltText" placeholder="Kosongkan = pakai nama file">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                            Status (Global)
+                        </label>
+                        <select wire:model="uploadStatus"
+                            class="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                            <option value="Publish">Publish</option>
+                            <option value="Draft">Draft</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- FOOTER -->
+                <div class="mt-8 pt-4 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end items-center">
+                    <button type="button" @click="showBulkModal = false"
+                        class="w-full sm:w-auto px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors text-sm cursor-pointer">
+                        Cancel
+                    </button>
+
+                    <button type="submit" wire:loading.attr="disabled"
+                        wire:target="uploadFiles, saveMultipleGallery"
+                        class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-semibold rounded-xl transition-colors text-sm flex items-center justify-center gap-2 cursor-pointer">
+                        <span wire:loading.remove wire:target="uploadFiles, saveMultipleGallery">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            Upload {{ count($uploadFiles) }} File
+                        </span>
+                        <span wire:loading wire:target="uploadFiles, saveMultipleGallery"
+                            class="flex items-center gap-2">
+                            <i class="fa-solid fa-repeat animate-spin"></i> Memproses...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 </div>

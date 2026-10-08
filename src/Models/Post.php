@@ -218,5 +218,4 @@ class Post extends Model
         // Gabungkan jadi string
         return implode(', ', $topWords);
     }
-
 }

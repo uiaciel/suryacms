@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
+use Uiaciel\SuryaCms\Exports\GalleryExport;
+use Uiaciel\SuryaCms\Exports\InboxExport;
+use Uiaciel\SuryaCms\Exports\MenuExport;
+use Uiaciel\SuryaCms\Exports\PageExport;
+use Uiaciel\SuryaCms\Exports\PostExport;
+use Uiaciel\SuryaCms\Exports\SettingExport;
 use ZipArchive;
 
 class PartialBackupService
@@ -21,9 +27,9 @@ class PartialBackupService
 
     public function run(): string
     {
-        $folder = 'backup-' . now()->format('d-m-Y');
-        $folderPath = $this->backupRoot . DIRECTORY_SEPARATOR . $folder;
-        $stagingPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'suryacms-partial-' . uniqid();
+        $folder = 'backup-'.now()->format('d-m-Y');
+        $folderPath = $this->backupRoot.DIRECTORY_SEPARATOR.$folder;
+        $stagingPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'suryacms-partial-'.uniqid();
 
         File::ensureDirectoryExists($folderPath);
         File::deleteDirectory($stagingPath);
@@ -31,14 +37,14 @@ class PartialBackupService
 
         try {
             $this->status('Preparing partial backup...', 5);
-            $this->zipPaths($stagingPath . DIRECTORY_SEPARATOR . 'vendor.zip', [
+            $this->zipPaths($stagingPath.DIRECTORY_SEPARATOR.'vendor.zip', [
                 [base_path('vendor'), 'vendor'],
                 [base_path('composer.json'), 'composer.json'],
                 [base_path('composer.lock'), 'composer.lock'],
             ]);
 
             $this->status('Backing up storage...', 25);
-            $this->zipPaths($stagingPath . DIRECTORY_SEPARATOR . 'storage.zip', [
+            $this->zipPaths($stagingPath.DIRECTORY_SEPARATOR.'storage.zip', [
                 [storage_path(), 'storage'],
             ], [$this->backupRoot, $stagingPath]);
 
@@ -50,20 +56,20 @@ class PartialBackupService
                     $coreEntries[] = [$source, $path];
                 }
             }
-            $this->zipPaths($stagingPath . DIRECTORY_SEPARATOR . 'core.zip', $coreEntries);
+            $this->zipPaths($stagingPath.DIRECTORY_SEPARATOR.'core.zip', $coreEntries);
 
             $this->status('Exporting database...', 65);
-            $this->createDatabaseArchive($stagingPath . DIRECTORY_SEPARATOR . 'database.zip');
+            $this->createDatabaseArchive($stagingPath.DIRECTORY_SEPARATOR.'database.zip');
 
             foreach (['vendor.zip', 'storage.zip', 'core.zip', 'database.zip'] as $file) {
-                File::copy($stagingPath . DIRECTORY_SEPARATOR . $file, $folderPath . DIRECTORY_SEPARATOR . $file);
+                File::copy($stagingPath.DIRECTORY_SEPARATOR.$file, $folderPath.DIRECTORY_SEPARATOR.$file);
             }
 
             $this->status('Partial backup completed.', 100);
 
             return $folderPath;
         } catch (Throwable $exception) {
-            $this->status('Partial backup failed: ' . $exception->getMessage(), -1);
+            $this->status('Partial backup failed: '.$exception->getMessage(), -1);
             throw $exception;
         } finally {
             File::deleteDirectory($stagingPath);
@@ -72,10 +78,10 @@ class PartialBackupService
 
     protected function createDatabaseArchive(string $archivePath): void
     {
-        $stagingPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'suryacms-database-' . uniqid();
-        File::ensureDirectoryExists($stagingPath . DIRECTORY_SEPARATOR . 'json');
-        File::ensureDirectoryExists($stagingPath . DIRECTORY_SEPARATOR . 'exports');
-        File::ensureDirectoryExists($stagingPath . DIRECTORY_SEPARATOR . 'mysql');
+        $stagingPath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'suryacms-database-'.uniqid();
+        File::ensureDirectoryExists($stagingPath.DIRECTORY_SEPARATOR.'json');
+        File::ensureDirectoryExists($stagingPath.DIRECTORY_SEPARATOR.'exports');
+        File::ensureDirectoryExists($stagingPath.DIRECTORY_SEPARATOR.'mysql');
 
         try {
             $tables = config('suryacms-backup.tables', []);
@@ -88,24 +94,24 @@ class PartialBackupService
                     continue;
                 }
                 $records = DB::table($table)->get()->map(fn ($record) => (array) $record)->all();
-                File::put($stagingPath . DIRECTORY_SEPARATOR . 'json' . DIRECTORY_SEPARATOR . $table . '.json', json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                File::put($stagingPath.DIRECTORY_SEPARATOR.'json'.DIRECTORY_SEPARATOR.$table.'.json', json_encode($records, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
             }
 
             $exports = [
-                'PostExport.xlsx' => \Uiaciel\SuryaCms\Exports\PostExport::class,
-                'PageExport.xlsx' => \Uiaciel\SuryaCms\Exports\PageExport::class,
-                'MenuExport.xlsx' => \Uiaciel\SuryaCms\Exports\MenuExport::class,
-                'InboxExport.xlsx' => \Uiaciel\SuryaCms\Exports\InboxExport::class,
-                'GalleryExport.xlsx' => \Uiaciel\SuryaCms\Exports\GalleryExport::class,
-                'SettingExport.xlsx' => \Uiaciel\SuryaCms\Exports\SettingExport::class,
+                'PostExport.xlsx' => PostExport::class,
+                'PageExport.xlsx' => PageExport::class,
+                'MenuExport.xlsx' => MenuExport::class,
+                'InboxExport.xlsx' => InboxExport::class,
+                'GalleryExport.xlsx' => GalleryExport::class,
+                'SettingExport.xlsx' => SettingExport::class,
             ];
             foreach ($exports as $filename => $exportClass) {
                 if (class_exists($exportClass)) {
-                    File::put($stagingPath . DIRECTORY_SEPARATOR . 'exports' . DIRECTORY_SEPARATOR . $filename, Excel::raw(new $exportClass, \Maatwebsite\Excel\Excel::XLSX));
+                    File::put($stagingPath.DIRECTORY_SEPARATOR.'exports'.DIRECTORY_SEPARATOR.$filename, Excel::raw(new $exportClass, \Maatwebsite\Excel\Excel::XLSX));
                 }
             }
 
-            $this->createSqlDump($stagingPath . DIRECTORY_SEPARATOR . 'mysql' . DIRECTORY_SEPARATOR . 'database.sql', $tables);
+            $this->createSqlDump($stagingPath.DIRECTORY_SEPARATOR.'mysql'.DIRECTORY_SEPARATOR.'database.sql', $tables);
 
             $zip = new ZipArchive;
             if ($zip->open($archivePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
@@ -122,14 +128,14 @@ class PartialBackupService
 
     protected function createSqlDump(string $dumpPath, array $tables): void
     {
-        $lines = ['-- SuryaCMS database export', '-- Generated at ' . now()->toDateTimeString(), ''];
+        $lines = ['-- SuryaCMS database export', '-- Generated at '.now()->toDateTimeString(), ''];
 
         foreach ($tables as $table) {
             if (! Schema::hasTable($table)) {
                 continue;
             }
 
-            $lines[] = '-- Table: ' . $table;
+            $lines[] = '-- Table: '.$table;
             foreach (DB::table($table)->get() as $record) {
                 $values = [];
                 foreach ((array) $record as $value) {
@@ -140,10 +146,10 @@ class PartialBackupService
                     } elseif (is_numeric($value)) {
                         $values[] = (string) $value;
                     } else {
-                        $values[] = "'" . str_replace("'", "''", (string) $value) . "'";
+                        $values[] = "'".str_replace("'", "''", (string) $value)."'";
                     }
                 }
-                $lines[] = 'INSERT INTO `' . str_replace('`', '``', $table) . '` VALUES (' . implode(', ', $values) . ');';
+                $lines[] = 'INSERT INTO `'.str_replace('`', '``', $table).'` VALUES ('.implode(', ', $values).');';
             }
             $lines[] = '';
         }
@@ -165,13 +171,13 @@ class PartialBackupService
                 if (! $zip->addFile($source, $zipPath, 0, 0, ZipArchive::FL_OPEN_FILE_NOW)) {
                     $contents = file_get_contents($source);
                     if ($contents === false || ! $zip->addFromString($zipPath, $contents)) {
-                        throw new \RuntimeException('Unable to add file to backup archive: ' . $zipPath);
+                        throw new \RuntimeException('Unable to add file to backup archive: '.$zipPath);
                     }
                 }
             }
         }
         if (! $zip->close()) {
-            throw new \RuntimeException('Unable to finalize backup archive: ' . basename($archivePath));
+            throw new \RuntimeException('Unable to finalize backup archive: '.basename($archivePath));
         }
     }
 
@@ -183,16 +189,16 @@ class PartialBackupService
                 continue;
             }
             foreach ($excludedPaths as $excludedPath) {
-                if (str_starts_with($realPath, rtrim($excludedPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR)) {
+                if (str_starts_with($realPath, rtrim($excludedPath, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR)) {
                     continue 2;
                 }
             }
             $relativePath = str_replace('\\', '/', $file->getRelativePathname());
-            $zipPath = trim($prefix . '/' . $relativePath, '/');
+            $zipPath = trim($prefix.'/'.$relativePath, '/');
             if (! $zip->addFile($realPath, $zipPath, 0, 0, ZipArchive::FL_OPEN_FILE_NOW)) {
                 $contents = file_get_contents($realPath);
                 if ($contents === false || ! $zip->addFromString($zipPath, $contents)) {
-                    throw new \RuntimeException('Unable to add file to backup archive: ' . $zipPath);
+                    throw new \RuntimeException('Unable to add file to backup archive: '.$zipPath);
                 }
             }
         }

@@ -31,8 +31,8 @@ class KeywordExtractionService
     /**
      * Extract keywords dari text
      *
-     * @param string $text Text untuk di-extract keywordnya
-     * @param int $count Jumlah keyword yang diinginkan (default: 10)
+     * @param  string  $text  Text untuk di-extract keywordnya
+     * @param  int  $count  Jumlah keyword yang diinginkan (default: 10)
      * @return array Array of keywords
      */
     public function extract(string $text, int $count = 10): array
@@ -62,9 +62,9 @@ class KeywordExtractionService
     /**
      * Extract keyphrases (multi-word keywords) dari text
      *
-     * @param string $text Text untuk di-extract keywordnya
-     * @param int $phraseLength Panjang phrase (default: 2-3 words)
-     * @param int $count Jumlah phrases yang diinginkan (default: 10)
+     * @param  string  $text  Text untuk di-extract keywordnya
+     * @param  int  $phraseLength  Panjang phrase (default: 2-3 words)
+     * @param  int  $count  Jumlah phrases yang diinginkan (default: 10)
      * @return array Array of keyphrases
      */
     public function extractPhrases(string $text, int $phraseLength = 2, int $count = 10): array
@@ -88,7 +88,7 @@ class KeywordExtractionService
         }
 
         // Filter phrases yang hanya muncul lebih dari 1 kali
-        $phrases = array_filter($phrases, fn($count) => $count > 1);
+        $phrases = array_filter($phrases, fn ($count) => $count > 1);
 
         // Sort by frequency
         arsort($phrases);
@@ -102,10 +102,10 @@ class KeywordExtractionService
     /**
      * Generate keywords format untuk tags field (comma-separated)
      *
-     * @param string $title Judul artikel
-     * @param string $content Konten artikel
-     * @param int $keywordCount Jumlah single keywords
-     * @param int $phraseCount Jumlah multi-word phrases
+     * @param  string  $title  Judul artikel
+     * @param  string  $content  Konten artikel
+     * @param  int  $keywordCount  Jumlah single keywords
+     * @param  int  $phraseCount  Jumlah multi-word phrases
      * @return string Keywords separated by commas
      */
     public function generateTags(string $title, string $content, int $keywordCount = 5, int $phraseCount = 3): string
@@ -135,9 +135,6 @@ class KeywordExtractionService
 
     /**
      * Clean text dari HTML tags dan special characters
-     *
-     * @param string $text
-     * @return string
      */
     private function cleanText(string $text): string
     {
@@ -158,9 +155,6 @@ class KeywordExtractionService
 
     /**
      * Tokenize text menjadi words
-     *
-     * @param string $text
-     * @return array
      */
     private function tokenize(string $text): array
     {
@@ -172,9 +166,6 @@ class KeywordExtractionService
 
     /**
      * Filter stop words dan short words
-     *
-     * @param array $words
-     * @return array
      */
     private function filterWords(array $words): array
     {
@@ -200,9 +191,6 @@ class KeywordExtractionService
 
     /**
      * Calculate frequency dari setiap word
-     *
-     * @param array $words
-     * @return array
      */
     private function calculateFrequency(array $words): array
     {

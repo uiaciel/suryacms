@@ -1,26 +1,17 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
 
-        {{-- Header Section --}}
-        <div class="mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <div
-                            class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                </path>
-                            </svg>
-                        </div>
-                        {{ $titlePage }}
-                    </h1>
+        {{-- Toast & Session --}}
+        <x-suryacms::toast-alert />
+        <x-suryacms::session-status />
 
-                </div>
-
-                {{-- Breadcrumb --}}
-                <nav aria-label="breadcrumb" class="mt-4 sm:mt-0">
+        {{-- Header --}}
+        <div class="mb-3 sm:mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h1 class="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold text-gray-900">
+                    {{ $titlePage }}
+                </h1>
+                <nav aria-label="breadcrumb" class="hidden sm:block">
                     <ol class="flex flex-wrap gap-2 text-sm text-gray-600">
                         <li><a href="/{{ config('suryacms.admin_prefix') }}"
                                 class="text-blue-600 hover:text-blue-700 hover:underline">Admin</a></li>
@@ -29,7 +20,7 @@
                                 class="text-blue-600 hover:text-blue-700 hover:underline">Pages</a>
                         </li>
                         <li class="text-gray-400">/</li>
-                        <li class="text-gray-600 font-medium">{{ $titlePage }}</li>
+                        <li class="text-gray-600 font-medium">New Page</li>
                     </ol>
                 </nav>
             </div>
@@ -91,7 +82,7 @@
                                         <span class="text-red-500">*</span>
                                     </label>
                                     <input type="text" id="title" wire:model.live="title"
-                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white"
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all hover:bg-white"
                                         placeholder="Enter an engaging page title...">
                                     @error('title')
                                         <p class="text-red-500 text-sm mt-2 flex items-center gap-1">
@@ -114,7 +105,7 @@
                                                 Language
                                             </label>
                                             <select id="language_id" wire:model="language_id"
-                                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                                                 <option value="">Select Language</option>
                                                 @foreach ($languages as $language)
                                                     <option value="{{ $language->id }}">{{ $language->name }}</option>
@@ -131,7 +122,7 @@
                                                 Translate From
                                             </label>
                                             <select id="translation_id" wire:model="translation_id"
-                                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                                                class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                                                 <option value="">-- None --</option>
                                                 <template x-data="{ translations: [] }" x-init="fetch(`{{ url('admin/pages/translations') }}/${$wire.language_id || ''}`).then(r => r.ok ? r.json() : []).then(data => translations = data).catch(() => translations = [])">
                                                     <template x-for="translation in translations"
@@ -309,7 +300,7 @@
                                     <label for="status"
                                         class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                                     <select id="status" wire:model="status"
-                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                                         <option value="Publish">✓ Publish</option>
                                         <option value="Draft">✎ Draft</option>
                                     </select>
@@ -319,7 +310,7 @@
                                     <label for="datepublish"
                                         class="block text-sm font-medium text-gray-700 mb-2">Publish Date</label>
                                     <input type="date" id="datepublish" wire:model="datepublish"
-                                        class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
+                                        class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                                     @error('datepublish')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror

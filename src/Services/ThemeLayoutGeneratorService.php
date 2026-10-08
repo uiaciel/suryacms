@@ -135,7 +135,7 @@ class ThemeLayoutGeneratorService
     {
         $dom = new DOMDocument;
         // Load the navigation fragment safely with UTF-8 encoding
-        @$dom->loadHTML('<?xml encoding="UTF-8"><div>' . $navHtml . '</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        @$dom->loadHTML('<?xml encoding="UTF-8"><div>'.$navHtml.'</div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
         $xpath = new DOMXPath($dom);
 
         $container = null;
@@ -150,13 +150,13 @@ class ThemeLayoutGeneratorService
                     break;
                 }
             }
-            if (!$container) {
+            if (! $container) {
                 $container = $ulNodes->item(0);
             }
         }
 
         // 2. Try to find <div> with class containing navbar-nav or menu
-        if (!$container) {
+        if (! $container) {
             $divNodes = $xpath->query('//div');
             foreach ($divNodes as $node) {
                 $class = $node->getAttribute('class');
@@ -171,11 +171,11 @@ class ThemeLayoutGeneratorService
         }
 
         // 3. Fallback: If no specific container, use the first child div of our loaded fragment
-        if (!$container) {
+        if (! $container) {
             $container = $xpath->query('//div')->item(0);
         }
 
-        if (!$container) {
+        if (! $container) {
             return $navHtml;
         }
 
@@ -202,11 +202,11 @@ class ThemeLayoutGeneratorService
                 $hasNestedUl = $nestedUl->length > 0;
 
                 if ($hasDropdownClass || $hasNestedUl) {
-                    if (!$dropdownItem) {
+                    if (! $dropdownItem) {
                         $dropdownItem = $li;
                     }
                 } else {
-                    if (!$regularItem) {
+                    if (! $regularItem) {
                         $anchors = $xpath->query('.//a', $li);
                         if ($anchors->length > 0) {
                             $regularItem = $li;
@@ -219,7 +219,7 @@ class ThemeLayoutGeneratorService
             $anchorNodes = $xpath->query('./a', $container);
             if ($anchorNodes->length > 0) {
                 foreach ($anchorNodes as $a) {
-                    if (!$regularItem) {
+                    if (! $regularItem) {
                         $regularItem = $a;
                     }
                 }
@@ -230,7 +230,7 @@ class ThemeLayoutGeneratorService
             foreach ($dropdownDivs as $div) {
                 $class = $div->getAttribute('class');
                 if (preg_match('/(dropdown|nav-item)/i', $class)) {
-                    if (!$dropdownItem) {
+                    if (! $dropdownItem) {
                         $dropdownItem = $div;
                     }
                 }
@@ -238,7 +238,7 @@ class ThemeLayoutGeneratorService
         }
 
         // If we didn't find a regular item, search recursively for any anchor tag
-        if (!$regularItem) {
+        if (! $regularItem) {
             $anyAnchor = $xpath->query('.//a', $container)->item(0);
             if ($anyAnchor) {
                 $parent = $anyAnchor->parentNode;
@@ -250,18 +250,18 @@ class ThemeLayoutGeneratorService
                     }
                     $parent = $parent->parentNode;
                 }
-                if (!$regularItem) {
+                if (! $regularItem) {
                     $regularItem = $anyAnchor;
                 }
             }
         }
 
         // Synthesize dropdown item if not found but we have a regular item
-        if (!$dropdownItem && $regularItem) {
+        if (! $dropdownItem && $regularItem) {
             $dropdownItem = $this->synthesizeDropdownItem($dom, $regularItem, $isLiBased);
         }
 
-        if (!$regularItem) {
+        if (! $regularItem) {
             return $navHtml;
         }
 
@@ -282,7 +282,7 @@ class ThemeLayoutGeneratorService
 
         // FIX: Decode syntax blade Indonesia/English Loop dan Lang Switch yang rusak karena saveHTML
         $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
-            return '{{' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '}}';
+            return '{{'.htmlspecialchars_decode($matches[1], ENT_QUOTES).'}}';
         }, $html);
 
         $html = preg_replace('/\}\}\}\}/', '}}', $html);
@@ -290,7 +290,7 @@ class ThemeLayoutGeneratorService
         // FIX: Bersihkan %20 pada link asset gambar bendera (id.png / us.png) di menu multilanguage
         if ($this->themeName) {
             $escapedTheme = preg_quote($this->themeName, '/');
-            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
+            $html = preg_replace_callback('/(\/frontend\/'.$escapedTheme.'\/[^"\'\s>]+)/', function ($matches) {
                 return urldecode($matches[1]);
             }, $html);
         }
@@ -303,12 +303,12 @@ class ThemeLayoutGeneratorService
         $dropdownItem = $regularItem->cloneNode(true);
         if ($isLiBased) {
             $class = $dropdownItem->getAttribute('class');
-            $dropdownItem->setAttribute('class', trim($class . ' dropdown'));
+            $dropdownItem->setAttribute('class', trim($class.' dropdown'));
 
             $anchor = $dropdownItem->getElementsByTagName('a')->item(0);
             if ($anchor) {
                 $aClass = $anchor->getAttribute('class');
-                $anchor->setAttribute('class', trim($aClass . ' dropdown-toggle'));
+                $anchor->setAttribute('class', trim($aClass.' dropdown-toggle'));
                 $anchor->setAttribute('data-bs-toggle', 'dropdown');
                 $anchor->setAttribute('href', '#');
             }
@@ -329,7 +329,7 @@ class ThemeLayoutGeneratorService
 
             $toggle = $regularItem->cloneNode(true);
             $tClass = $toggle->getAttribute('class');
-            $toggle->setAttribute('class', trim($tClass . ' dropdown-toggle'));
+            $toggle->setAttribute('class', trim($tClass.' dropdown-toggle'));
             $toggle->setAttribute('data-bs-toggle', 'dropdown');
             $toggle->setAttribute('href', '#');
 
@@ -415,8 +415,8 @@ class ThemeLayoutGeneratorService
         }
 
         if ($anchor) {
-            $anchor->setAttribute('href', '{{ ' . $varName . '->link ?? \'/\' }}');
-            $this->replaceAnchorText($anchor, '{{ ' . $varName . '->name }}');
+            $anchor->setAttribute('href', '{{ '.$varName.'->link ?? \'/\' }}');
+            $this->replaceAnchorText($anchor, '{{ '.$varName.'->name }}');
         }
 
         return $node;
@@ -429,8 +429,8 @@ class ThemeLayoutGeneratorService
 
         $toggleAnchor = $node->getElementsByTagName('a')->item(0);
         if ($toggleAnchor) {
-            $toggleAnchor->setAttribute('href', '{{ ' . $parentVar . '->link ?? \'#\' }}');
-            $this->replaceAnchorText($toggleAnchor, '{{ ' . $parentVar . '->name }}');
+            $toggleAnchor->setAttribute('href', '{{ '.$parentVar.'->link ?? \'#\' }}');
+            $this->replaceAnchorText($toggleAnchor, '{{ '.$parentVar.'->name }}');
         }
 
         $submenuContainer = null;
@@ -445,7 +445,7 @@ class ThemeLayoutGeneratorService
             }
         }
 
-        if (!$submenuContainer) {
+        if (! $submenuContainer) {
             foreach (array_reverse(iterator_to_array($node->childNodes)) as $child) {
                 if ($child->nodeType === 1 && in_array(strtolower($child->nodeName), ['ul', 'div'])) {
                     $submenuContainer = $child;
@@ -467,7 +467,7 @@ class ThemeLayoutGeneratorService
                 }
             }
 
-            if (!$subItemTemplate && $submenuContainer->firstElementChild) {
+            if (! $subItemTemplate && $submenuContainer->firstElementChild) {
                 $subItemTemplate = $submenuContainer->firstElementChild;
             }
 
@@ -487,11 +487,11 @@ class ThemeLayoutGeneratorService
                 }
 
                 if ($subAnchor) {
-                    $subAnchor->setAttribute('href', '{{ ' . $childVar . '->link ?? \'#\' }}');
-                    $this->replaceAnchorText($subAnchor, '{{ ' . $childVar . '->name }}');
+                    $subAnchor->setAttribute('href', '{{ '.$childVar.'->link ?? \'#\' }}');
+                    $this->replaceAnchorText($subAnchor, '{{ '.$childVar.'->name }}');
                 }
 
-                $submenuContainer->appendChild($dom->createTextNode("\n                @foreach (" . $parentVar . "->children as " . $childVar . ")\n                "));
+                $submenuContainer->appendChild($dom->createTextNode("\n                @foreach (".$parentVar.'->children as '.$childVar.")\n                "));
                 $submenuContainer->appendChild($clonedSubItem);
                 $submenuContainer->appendChild($dom->createTextNode("\n                @endforeach\n            "));
             }
@@ -543,7 +543,7 @@ class ThemeLayoutGeneratorService
             }
         }
 
-        if (!$submenuContainer) {
+        if (! $submenuContainer) {
             foreach (array_reverse(iterator_to_array($node->childNodes)) as $child) {
                 if ($child->nodeType === 1 && in_array(strtolower($child->nodeName), ['ul', 'div'])) {
                     $submenuContainer = $child;
@@ -565,7 +565,7 @@ class ThemeLayoutGeneratorService
                 }
             }
 
-            if (!$subItemTemplate && $submenuContainer->firstElementChild) {
+            if (! $subItemTemplate && $submenuContainer->firstElementChild) {
                 $subItemTemplate = $submenuContainer->firstElementChild;
             }
 
@@ -630,14 +630,14 @@ class ThemeLayoutGeneratorService
                     preg_match('/^(\s*).*?(\s*)$/u', $val, $spaces);
                     $leading = $spaces[1] ?? '';
                     $trailing = $spaces[2] ?? '';
-                    $textNode->nodeValue = $leading . $replacementText . $trailing;
+                    $textNode->nodeValue = $leading.$replacementText.$trailing;
                     $replaced = true;
                     break;
                 }
             }
         }
 
-        if (!$replaced) {
+        if (! $replaced) {
             $anchorNode->appendChild($anchorNode->ownerDocument->createTextNode($replacementText));
         }
     }
@@ -649,9 +649,9 @@ class ThemeLayoutGeneratorService
         }
 
         $class = $node->getAttribute('class');
-        if (!empty($class)) {
+        if (! empty($class)) {
             $classes = explode(' ', $class);
-            $classes = array_filter($classes, function($c) {
+            $classes = array_filter($classes, function ($c) {
                 return strtolower($c) !== 'active';
             });
             $node->setAttribute('class', implode(' ', $classes));
@@ -811,11 +811,11 @@ BLADE;
 
         // FIX: Kembalikan HTML Entities di dalam sintaks Blade/Kurung Kurawal ke aslinya
         $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
-            return '{{' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '}}';
+            return '{{'.htmlspecialchars_decode($matches[1], ENT_QUOTES).'}}';
         }, $html);
 
         $html = preg_replace_callback('/\{!!(.*?)!!\}/s', function ($matches) {
-            return '{!!' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '!!}';
+            return '{!!'.htmlspecialchars_decode($matches[1], ENT_QUOTES).'!!}';
         }, $html);
 
         // FIX: Bersihkan double curly braces yang rusak akibat parsing DOM (jika ada)
@@ -824,7 +824,7 @@ BLADE;
         // FIX: Kembalikan %20 menjadi spasi untuk asset/url internal tema
         if ($this->themeName) {
             $escapedTheme = preg_quote($this->themeName, '/');
-            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
+            $html = preg_replace_callback('/(\/frontend\/'.$escapedTheme.'\/[^"\'\s>]+)/', function ($matches) {
                 return urldecode($matches[1]);
             }, $html);
         }
@@ -1016,7 +1016,7 @@ BLADE;
                     'name' => ucfirst($this->themeName),
                     'path' => strtolower($this->themeName),
                     'version' => '1.0.0',
-                    "style" => "tailwindcss", // Default ke Bootstrap, bisa diubah ke tailwindcss
+                    'style' => 'tailwindcss', // Default ke Bootstrap, bisa diubah ke tailwindcss
                     'author' => 'Theme Generator',
                     'url' => 'https://uiaciel.com',
                     'license' => 'MIT',
@@ -1244,12 +1244,12 @@ BLADE;
         $html = str_replace('-&gt;', '->', $html);
 
         // Decode URL-encoded characters (like %20, %2D%3E) inside Blade brackets
-        $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function($matches) {
-            return '{{' . urldecode($matches[1]) . '}}';
+        $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
+            return '{{'.urldecode($matches[1]).'}}';
         }, $html);
 
-        $html = preg_replace_callback('/\{!!(.*?)!!\}/s', function($matches) {
-            return '{!!' . urldecode($matches[1]) . '!!}';
+        $html = preg_replace_callback('/\{!!(.*?)!!\}/s', function ($matches) {
+            return '{!!'.urldecode($matches[1]).'!!}';
         }, $html);
 
         return $html;
@@ -1264,14 +1264,14 @@ BLADE;
             '//section[contains(@id, "hero") or contains(@id, "banner") or contains(@class, "hero") or contains(@class, "banner")]',
             '//div[contains(@id, "hero") or contains(@id, "banner") or contains(@class, "hero") or contains(@class, "banner")]',
             '//header',
-            '//body/section'
+            '//body/section',
         ];
 
         foreach ($patterns as $pattern) {
             $nodes = $xpath->query($pattern);
             if ($nodes->length > 0) {
                 $node = $nodes->item(0);
-                if ($node->getAttribute('id') !== 'navigation' && !preg_match('/(nav|menu)/i', $node->getAttribute('class'))) {
+                if ($node->getAttribute('id') !== 'navigation' && ! preg_match('/(nav|menu)/i', $node->getAttribute('class'))) {
                     return $node;
                 }
             }
@@ -1290,9 +1290,9 @@ BLADE;
         $xpath = new DOMXPath($dom);
 
         $heroNode = $this->extractHeroSection($xpath);
-        if (!$heroNode) {
+        if (! $heroNode) {
             // Fallback header
-            return <<<HTML
+            return <<<'HTML'
 <section class="py-5 bg-dark text-white text-center">
     <div class="container">
         <h1 class="display-4">@yield('page_title', 'Halaman')</h1>
@@ -1325,6 +1325,7 @@ HTML;
 
         $html = $doc->saveHTML();
         $html = preg_replace('/<\?xml[^>]*\?>/', '', $html);
+
         return trim($html);
     }
 
@@ -1377,6 +1378,7 @@ HTML;
     </div>
 @endsection
 BLADE;
+
         return $this->cleanBladeSyntax($template);
     }
 
@@ -1442,6 +1444,7 @@ BLADE;
     </div>
 @endsection
 BLADE;
+
         return $this->cleanBladeSyntax($template);
     }
 
@@ -1499,6 +1502,7 @@ BLADE;
     </div>
 @endsection
 BLADE;
+
         return $this->cleanBladeSyntax($template);
     }
 
@@ -1547,6 +1551,7 @@ BLADE;
     </div>
 @endsection
 BLADE;
+
         return $this->cleanBladeSyntax($template);
     }
 
@@ -1576,12 +1581,13 @@ BLADE;
     </div>
 @endsection
 BLADE;
+
         return $this->cleanBladeSyntax($template);
     }
 
     public function generatePageMaintenance()
     {
-        $template = <<<BLADE
+        $template = <<<'BLADE'
 @extends('frontend::app')
 @section('page_title', 'Under Maintenance')
 
@@ -1593,7 +1599,7 @@ BLADE;
     </div>
 @endsection
 BLADE;
+
         return $this->cleanBladeSyntax($template);
     }
 }
-

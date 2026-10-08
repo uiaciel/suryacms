@@ -3,7 +3,6 @@
 namespace Uiaciel\SuryaCms\Console\Commands;
 
 use Illuminate\Console\Command;
-use ReflectionFunction;
 
 class HelperLists extends Command
 {
@@ -19,10 +18,11 @@ class HelperLists extends Command
 
     public function handle(): int
     {
-        $helperFile =  dirname(__DIR__, 2) . '/helpers.php';
+        $helperFile = dirname(__DIR__, 2).'/helpers.php';
 
         if (! file_exists($helperFile)) {
             $this->error('helpers.php not found.');
+
             return self::FAILURE;
         }
 
@@ -41,15 +41,15 @@ class HelperLists extends Command
         foreach ($matches as $match) {
 
             $description = collect(explode("\n", $match[1]))
-                ->map(fn ($line) => trim($line, " *"))
+                ->map(fn ($line) => trim($line, ' *'))
                 ->reject(fn ($line) => $line === '' || str_starts_with($line, '@'))
                 ->first();
 
             $helper = $match[2];
 
             $this->line(sprintf(
-                " %-30s %s",
-                $helper . '()',
+                ' %-30s %s',
+                $helper.'()',
                 $description ?: '-'
             ));
         }

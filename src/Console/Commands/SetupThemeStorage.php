@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\File;
 class SetupThemeStorage extends Command
 {
     protected $signature = 'suryacms:setup-theme-storage';
+
     protected $description = 'Setup theme storage directories and permissions';
 
     public function handle()
@@ -24,7 +25,7 @@ class SetupThemeStorage extends Command
         ];
 
         foreach ($paths as $path) {
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 File::makeDirectory($path, 0755, true);
                 $this->line("✅ Created: {$path}");
             } else {

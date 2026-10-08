@@ -2,21 +2,23 @@
 
 namespace Uiaciel\SuryaCms\Services;
 
-use ZipArchive;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Artisan;
 use Throwable;
+use ZipArchive;
 
 class RestoreService
 {
     protected string $stagingDir;
+
     protected ?string $cacheKey = null;
 
     public function setCacheKey(string $key): self
     {
         $this->cacheKey = $key;
+
         return $this;
     }
 
@@ -30,14 +32,14 @@ class RestoreService
     public function runRestore(string $zipFilePath): void
     {
         try {
-            if (!File::exists($zipFilePath)) {
-                throw new \Exception("Backup file not found.");
+            if (! File::exists($zipFilePath)) {
+                throw new \Exception('Backup file not found.');
             }
 
             $timestamp = date('Y-m-d_H-i-s');
-            $this->stagingDir = storage_path('app/private/temp_restore_' . $timestamp);
-            
-            if (!File::exists($this->stagingDir)) {
+            $this->stagingDir = storage_path('app/private/temp_restore_'.$timestamp);
+
+            if (! File::exists($this->stagingDir)) {
                 File::makeDirectory($this->stagingDir, 0755, true);
             }
 
@@ -55,7 +57,7 @@ class RestoreService
 
             $this->updateProgress('Cleaning up and optimizing...', 90);
             File::deleteDirectory($this->stagingDir);
-            
+
             // Clear caches after restore
             Artisan::call('cache:clear');
             Artisan::call('config:clear');
@@ -64,7 +66,7 @@ class RestoreService
             $this->updateProgress('Restore completed successfully.', 100);
 
         } catch (Throwable $e) {
-            $this->updateProgress('Restore failed: ' . $e->getMessage(), -1);
+            $this->updateProgress('Restore failed: '.$e->getMessage(), -1);
             if (isset($this->stagingDir) && File::exists($this->stagingDir)) {
                 File::deleteDirectory($this->stagingDir);
             }
@@ -74,32 +76,32 @@ class RestoreService
 
     protected function extractZip(string $zipFilePath): void
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipFilePath) === true) {
             $zip->extractTo($this->stagingDir);
             $zip->close();
         } else {
-            throw new \Exception("Failed to open ZIP archive.");
+            throw new \Exception('Failed to open ZIP archive.');
         }
     }
 
     protected function verifyMetadata(): void
     {
-        $infoPath = $this->stagingDir . '/info.json';
-        if (!File::exists($infoPath)) {
-            throw new \Exception("Invalid backup file: info.json missing.");
+        $infoPath = $this->stagingDir.'/info.json';
+        if (! File::exists($infoPath)) {
+            throw new \Exception('Invalid backup file: info.json missing.');
         }
 
         $metadata = json_decode(File::get($infoPath), true);
-        if (!isset($metadata['uiaciel_package']) || $metadata['uiaciel_package'] !== true) {
-            throw new \Exception("Invalid backup file: not a SuryaCMS backup.");
+        if (! isset($metadata['uiaciel_package']) || $metadata['uiaciel_package'] !== true) {
+            throw new \Exception('Invalid backup file: not a SuryaCMS backup.');
         }
     }
 
     protected function restoreDatabase(): void
     {
-        $dbStaging = $this->stagingDir . '/database';
-        if (!File::exists($dbStaging)) {
+        $dbStaging = $this->stagingDir.'/database';
+        if (! File::exists($dbStaging)) {
             return;
         }
 
@@ -116,14 +118,14 @@ class RestoreService
         foreach ($files as $file) {
             if ($file->getExtension() === 'json') {
                 $tableName = $file->getFilenameWithoutExtension();
-                
+
                 // Skip if table is not in config (unless config is empty)
-                if (!$restoreAll && !in_array($tableName, $allowedTables)) {
+                if (! $restoreAll && ! in_array($tableName, $allowedTables)) {
                     continue;
                 }
 
-                $this->updateProgress("Restoring table: {$tableName}", 25 + (int)(($currentFile / $totalFiles) * 40));
-                
+                $this->updateProgress("Restoring table: {$tableName}", 25 + (int) (($currentFile / $totalFiles) * 40));
+
                 // Clear existing table data
                 if (Schema::hasTable($tableName)) {
                     DB::table($tableName)->truncate();
@@ -134,7 +136,7 @@ class RestoreService
                 }
 
                 $data = json_decode(File::get($file->getRealPath()), true);
-                
+
                 if (is_array($data) && count($data) > 0) {
                     // Insert in chunks to avoid memory limits
                     $chunks = array_chunk($data, 500);
@@ -151,16 +153,16 @@ class RestoreService
 
     protected function restoreFiles(): void
     {
-        $filesStaging = $this->stagingDir . '/files';
-        if (!File::exists($filesStaging)) {
+        $filesStaging = $this->stagingDir.'/files';
+        if (! File::exists($filesStaging)) {
             return;
         }
 
         $directoriesToRestore = [
-            $filesStaging . '/storage/app/public' => base_path('storage/app/public'),
-            $filesStaging . '/public/frontend' => base_path('public/frontend'),
-            $filesStaging . '/resources/views/frontend' => base_path('resources/views/frontend'),
-            $filesStaging . '/config' => base_path('config'),
+            $filesStaging.'/storage/app/public' => base_path('storage/app/public'),
+            $filesStaging.'/public/frontend' => base_path('public/frontend'),
+            $filesStaging.'/resources/views/frontend' => base_path('resources/views/frontend'),
+            $filesStaging.'/config' => base_path('config'),
         ];
 
         $totalDirs = count($directoriesToRestore);
@@ -168,34 +170,34 @@ class RestoreService
 
         foreach ($directoriesToRestore as $source => $dest) {
             if (File::exists($source)) {
-                if (!File::exists($dest)) {
+                if (! File::exists($dest)) {
                     File::makeDirectory($dest, 0755, true);
                 }
                 File::copyDirectory($source, $dest);
             }
             $currentDir++;
-            $this->updateProgress("Restoring directory...", 70 + (int)(($currentDir / $totalDirs) * 15));
+            $this->updateProgress('Restoring directory...', 70 + (int) (($currentDir / $totalDirs) * 15));
         }
 
         // Restore .env
-        $envSource = $this->stagingDir . '/.env';
+        $envSource = $this->stagingDir.'/.env';
         if (File::exists($envSource)) {
             File::copy($envSource, base_path('.env'));
         }
     }
-    
+
     public function getMetadataFromZip(string $zipFilePath): ?array
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipFilePath) === true) {
             $content = $zip->getFromName('info.json');
             $zip->close();
-            
+
             if ($content) {
                 return json_decode($content, true);
             }
         }
-        
+
         return null;
     }
 }

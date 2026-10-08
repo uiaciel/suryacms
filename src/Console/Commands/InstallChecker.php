@@ -2,14 +2,14 @@
 
 namespace Uiaciel\SuryaCms\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Uiaciel\SuryaCms\Models\Setting;
-use App\Models\User;
 
-use function Laravel\Prompts\text;
-use function Laravel\Prompts\password;
 use function Laravel\Prompts\info;
+use function Laravel\Prompts\password;
+use function Laravel\Prompts\text;
 use function Laravel\Prompts\warning;
 
 class InstallChecker extends Command
@@ -68,7 +68,7 @@ class InstallChecker extends Command
             default: 'admin@example.com',
             required: true,
             validate: fn (string $value) => match (true) {
-                !filter_var($value, FILTER_VALIDATE_EMAIL) => 'Format email tidak valid.',
+                ! filter_var($value, FILTER_VALIDATE_EMAIL) => 'Format email tidak valid.',
                 default => null
             }
         );
@@ -111,8 +111,8 @@ class InstallChecker extends Command
         User::updateOrCreate(
             ['email' => $adminEmail],
             [
-                'name'     => $adminName,
-                'email'    => $adminEmail,
+                'name' => $adminName,
+                'email' => $adminEmail,
                 'password' => Hash::make($adminPassword),
             ]
         );
@@ -131,14 +131,14 @@ class InstallChecker extends Command
 
         $this->line(' You can now access your administration panel:');
         $this->newLine();
-        $this->line(' <fg=cyan>' . rtrim($siteUrl, '/') . '/admin</>');
+        $this->line(' <fg=cyan>'.rtrim($siteUrl, '/').'/admin</>');
         $this->newLine();
 
         $this->line(' <options=bold>Login Credentials</>');
         $this->newLine();
         $this->line(" Username : {$adminName}");
         $this->line(" Email    : {$adminEmail}");
-        $this->line(" Password : " . str_repeat('*', strlen($adminPassword)));
+        $this->line(' Password : '.str_repeat('*', strlen($adminPassword)));
         $this->newLine();
 
         warning('For security reasons, please change your password after your first login.');

@@ -14,8 +14,9 @@ class SetupPackagesRepository extends Command
     {
         $composerFile = base_path('composer.json');
 
-        if (!file_exists($composerFile)) {
+        if (! file_exists($composerFile)) {
             $this->error('composer.json tidak ditemukan.');
+
             return self::FAILURE;
         }
 
@@ -40,11 +41,11 @@ class SetupPackagesRepository extends Command
             }
         }
 
-        if (!$repositoryExists) {
+        if (! $repositoryExists) {
 
             $composer['repositories'][] = [
                 'type' => 'path',
-                'url'  => 'packages/uiaciel/*',
+                'url' => 'packages/uiaciel/*',
             ];
 
             file_put_contents(
@@ -64,7 +65,7 @@ class SetupPackagesRepository extends Command
             );
         }
 
-        if (!is_dir(base_path('packages/uiaciel'))) {
+        if (! is_dir(base_path('packages/uiaciel'))) {
 
             mkdir(
                 base_path('packages/uiaciel'),

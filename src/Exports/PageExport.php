@@ -24,6 +24,7 @@ class PageExport implements FromQuery, WithHeadings, WithMapping
         if ($this->page) {
             return Page::query()->where('id', $this->page->id);
         }
+
         return Page::query();
     }
 

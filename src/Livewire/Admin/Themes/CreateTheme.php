@@ -21,14 +21,21 @@ class CreateTheme extends Component
     use WithFileUploads;
 
     public string $themeName = 'my-awesome-theme';
+
     public string $author = 'uiaciel';
+
     public string $themeVersion = '1.0.0';
+
     public string $styleType = 'bootstrap';
 
     public $zipFile = null;
+
     public bool $zipExtracted = false;
+
     public string $uploadStatus = '';
+
     public string $uploadMessage = '';
+
     public array $zipInfo = [
         'files' => 0,
         'size' => 0,
@@ -38,19 +45,31 @@ class CreateTheme extends Component
     ];
 
     public string $activeTab = 'upload';
+
     public string $selectedGeneratedFile = 'app.blade.php';
+
     public string $selectedVariableGroup = 'page';
+
     public string $activeBottomTab = 'app.blade.php';
+
     public string $sessionId = '';
+
     public string $tempPath = '';
+
     public string $htmlRaw = '';
+
     public string $htmlOriginal = '';
+
     public string $editingFileContent = '';
 
     public array $assetSnippets = [];
+
     public array $fileTree = [];
+
     public array $fileContents = [];
+
     public array $openTabs = [];
+
     public array $exportValidation = [];
 
     protected array $dataMap = [
@@ -116,6 +135,7 @@ class CreateTheme extends Component
     {
         if ($theme) {
             $this->loadExistingTheme($theme);
+
             return;
         }
 
@@ -186,6 +206,7 @@ class CreateTheme extends Component
         if (! $this->tempPath) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Belum ada ZIP yang diekstrak.';
+
             return;
         }
 
@@ -200,6 +221,7 @@ class CreateTheme extends Component
     {
         if ($this->activeTab === 'generated') {
             $this->saveGeneratedFile();
+
             return;
         }
 
@@ -211,6 +233,7 @@ class CreateTheme extends Component
         if (! $this->tempPath || ! File::exists($this->tempPath.DIRECTORY_SEPARATOR.'index.html')) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Upload dan review index.html terlebih dahulu.';
+
             return;
         }
 
@@ -287,6 +310,7 @@ class CreateTheme extends Component
         if (! $path) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'File generated tidak valid.';
+
             return;
         }
 
@@ -319,6 +343,7 @@ class CreateTheme extends Component
         if (! File::isDirectory(resource_path("views/frontend/{$theme}"))) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Generate tema terlebih dahulu sebelum aktivasi.';
+
             return;
         }
 
@@ -326,6 +351,7 @@ class CreateTheme extends Component
         if (! $setting) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Data setting belum tersedia.';
+
             return;
         }
 
@@ -343,10 +369,11 @@ class CreateTheme extends Component
         if (! File::isDirectory($viewPath)) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Generate tema terlebih dahulu sebelum download.';
+
             return null;
         }
 
-        $exportPath = storage_path("app/temp/theme-exports");
+        $exportPath = storage_path('app/temp/theme-exports');
         $this->ensureDirectory($exportPath);
         $zipPath = $exportPath.DIRECTORY_SEPARATOR.$theme.'-'.now()->format('Ymd-His').'.zip';
 
@@ -354,6 +381,7 @@ class CreateTheme extends Component
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Gagal membuat file ZIP export.';
+
             return null;
         }
 
@@ -434,6 +462,7 @@ class CreateTheme extends Component
 
             if (str_ends_with($normalized, '/')) {
                 $this->ensureDirectory($extractPath.DIRECTORY_SEPARATOR.$normalized);
+
                 continue;
             }
 
@@ -460,6 +489,7 @@ class CreateTheme extends Component
         $html = $mapper->map();
         $html = (new ThemeNormalizerService($html, $theme))->normalize();
         $html = (new FooterNormalizerService($html, $theme))->normalize();
+
         return (new HeadNormalizerService($html, $theme))->normalize();
     }
 
@@ -519,6 +549,7 @@ class CreateTheme extends Component
     private function matchTags(string $html, string $pattern, int $limit = 30): array
     {
         preg_match_all($pattern, $html, $matches);
+
         return array_slice(array_values(array_unique($matches[0] ?? [])), 0, $limit);
     }
 
@@ -531,6 +562,7 @@ class CreateTheme extends Component
         $body = $matches[1];
         $body = preg_replace('/<(nav|header|footer)\b[^>]*>.*?<\/\1>/is', '', $body);
         $body = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $body);
+
         return trim($body);
     }
 
@@ -641,6 +673,7 @@ class CreateTheme extends Component
         if (! File::isDirectory($themePath)) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = "Tema {$theme} tidak ditemukan.";
+
             return;
         }
 
@@ -724,6 +757,7 @@ class CreateTheme extends Component
     private function buildZipInfo(string $path, string $zipPath): array
     {
         $files = File::isDirectory($path) ? File::allFiles($path) : [];
+
         return [
             'files' => count($files),
             'size' => File::exists($zipPath) ? File::size($zipPath) : 0,

@@ -2,10 +2,10 @@
 
 namespace Uiaciel\SuryaCms\Console\Commands;
 
-use Uiaciel\SuryaCms\Models\Setting;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
+use Uiaciel\SuryaCms\Models\Setting;
 
 class MaintenanceCommand extends Command
 {
@@ -27,8 +27,9 @@ class MaintenanceCommand extends Command
     {
         $setting = Setting::first();
 
-        if (!$setting) {
+        if (! $setting) {
             $this->error('Settings record not found.');
+
             return self::FAILURE;
         }
 
@@ -75,6 +76,7 @@ class MaintenanceCommand extends Command
     {
         if ($setting->site_maintenance) {
             $this->warn('Maintenance mode is already ON.');
+
             return self::SUCCESS;
         }
 
@@ -88,8 +90,9 @@ class MaintenanceCommand extends Command
 
     protected function disableMaintenance(Setting $setting): int
     {
-        if (!$setting->site_maintenance) {
+        if (! $setting->site_maintenance) {
             $this->warn('Maintenance mode is already OFF.');
+
             return self::SUCCESS;
         }
 
@@ -120,7 +123,7 @@ class MaintenanceCommand extends Command
 
         $this->check('Settings record', $setting !== null);
         $this->check('site_maintenance', isset($setting->site_maintenance));
-        $this->check('Active theme', !empty($theme), $theme);
+        $this->check('Active theme', ! empty($theme), $theme);
 
         $this->newLine();
         $this->comment('Theme');
@@ -161,6 +164,7 @@ class MaintenanceCommand extends Command
             $this->info('✔ Overall Status : READY');
         } else {
             $this->error('✖ Overall Status : FAILED');
+
             return self::FAILURE;
         }
 
@@ -173,14 +177,14 @@ class MaintenanceCommand extends Command
 
         if ($value) {
             $this->line(sprintf(
-                "%s %-22s : %s",
+                '%s %-22s : %s',
                 $icon,
                 $label,
                 $value
             ));
         } else {
             $this->line(sprintf(
-                "%s %s",
+                '%s %s',
                 $icon,
                 $label
             ));
@@ -190,7 +194,7 @@ class MaintenanceCommand extends Command
     protected function checkRoute(string $uri): void
     {
         $exists = collect(Route::getRoutes())
-            ->contains(fn($route) => '/'.ltrim($route->uri(), '/') === $uri);
+            ->contains(fn ($route) => '/'.ltrim($route->uri(), '/') === $uri);
 
         $this->check("Route {$uri}", $exists);
     }

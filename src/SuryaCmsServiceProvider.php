@@ -10,12 +10,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
 use Uiaciel\SuryaCms\Http\Middleware\CheckMaintenance;
 use Uiaciel\SuryaCms\Http\Middleware\CheckRegistrationStatus;
 use Uiaciel\SuryaCms\Http\Middleware\SetLocaleFromUrl;
 use Uiaciel\SuryaCms\Http\Middleware\TrackVisitor;
+use Uiaciel\SuryaCms\Livewire\Auth\Login;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Contact;
 use Uiaciel\SuryaCms\Models\Gallery;
@@ -25,7 +27,6 @@ use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
 use Uiaciel\SuryaCms\Models\YoutubeVideo;
-use Uiaciel\SuryaCms\Livewire\Auth\Login;
 
 class SuryaCmsServiceProvider extends ServiceProvider
 {
@@ -88,7 +89,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
             $class = $baseNamespace.str_replace(['/', '\\'], '\\', $relativePath);
 
             $parts = array_map(
-                fn ($part) => \Illuminate\Support\Str::kebab($part),
+                fn ($part) => Str::kebab($part),
                 explode('\\', str_replace('/', '\\', $relativePath))
             );
             $alias = $packageNamespace.'::'.implode('.', $parts);
@@ -130,7 +131,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
         $localThemePath = resource_path('views/'.$themesPath.'/'.$activeTheme);
 
         if (is_dir($localThemePath)) {
-            $this->loadViewsFrom($localThemePath, 'frontend');
+            View::prependNamespace('frontend', $localThemePath);
         }
 
         $publishedThemePath = resource_path($themesPath.'/'.$activeTheme);
@@ -259,6 +260,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
                 $tagcloud = collect($tagCounts)->take(20);
 
                 $sharedData = [
+                    'activeTheme' => get_active_theme(),
                     'menus' => $menus,
                     'categories' => $categories,
                     'posts' => $posts,
@@ -278,7 +280,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
                 // Get settings if table exists
                 // PENGECUALIAN DATA SETTING
                 // Hanya ambil dari table settings jika BUKAN halaman demo
-                if (!request()->is('demo/preview*')) {
+                if (! request()->is('demo/preview*')) {
                     if (Schema::hasTable('settings')) {
                         try {
                             $sharedData['setting'] = Setting::first();

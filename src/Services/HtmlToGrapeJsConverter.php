@@ -11,7 +11,7 @@ class HtmlToGrapeJsConverter
      * Convert raw HTML to GrapeJS compatible format
      * GrapeJS uses a specific JSON structure with components and styles
      *
-     * @param string $html Raw HTML content
+     * @param  string  $html  Raw HTML content
      * @return string Converted HTML safe for GrapeJS
      */
     public function convert(string $html): string
@@ -23,7 +23,7 @@ class HtmlToGrapeJsConverter
             libxml_use_internal_errors(true);
 
             // Wrap HTML in body tags if needed
-            $wrappedHtml = '<?xml encoding="UTF-8">' . $html;
+            $wrappedHtml = '<?xml encoding="UTF-8">'.$html;
             $dom->loadHTML($wrappedHtml);
 
             libxml_clear_errors();
@@ -49,9 +49,6 @@ class HtmlToGrapeJsConverter
 
     /**
      * Add GrapeJS data attributes to make elements editable/draggable
-     *
-     * @param DOMDocument $dom
-     * @return void
      */
     private function addDataGrapeAttributes(DOMDocument $dom): void
     {
@@ -61,7 +58,7 @@ class HtmlToGrapeJsConverter
         $containers = $xpath->query('//*[self::div or self::section or self::article or self::main or self::aside]');
 
         foreach ($containers as $container) {
-            if (!$container->hasAttribute('data-gjs-type')) {
+            if (! $container->hasAttribute('data-gjs-type')) {
                 $container->setAttribute('data-gjs-type', 'container');
                 $container->setAttribute('data-gjs-draggable', 'true');
             }
@@ -71,7 +68,7 @@ class HtmlToGrapeJsConverter
         $textElements = $xpath->query('//*[self::p or self::h1 or self::h2 or self::h3 or self::h4 or self::h5 or self::h6 or self::span]');
 
         foreach ($textElements as $elem) {
-            if (!$elem->hasAttribute('data-gjs-type')) {
+            if (! $elem->hasAttribute('data-gjs-type')) {
                 $elem->setAttribute('data-gjs-type', 'text');
                 $elem->setAttribute('data-gjs-editable', 'true');
             }
@@ -81,7 +78,7 @@ class HtmlToGrapeJsConverter
         $images = $xpath->query('//img');
 
         foreach ($images as $img) {
-            if (!$img->hasAttribute('data-gjs-type')) {
+            if (! $img->hasAttribute('data-gjs-type')) {
                 $img->setAttribute('data-gjs-type', 'image');
                 $img->setAttribute('data-gjs-draggable', 'true');
             }
@@ -91,7 +88,7 @@ class HtmlToGrapeJsConverter
         $buttons = $xpath->query('//button | //a[contains(@class, "btn")]');
 
         foreach ($buttons as $btn) {
-            if (!$btn->hasAttribute('data-gjs-type')) {
+            if (! $btn->hasAttribute('data-gjs-type')) {
                 $btn->setAttribute('data-gjs-type', 'button');
                 $btn->setAttribute('data-gjs-editable', 'true');
             }
@@ -100,9 +97,6 @@ class HtmlToGrapeJsConverter
 
     /**
      * Normalize HTML elements for GrapeJS compatibility
-     *
-     * @param DOMDocument $dom
-     * @return void
      */
     private function normalizeElements(DOMDocument $dom): void
     {
@@ -113,7 +107,7 @@ class HtmlToGrapeJsConverter
 
         foreach ($elementsWithStyle as $elem) {
             $style = $elem->getAttribute('style');
-            if (!empty($style)) {
+            if (! empty($style)) {
                 // Keep inline styles but add them as data attribute for GrapeJS
                 $elem->setAttribute('data-gjs-inline-style', $style);
             }
@@ -123,7 +117,7 @@ class HtmlToGrapeJsConverter
         $divs = $xpath->query('//div');
 
         foreach ($divs as $div) {
-            if (!$div->hasAttribute('class')) {
+            if (! $div->hasAttribute('class')) {
                 $div->setAttribute('class', 'gjs-container');
             }
         }
@@ -132,9 +126,6 @@ class HtmlToGrapeJsConverter
     /**
      * Sanitize HTML if DOM parsing fails
      * Removes potentially harmful tags while keeping structure
-     *
-     * @param string $html
-     * @return string
      */
     private function sanitizeHtml(string $html): string
     {
@@ -154,7 +145,6 @@ class HtmlToGrapeJsConverter
     /**
      * Extract CSS from style tags and return them separately
      *
-     * @param string $html
      * @return array ['html' => string, 'css' => string]
      */
     public function extractCss(string $html): array
@@ -171,7 +161,7 @@ class HtmlToGrapeJsConverter
 
         return [
             'html' => $this->convert($html),
-            'css' => $css
+            'css' => $css,
         ];
     }
 }

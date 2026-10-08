@@ -1,16 +1,23 @@
 <?php
 
+use Composer\InstalledVersions;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
+use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Setting;
+use Uiaciel\SuryaCms\Models\Post;
+use Uiaciel\SuryaCms\Models\Page;
+use Illuminate\Support\Str;
 
 if (! function_exists('register_admin_menupackage')) {
-     /**
+    /**
      * Check menu is enabled.
      */
-
     function register_admin_menupackage($packageName, array $menus)
     {
         // Ambil menu yang sudah ada
@@ -40,9 +47,9 @@ if (! function_exists('setting')) {
 
         try {
             return Schema::hasTable('settings')
-                ? \Uiaciel\SuryaCms\Models\Setting::first()
+                ? Setting::first()
                 : null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return null;
         }
     }
@@ -58,9 +65,10 @@ if (! function_exists('get_cms_setting')) {
             if (Schema::hasTable('settings')) {
                 return Setting::first();
             }
-        } catch (\Exception $e) {
-            Log::error('Error fetching CMS settings: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Error fetching CMS settings: '.$e->getMessage());
         }
+
         return null;
     }
 }
@@ -72,11 +80,12 @@ if (! function_exists('active_languages')) {
     function active_languages()
     {
         try {
-            return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')
+            return Language::where('status', 'Publish')
                 ->pluck('code')
                 ->toArray();
-        } catch (\Exception $e) {
-            Log::error('Error fetching active languages: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Error fetching active languages: '.$e->getMessage());
+
             return [];
         }
     }
@@ -89,6 +98,7 @@ if (! function_exists('default_locale')) {
     function default_locale()
     {
         $setting = get_cms_setting();
+
         return $setting->language ?? config('app.locale', 'id');
     }
 }
@@ -100,6 +110,7 @@ if (! function_exists('is_multilingual')) {
     function is_multilingual()
     {
         $setting = get_cms_setting();
+
         return $setting && $setting->is_multilingual === 'Yes';
     }
 }
@@ -121,8 +132,8 @@ if (! function_exists('lang_route')) {
      * Default language: tanpa prefix (eg: /page, /category/slug)
      * Non-default languages: dengan prefix (eg: /en/page, /en/category/slug)
      *
-     * @param string $name Route name
-     * @param array|string $params Route parameters
+     * @param  string  $name  Route name
+     * @param  array|string  $params  Route parameters
      * @return string Route URL
      *
      * @example
@@ -137,7 +148,7 @@ if (! function_exists('lang_route')) {
             $params = ['slug' => $params];
         }
 
-        if (!is_array($params)) {
+        if (! is_array($params)) {
             $params = [];
         }
 
@@ -150,8 +161,9 @@ if (! function_exists('lang_route')) {
             if ($locale === $defaultLocale) {
                 try {
                     return route($name, $params);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::warning("Route not found: {$name}");
+
                     return url('/');
                 }
             } else {
@@ -159,8 +171,9 @@ if (! function_exists('lang_route')) {
                 $params['lang'] = $locale;
                 try {
                     return route($name, $params);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     Log::warning("Route not found: {$name}");
+
                     return url('/');
                 }
             }
@@ -169,8 +182,9 @@ if (! function_exists('lang_route')) {
         // Jika single language, gunakan route biasa
         try {
             return route($name, $params);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::warning("Route not found: {$name}");
+
             return url('/');
         }
     }
@@ -183,8 +197,8 @@ if (! function_exists('url_with_lang')) {
      * Default language: tanpa prefix
      * Non-default: dengan prefix
      *
-     * @param string $path Path tanpa language prefix (misal: '/about', 'contact')
-     * @param string|null $lang Language code, default dari session/config
+     * @param  string  $path  Path tanpa language prefix (misal: '/about', 'contact')
+     * @param  string|null  $lang  Language code, default dari session/config
      * @return string Full URL dengan atau tanpa prefix
      *
      * @example
@@ -193,7 +207,7 @@ if (! function_exists('url_with_lang')) {
      */
     function url_with_lang($path = '', $lang = null)
     {
-        if (!is_multilingual()) {
+        if (! is_multilingual()) {
             return url($path);
         }
 
@@ -221,7 +235,7 @@ if (! function_exists('switch_locale_url')) {
      *
      * SEO-friendly: default language tanpa prefix, non-default dengan prefix
      *
-     * @param string $newLocale Language code untuk switch ke
+     * @param  string  $newLocale  Language code untuk switch ke
      * @return string URL dengan locale baru
      *
      * @example
@@ -230,7 +244,7 @@ if (! function_exists('switch_locale_url')) {
      */
     function switch_locale_url($newLocale)
     {
-        if (!is_multilingual()) {
+        if (! is_multilingual()) {
             return url()->current();
         }
 
@@ -239,7 +253,7 @@ if (! function_exists('switch_locale_url')) {
         $defaultLocale = default_locale();
 
         // Extract path tanpa language prefix
-        if ($currentLocale !== $defaultLocale && str_starts_with($currentUrl, $currentLocale . '/')) {
+        if ($currentLocale !== $defaultLocale && str_starts_with($currentUrl, $currentLocale.'/')) {
             // Current locale punya prefix: /en/about -> extract path /about
             $path = substr($currentUrl, strlen($currentLocale) + 1);
         } elseif ($currentLocale !== $defaultLocale && $currentUrl === $currentLocale) {
@@ -256,12 +270,14 @@ if (! function_exists('switch_locale_url')) {
             if (empty($path)) {
                 return url('/');
             }
+
             return url("/{$path}");
         } else {
             // Switch ke non-default language: tambah prefix
             if (empty($path)) {
                 return url("/{$newLocale}");
             }
+
             return url("/{$newLocale}/{$path}");
         }
     }
@@ -298,7 +314,7 @@ if (! function_exists('formatDate')) {
 
             // Menggunakan translatedFormat() untuk dukungan bahasa dan format
             return $date->translatedFormat($dateFormat);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Log error jika parsing gagal
             Log::error('Error formatting date: '.$e->getMessage(), ['date' => $date]);
 
@@ -320,32 +336,24 @@ if (! function_exists('text')) {
 // list helpers untuk tema
 
 if (! function_exists('get_active_theme')) {
-    /**
-     * Mengambil nama folder tema yang sedang aktif dari database/model Setting.
-     * Menggunakan fallback 'default' jika data belum diset atau error.
-     *
-     * @return string
-     */
     function get_active_theme(): string
     {
         static $activeTheme = null;
 
-        // Gunakan static variable agar tidak query berulang kali dalam satu request
         if ($activeTheme !== null) {
             return $activeTheme;
         }
 
         try {
-            // Pastikan table settings/settings ada sebelum query
-            // Sesuaikan nama tabel 'settings' dan field sesuai schema Anda
             if (Schema::hasTable('settings')) {
-                $setting = DB::table('settings')->where('key', 'theme_active')->first();
-                $activeTheme = $setting ? $setting->value : 'default';
+                // Mengambil dari model Setting atau DB
+                $activeTheme = \Uiaciel\SuryaCms\Models\Setting::value('active_theme')
+                    ?? config('frontend.active', 'default');
             } else {
-                $activeTheme = 'default';
+                $activeTheme = config('frontend.active', 'default');
             }
         } catch (\Exception $e) {
-            $activeTheme = 'default';
+            $activeTheme = config('frontend.active', 'default');
         }
 
         return $activeTheme;
@@ -357,10 +365,7 @@ if (! function_exists('theme_view')) {
      * Memanggil view berdasarkan tema yang sedang aktif.
      * Contoh penggunaan: theme_view('homepage') atau theme_view('page.show')
      *
-     * @param string $view
-     * @param array $data
-     * @param array $mergeData
-     * @return \Illuminate\Contracts\View\View|\Illuminate\Contracts\View\Factory
+     * @return View|Factory
      */
     function theme_view(string $view, array $data = [], array $mergeData = [])
     {
@@ -376,14 +381,62 @@ if (! function_exists('theme_view')) {
     }
 }
 
+if (! function_exists('theme_vite_assets')) {
+    /**
+     * Menghasilkan tag Vite untuk CSS dan JavaScript tema aktif.
+     */
+    function theme_vite_assets(): \Illuminate\Support\HtmlString
+    {
+        $theme = get_active_theme();
+        $hotFile = public_path("frontend/{$theme}/hot");
+
+        if (
+            app()->environment('local') &&
+            \Illuminate\Support\Facades\File::exists($hotFile)
+        ) {
+            $entries = ["resources/themes/{$theme}/css/app.css"];
+            $configPath = resource_path("themes/{$theme}/theme.json");
+            $config = \Illuminate\Support\Facades\File::exists($configPath)
+                ? json_decode(\Illuminate\Support\Facades\File::get($configPath), true)
+                : [];
+            $javascriptStack = data_get($config, 'stack.javascript', 'alpine');
+            $javascriptSource = resource_path("themes/{$theme}/js/app.js");
+
+            if (
+                $javascriptStack !== 'none' &&
+                \Illuminate\Support\Facades\File::exists($javascriptSource)
+            ) {
+                $entries[] = "resources/themes/{$theme}/js/app.js";
+            }
+
+            $vite = clone app(\Illuminate\Foundation\Vite::class);
+            $vite->useHotFile($hotFile);
+
+            return $vite($entries, "frontend/{$theme}");
+        }
+
+        $tags = '';
+        $cssPath = "frontend/{$theme}/css/styles.css";
+        $jsPath = "frontend/{$theme}/js/app.js";
+
+        if (\Illuminate\Support\Facades\File::exists(public_path($cssPath))) {
+            $tags .= '<link rel="stylesheet" href="'.e(asset($cssPath)).'">';
+        }
+
+        if (\Illuminate\Support\Facades\File::exists(public_path($jsPath))) {
+            $tags .= '<script type="module" src="'.e(asset($jsPath)).'"></script>';
+        }
+
+        return new \Illuminate\Support\HtmlString($tags);
+    }
+}
+
 if (! function_exists('theme_asset')) {
     /**
      * Menghasilkan URL untuk public asset milik tema yang aktif.
      * Contoh penggunaan: theme_asset('css/style.css')
      *
-     * @param string $path
-     * @param bool|null $secure
-     * @return string
+     * @param  bool|null  $secure
      */
     function theme_asset(string $path, $secure = null): string
     {
@@ -401,7 +454,6 @@ if (! function_exists('get_theme_config')) {
      * Mengambil file konfigurasi theme.php dari tema aktif atau data spesifik di dalamnya.
      * Contoh: get_theme_config('assets.styles')
      *
-     * @param string|null $key
      * @return mixed
      */
     function get_theme_config(?string $key = null)
@@ -411,7 +463,7 @@ if (! function_exists('get_theme_config')) {
 
         if (! file_exists($configPath)) {
             // Fallback ke config default jika file tidak ada di tema aktif
-            $configPath = resource_path("views/frontend/default/theme.php");
+            $configPath = resource_path('views/frontend/default/theme.php');
         }
 
         if (file_exists($configPath)) {
@@ -428,6 +480,20 @@ if (! function_exists('get_theme_config')) {
     }
 }
 
+if (! function_exists('get_theme_style')) {
+    /**
+     * Mengambil jenis CSS framework dari info.style theme aktif.
+     */
+    function get_theme_style(): string
+    {
+        $style = get_theme_config('info.style');
+
+        return is_string($style) && trim($style) !== ''
+            ? trim($style)
+            : 'bootstrap';
+    }
+}
+
 if (! function_exists('getActiveTheme')) {
 
     function getActiveTheme(): string
@@ -438,13 +504,13 @@ if (! function_exists('getActiveTheme')) {
         }
 
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+            if (Schema::hasTable('settings')) {
                 $theme = Setting::value('active_theme');
                 if ($theme) {
                     return $theme;
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             //
         }
 
@@ -480,20 +546,19 @@ if (! function_exists('theme_css')) {
     /**
      * Generate HTML link tag for theme CSS files
      *
-     * @param string $path Path to CSS file relative to theme's css directory
-     * @param array $attributes Additional HTML attributes
-     * @return string
+     * @param  string  $path  Path to CSS file relative to theme's css directory
+     * @param  array  $attributes  Additional HTML attributes
      */
     function theme_css(string $path, array $attributes = []): string
     {
-        $url = themeAsset('css/' . ltrim($path, '/'));
+        $url = themeAsset('css/'.ltrim($path, '/'));
 
         $attrs = '';
         foreach ($attributes as $key => $value) {
             $attrs .= " {$key}=\"{$value}\"";
         }
 
-        return '<link rel="stylesheet" href="' . $url . '"' . $attrs . '>';
+        return '<link rel="stylesheet" href="'.$url.'"'.$attrs.'>';
     }
 }
 
@@ -501,41 +566,39 @@ if (! function_exists('theme_js')) {
     /**
      * Generate HTML script tag for theme JS files
      *
-     * @param string $path Path to JS file relative to theme's js directory
-     * @param array $attributes Additional HTML attributes
-     * @return string
+     * @param  string  $path  Path to JS file relative to theme's js directory
+     * @param  array  $attributes  Additional HTML attributes
      */
     function theme_js(string $path, array $attributes = []): string
     {
-        $url = themeAsset('js/' . ltrim($path, '/'));
+        $url = themeAsset('js/'.ltrim($path, '/'));
 
         $attrs = '';
         foreach ($attributes as $key => $value) {
             $attrs .= " {$key}=\"{$value}\"";
         }
 
-        return '<script src="' . $url . '"' . $attrs . '></script>';
+        return '<script src="'.$url.'"'.$attrs.'></script>';
     }
 }
 
 if (! function_exists('getAvailableThemes')) {
     /**
      * Get list of available themes from the themes directory
-     *
-     * @return array
      */
     function getAvailableThemes(): array
     {
-        $themesPath = resource_path('views/' . config('frontend.themes_path', 'frontend'));
+        $themesPath = resource_path('views/'.config('frontend.themes_path', 'frontend'));
         $themes = [];
 
         if (is_dir($themesPath)) {
-            $directories = array_filter(glob($themesPath . '/*'), 'is_dir');
+            $directories = array_filter(glob($themesPath.'/*'), 'is_dir');
             foreach ($directories as $dir) {
                 $themeName = basename($dir);
                 $themes[$themeName] = ucfirst($themeName);
             }
         }
+
         return $themes ?: ['default' => 'Default'];
     }
 }
@@ -554,7 +617,7 @@ if (! function_exists('getFirstImage')) {
      * {{ getFirstImage($post) }}
      * {{ getFirstImage($post, 'img-fluid rounded', 'Post: ' . $post->title) }}
      */
-    function getFirstImage($item, string $class = 'img-thumbnail', string $alt = '' , string $style = ''): string
+    function getFirstImage($item, string $class = 'img-thumbnail', string $alt = '', string $style = ''): string
     {
         try {
             // Pastikan item memiliki method gambar()
@@ -587,7 +650,7 @@ if (! function_exists('getFirstImage')) {
                 htmlspecialchars($altText, ENT_QUOTES, 'UTF-8'),
                 htmlspecialchars($style, ENT_QUOTES, 'UTF-8')
             );
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Error getting first image: '.$e->getMessage());
 
             return '';
@@ -617,7 +680,7 @@ if (! function_exists('getFirstImageUrl')) {
             $images = $item->gambar();
 
             return $images[0] ?? null;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Log::error('Error getting first image URL: '.$e->getMessage());
 
             return null;
@@ -625,15 +688,36 @@ if (! function_exists('getFirstImageUrl')) {
     }
 }
 
+if (! function_exists('get_content_excerpt')) {
+    /**
+     * Get a clean excerpt from post or page content (strip HTML tags).
+     *
+     * @param  object  $item
+     * @param  int  $length
+     * @return string
+     */
+    function get_content_excerpt($item, int $length = 150): string
+    {
+        if (! $item || empty($item->content)) {
+            return '';
+        }
+
+        $text = strip_tags($item->content);
+        $text = preg_replace('/\s+/', ' ', $text);
+
+        return Str::limit(trim($text), $length, '...');
+    }
+}
+
 if (! function_exists('available_locales')) {
     /**
      * Get all available published locales
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     function available_locales()
     {
-        return \Uiaciel\SuryaCms\Models\Language::where('status', 'Publish')->get();
+        return Language::where('status', 'Publish')->get();
     }
 }
 
@@ -669,7 +753,7 @@ if (! function_exists('seo_meta')) {
     }
 }
 
-if (!function_exists('suryacms_version')) {
+if (! function_exists('suryacms_version')) {
     /**
      * Mengambil versi dari paket uiaciel/suryacms.
      *
@@ -678,8 +762,8 @@ if (!function_exists('suryacms_version')) {
     function suryacms_version()
     {
         try {
-            return \Composer\InstalledVersions::getPrettyVersion('uiaciel/suryacms');
-        } catch (\OutOfBoundsException $e) {
+            return InstalledVersions::getPrettyVersion('uiaciel/suryacms');
+        } catch (OutOfBoundsException $e) {
             return 'Unknown'; // Mengembalikan teks jika paket tidak ditemukan
         }
     }

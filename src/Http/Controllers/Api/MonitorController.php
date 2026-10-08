@@ -3,18 +3,18 @@
 namespace Uiaciel\SuryaCms\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Uiaciel\SuryaCMS\Models\Visitor;
-use Illuminate\Http\Request;
+use App\Models\User;
 use Composer\InstalledVersions;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
-use App\Models\User;
+use Uiaciel\SuryaCMS\Models\Visitor;
 
 class MonitorController extends Controller
 {
@@ -22,7 +22,7 @@ class MonitorController extends Controller
     {
         // 1. Validasi Token Keamanan dari .env
         $secretToken = config('suryacms.monitor_token');
-        if (!$secretToken || $request->header('Authorization') !== 'Bearer ' . $secretToken) {
+        if (! $secretToken || $request->header('Authorization') !== 'Bearer '.$secretToken) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -63,8 +63,8 @@ class MonitorController extends Controller
             'suryacms_version' => $this->getSuryacmsVersion(),
             'php_version' => PHP_VERSION,
             'storage' => [
-                'free_human' => round($freeSpace / (1024 * 1024 * 1024), 2) . ' GB',
-                'used_percent' => $usedPercent
+                'free_human' => round($freeSpace / (1024 * 1024 * 1024), 2).' GB',
+                'used_percent' => $usedPercent,
             ],
             'core_metrics' => $coreMetrics,
             'custom_metrics' => $customMetrics,
@@ -79,7 +79,7 @@ class MonitorController extends Controller
     public function triggerBackup(Request $request)
     {
         $secretToken = config('suryacms.monitor_token');
-        if (!$secretToken || $request->header('Authorization') !== 'Bearer ' . $secretToken) {
+        if (! $secretToken || $request->header('Authorization') !== 'Bearer '.$secretToken) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -94,7 +94,7 @@ class MonitorController extends Controller
     public function storePost(Request $request)
     {
         $secretToken = config('suryacms.monitor_token');
-        if (!$secretToken || $request->header('Authorization') !== 'Bearer ' . $secretToken) {
+        if (! $secretToken || $request->header('Authorization') !== 'Bearer '.$secretToken) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
@@ -118,7 +118,7 @@ class MonitorController extends Controller
             ?? Language::query()->value('id');
         $userId = $validated['user_id'] ?? User::query()->orderBy('id')->value('id');
 
-        if (!$languageId || !$userId) {
+        if (! $languageId || ! $userId) {
             return response()->json([
                 'message' => 'A language and user are required before importing posts.',
             ], 422);
@@ -127,7 +127,7 @@ class MonitorController extends Controller
         $tags = $validated['tags'] ?? null;
         if (is_array($tags)) {
             $tags = implode(', ', array_filter($tags, 'is_scalar'));
-        } elseif (!is_null($tags) && !is_string($tags)) {
+        } elseif (! is_null($tags) && ! is_string($tags)) {
             throw ValidationException::withMessages([
                 'tags' => ['The tags field must be a string or an array.'],
             ]);
@@ -138,7 +138,7 @@ class MonitorController extends Controller
         $baseSlug = $slug;
         $counter = 1;
         while (Post::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $counter++;
+            $slug = $baseSlug.'-'.$counter++;
         }
 
         $post = Post::create([
@@ -171,7 +171,7 @@ class MonitorController extends Controller
         $composerJson = json_decode(file_get_contents(base_path('composer.json')), true);
         $requires = array_merge($composerJson['require'] ?? [], $composerJson['require-dev'] ?? []);
 
-        return array_values(array_filter(array_keys($requires), function($package) {
+        return array_values(array_filter(array_keys($requires), function ($package) {
             return str_starts_with($package, 'uiaciel/');
         }));
     }

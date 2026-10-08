@@ -2,31 +2,39 @@
 
 namespace Uiaciel\SuryaCms\Livewire\System;
 
-
-use Livewire\Component;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-use Uiaciel\SuryaCms\Jobs\ProcessRestore;
+use Livewire\Component;
 use Uiaciel\SuryaCms\Jobs\ProcessBackup;
+use Uiaciel\SuryaCms\Jobs\ProcessRestore;
 use Uiaciel\SuryaCms\Services\RestoreService;
-use Carbon\Carbon;
 
 class FullRestore extends Component
 {
     public $backupFiles = [];
+
     public $selectedBackup = null;
+
     public $backupMetadata = null;
+
     public $currentSystemVersion = null;
 
     public $isRestoring = false;
+
     public $progressStep = '';
+
     public $progressPercentage = 0;
 
     public $isDatabaseEmpty = true;
+
     public $isRestoreComplete = false;
 
     public $isBackingUp = false;
+
     public $backupProgressStep = '';
+
     public $backupProgressPercentage = 0;
 
     public function mount()
@@ -39,10 +47,10 @@ class FullRestore extends Component
     protected function checkDatabaseStatus()
     {
         $prefix = config('suryacms.table_prefix', '');
-        $testTable = $prefix . 'settings';
+        $testTable = $prefix.'settings';
 
         if (Schema::hasTable($testTable)) {
-            $count = \Illuminate\Support\Facades\DB::table($testTable)->count();
+            $count = DB::table($testTable)->count();
             $this->isDatabaseEmpty = $count === 0;
         } else {
             $this->isDatabaseEmpty = true;
@@ -52,13 +60,13 @@ class FullRestore extends Component
     public function loadBackupFiles()
     {
         $path = storage_path('app/private/suryacms_backups');
-        if (!File::exists($path)) {
+        if (! File::exists($path)) {
             File::makeDirectory($path, 0755, true);
         }
 
         $files = File::files($path);
 
-        $this->backupFiles = collect($files)->map(function($file) {
+        $this->backupFiles = collect($files)->map(function ($file) {
             return [
                 'name' => $file->getFilename(),
                 'path' => $file->getRealPath(),
@@ -83,15 +91,17 @@ class FullRestore extends Component
 
     public function startRestore()
     {
-        if (!$this->selectedBackup) {
+        if (! $this->selectedBackup) {
             $this->addError('selectedBackup', 'Please select a backup file first.');
+
             return;
         }
 
         $fileInfo = collect($this->backupFiles)->firstWhere('name', $this->selectedBackup);
 
-        if (!$fileInfo) {
+        if (! $fileInfo) {
             $this->addError('selectedBackup', 'Selected file is invalid.');
+
             return;
         }
 
@@ -107,7 +117,7 @@ class FullRestore extends Component
 
     public function checkProgress()
     {
-        if (!$this->isRestoring) {
+        if (! $this->isRestoring) {
             return;
         }
 
@@ -122,9 +132,9 @@ class FullRestore extends Component
                 $this->isRestoreComplete = true;
                 cache()->forget('suryacms_restore_status');
                 session()->flash('message', 'System has been successfully restored.');
-            } else if ($this->progressPercentage == -1) {
+            } elseif ($this->progressPercentage == -1) {
                 $this->isRestoring = false;
-                $this->addError('restore', 'Restore failed: ' . $this->progressStep);
+                $this->addError('restore', 'Restore failed: '.$this->progressStep);
                 cache()->forget('suryacms_restore_status');
             }
         }
@@ -141,7 +151,7 @@ class FullRestore extends Component
 
     public function checkBackupProgress()
     {
-        if (!$this->isBackingUp) {
+        if (! $this->isBackingUp) {
             return;
         }
 
@@ -156,9 +166,9 @@ class FullRestore extends Component
                 cache()->forget('suryacms_backup_status');
                 session()->flash('message', 'Backup generated successfully.');
                 $this->loadBackupFiles();
-            } else if ($this->backupProgressPercentage == -1) {
+            } elseif ($this->backupProgressPercentage == -1) {
                 $this->isBackingUp = false;
-                $this->addError('backup', 'Backup failed: ' . $this->backupProgressStep);
+                $this->addError('backup', 'Backup failed: '.$this->backupProgressStep);
                 cache()->forget('suryacms_backup_status');
             }
         }
@@ -172,7 +182,7 @@ class FullRestore extends Component
         $pow = min($pow, count($units) - 1);
         $bytes /= (1 << (10 * $pow));
 
-        return round($bytes, $precision) . ' ' . $units[$pow];
+        return round($bytes, $precision).' '.$units[$pow];
     }
 
     public function render()

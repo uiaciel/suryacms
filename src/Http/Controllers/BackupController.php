@@ -16,11 +16,11 @@ class BackupController extends Controller
     {
         $root = realpath(storage_path('app/private'));
         $relativePath = $folder === null
-            ? 'suryacms_backups/' . $filename
-            : 'backups/' . $folder . '/' . $filename;
-        $path = realpath($root . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath));
+            ? 'suryacms_backups/'.$filename
+            : 'backups/'.$folder.'/'.$filename;
+        $path = realpath($root.DIRECTORY_SEPARATOR.str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relativePath));
 
-        if ($path === false || ! File::isFile($path) || ! str_starts_with($path, $root . DIRECTORY_SEPARATOR)) {
+        if ($path === false || ! File::isFile($path) || ! str_starts_with($path, $root.DIRECTORY_SEPARATOR)) {
             abort(404, 'Backup file not found.');
         }
 

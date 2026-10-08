@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Uiaciel\SuryaCms\Events\SitemapGenerating;
 use Uiaciel\SuryaCms\Models\Category;
 use Uiaciel\SuryaCms\Models\Language;
 use Uiaciel\SuryaCMS\Models\Menu;
@@ -56,6 +57,10 @@ class Admin extends Component
 
     public $site_maintenance;
 
+    public array $files = [];
+
+    public string $active_theme = 'default';
+
     public function mount()
     {
         // Check if setting exists, if not redirect to setting page for initial setup
@@ -65,6 +70,43 @@ class Admin extends Component
 
             return;
         }
+
+        $this->active_theme = $setting->active_theme ?? 'default';
+
+        $this->files = [
+            [
+                'label' => 'EN Page (en.html)',
+                'path' => public_path('en.html'),
+            ],
+            [
+                'label' => 'ID Page (id.html)',
+                'path' => public_path('id.html'),
+            ],
+            [
+                'label' => 'Sitemap (sitemap.xml)',
+                'path' => public_path('sitemap.xml'),
+            ],
+            [
+                'label' => 'Robots.txt',
+                'path' => public_path('robots.txt'),
+            ],
+            [
+                'label' => 'Theme Config (theme.php)',
+                'path' => base_path('resources/views/frontend/'.$this->active_theme.'/theme.php'),
+            ],
+            [
+                'label' => 'Storage Link (public/storage)',
+                'path' => public_path('storage'),
+            ],
+            [
+                'label' => 'Log File (laravel.log)',
+                'path' => storage_path('logs/laravel.log'),
+            ],
+            [
+                'label' => 'Env File (.env)',
+                'path' => base_path('.env'),
+            ],
+        ];
 
         $this->stats = [
             'today' => Visitor::where('visited_date', Carbon::today()->toDateString())->count(),
@@ -78,6 +120,36 @@ class Admin extends Component
         $this->posts = Post::all();
         $this->pages = Page::all();
         $this->site_maintenance = (bool) ($setting->site_maintenance ?? false);
+    }
+
+    public function getStatus(string $path): array
+    {
+        if (file_exists($path)) {
+            return [
+                'status' => 'Ada',
+                'size' => $this->formatBytes(filesize($path)),
+                'modified' => date('d M Y H:i', filemtime($path)),
+            ];
+        }
+
+        return [
+            'status' => 'Tidak Ada',
+            'size' => '-',
+            'modified' => '-',
+        ];
+    }
+
+    public function formatBytes($bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $bytes = max((int) $bytes, 0);
+        $pow = $bytes > 0 ? floor(log($bytes) / log(1024)) : 0;
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision).' '.$units[$pow];
     }
 
     public function logout()
@@ -193,7 +265,7 @@ class Admin extends Component
             ]);
         }
 
-        event(new \Uiaciel\SuryaCms\Events\SitemapGenerating($urls));
+        event(new SitemapGenerating($urls));
 
         $xml = view('suryacms::livewire.admin.sitemap', ['urls' => $urls->toArray()])->render();
 

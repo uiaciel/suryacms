@@ -17,9 +17,13 @@ class PackageUpdate extends Command
     protected $description = 'Extract dan update vendor, composer.json, composer.lock (Super Fast Native CLI)';
 
     private $backupPath;
+
     private $basePath;
+
     private $tempPath;
+
     private $isTar;
+
     private $isWindows;
 
     public function handle()
@@ -39,35 +43,39 @@ class PackageUpdate extends Command
             $this->info('📦 Mode backup-only aktif');
             $this->createBackup();
             $this->info('✅ Backup selesai. File tidak diupdate.');
+
             return 0;
         }
 
         // Validasi file archive
-        if (!file_exists($zipPath)) {
+        if (! file_exists($zipPath)) {
             $this->error("File archive tidak ditemukan: {$zipPath}");
+
             return 1;
         }
 
         // Verifikasi checksum jika ada
-        $md5Path = $zipPath . '.md5';
+        $md5Path = $zipPath.'.md5';
         if (file_exists($md5Path)) {
             $expectedChecksum = trim(file_get_contents($md5Path));
             $actualChecksum = md5_file($zipPath);
 
             if ($expectedChecksum !== $actualChecksum) {
-                $this->error("❌ Checksum tidak cocok! File mungkin korup.");
+                $this->error('❌ Checksum tidak cocok! File mungkin korup.');
                 $this->line("  Expected: {$expectedChecksum}");
                 $this->line("  Actual:   {$actualChecksum}");
+
                 return 1;
             }
-            $this->info("✅ Checksum verified");
+            $this->info('✅ Checksum verified');
 
         }
 
         // Konfirmasi
-        if (!$this->option('force')) {
-            if (!$this->confirm("Apakah Anda yakin ingin mengupdate packages?")) {
+        if (! $this->option('force')) {
+            if (! $this->confirm('Apakah Anda yakin ingin mengupdate packages?')) {
                 $this->info('Dibatalkan.');
+
                 return 0;
             }
         }
@@ -120,7 +128,7 @@ class PackageUpdate extends Command
 
         } catch (\Exception $e) {
             // Rollback jika ada error
-            $this->error("❌ Error: " . $e->getMessage());
+            $this->error('❌ Error: '.$e->getMessage());
 
             if ($this->option('backup') && $this->backupPath && file_exists($this->backupPath)) {
                 $this->info('🔄 Melakukan rollback...');
@@ -128,6 +136,7 @@ class PackageUpdate extends Command
             }
 
             Artisan::call('up');
+
             return 1;
         }
     }
@@ -137,19 +146,19 @@ class PackageUpdate extends Command
      */
     private function createBackup()
     {
-        $this->backupPath = storage_path('app/backups/package_backup_' . date('Ymd_His'));
+        $this->backupPath = storage_path('app/backups/package_backup_'.date('Ymd_His'));
         mkdir($this->backupPath, 0755, true);
 
         $this->info('📦 Membuat backup...');
 
-        $backupArchive = $this->backupPath . DIRECTORY_SEPARATOR . 'backup.tar.gz';
+        $backupArchive = $this->backupPath.DIRECTORY_SEPARATOR.'backup.tar.gz';
         $isTar = str_ends_with($backupArchive, '.tar.gz') || str_ends_with($backupArchive, '.tgz');
 
         $targets = ['composer.json', 'composer.lock', 'vendor'];
         $existingTargets = [];
 
         foreach ($targets as $target) {
-            $fullPath = $this->basePath . DIRECTORY_SEPARATOR . $target;
+            $fullPath = $this->basePath.DIRECTORY_SEPARATOR.$target;
             if (file_exists($fullPath)) {
                 $existingTargets[] = $target;
             }
@@ -157,6 +166,7 @@ class PackageUpdate extends Command
 
         if (empty($existingTargets)) {
             $this->warn('Tidak ada file yang perlu di-backup');
+
             return;
         }
 
@@ -188,13 +198,13 @@ class PackageUpdate extends Command
         exec($command, $output, $returnVar);
 
         if ($returnVar !== 0) {
-            throw new \Exception("Gagal membuat backup: " . implode("\n", $output));
+            throw new \Exception('Gagal membuat backup: '.implode("\n", $output));
         }
 
         // Generate checksum
         $this->info('🔐 Generating checksum...');
         $checksum = md5_file($backupArchive);
-        file_put_contents($backupArchive . '.md5', $checksum);
+        file_put_contents($backupArchive.'.md5', $checksum);
 
         $fileSize = number_format(filesize($backupArchive) / 1024 / 1024, 2);
         $this->info("✅ Backup dibuat: {$backupArchive} ({$fileSize} MB)");
@@ -207,8 +217,8 @@ class PackageUpdate extends Command
     private function extractArchive($zipPath)
     {
         $this->info('📂 Extracting menggunakan native CLI...');
-        $this->tempPath = storage_path('app/temp_package_update_' . time());
-        $this->info('Temporary Folder' . $this->tempPath);
+        $this->tempPath = storage_path('app/temp_package_update_'.time());
+        $this->info('Temporary Folder'.$this->tempPath);
         mkdir($this->tempPath, 0755, true);
 
         $this->isTar = str_ends_with($zipPath, '.tar.gz') || str_ends_with($zipPath, '.tgz');
@@ -244,7 +254,7 @@ class PackageUpdate extends Command
         exec($command, $output, $returnVar);
 
         if ($returnVar !== 0) {
-            throw new \Exception("Gagal extract archive: " . implode("\n", $output));
+            throw new \Exception('Gagal extract archive: '.implode("\n", $output));
         }
     }
 
@@ -258,12 +268,12 @@ class PackageUpdate extends Command
         // 1. Ganti composer.json dan composer.lock
         $filesToReplace = ['composer.json', 'composer.lock'];
         foreach ($filesToReplace as $file) {
-            $source = $this->tempPath . DIRECTORY_SEPARATOR . $file;
-            $dest = $this->basePath . DIRECTORY_SEPARATOR . $file;
+            $source = $this->tempPath.DIRECTORY_SEPARATOR.$file;
+            $dest = $this->basePath.DIRECTORY_SEPARATOR.$file;
 
             if (file_exists($source)) {
                 copy($source, $dest);
-                if (!$this->isWindows) {
+                if (! $this->isWindows) {
                     chmod($dest, 0644);
                 }
                 $this->line("  ✓ Replaced {$file}");
@@ -271,8 +281,8 @@ class PackageUpdate extends Command
         }
 
         // 2. Ganti folder vendor
-        $sourceVendor = $this->tempPath . DIRECTORY_SEPARATOR . 'vendor';
-        $destVendor = $this->basePath . DIRECTORY_SEPARATOR . 'vendor';
+        $sourceVendor = $this->tempPath.DIRECTORY_SEPARATOR.'vendor';
+        $destVendor = $this->basePath.DIRECTORY_SEPARATOR.'vendor';
 
         if (file_exists($sourceVendor)) {
             // Hapus vendor lama (Native CLI jauh lebih cepat dari PHP File::deleteDirectory)
@@ -286,7 +296,7 @@ class PackageUpdate extends Command
             $this->moveDirectory($sourceVendor, $destVendor);
 
             // Fix permissions HANYA jika bukan .tar.gz (karena tar sudah preserve permission)
-            if (!$this->isWindows && !$this->isTar) {
+            if (! $this->isWindows && ! $this->isTar) {
                 $this->info('🔒 Memperbaiki permissions...');
                 $this->fixPermissions($destVendor);
             }
@@ -303,33 +313,33 @@ class PackageUpdate extends Command
     {
         try {
             $this->info('🔄 Restoring from backup...');
-            
-            $backupArchive = $this->backupPath . DIRECTORY_SEPARATOR . 'backup.tar.gz';
-            $backupMd5 = $backupArchive . '.md5';
 
-            if (!file_exists($backupArchive)) {
-                throw new \Exception("Backup file tidak ditemukan");
+            $backupArchive = $this->backupPath.DIRECTORY_SEPARATOR.'backup.tar.gz';
+            $backupMd5 = $backupArchive.'.md5';
+
+            if (! file_exists($backupArchive)) {
+                throw new \Exception('Backup file tidak ditemukan');
             }
 
             // Verifikasi checksum backup jika ada
             if (file_exists($backupMd5)) {
                 $expectedChecksum = trim(file_get_contents($backupMd5));
                 $actualChecksum = md5_file($backupArchive);
-                
+
                 if ($expectedChecksum !== $actualChecksum) {
-                    throw new \Exception("Backup file korup! Checksum tidak cocok.");
+                    throw new \Exception('Backup file korup! Checksum tidak cocok.');
                 }
-                $this->info("✅ Backup checksum verified");
+                $this->info('✅ Backup checksum verified');
             }
 
             // Hapus file yang rusak
-            $destVendor = $this->basePath . DIRECTORY_SEPARATOR . 'vendor';
+            $destVendor = $this->basePath.DIRECTORY_SEPARATOR.'vendor';
             if (file_exists($destVendor)) {
                 $this->deleteDirectory($destVendor);
             }
 
             foreach (['composer.json', 'composer.lock'] as $file) {
-                $filePath = $this->basePath . DIRECTORY_SEPARATOR . $file;
+                $filePath = $this->basePath.DIRECTORY_SEPARATOR.$file;
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
@@ -338,7 +348,7 @@ class PackageUpdate extends Command
             // Extract backup (selalu tar.gz)
             $basePathEsc = escapeshellarg($this->basePath);
             $backupArchiveEsc = escapeshellarg($backupArchive);
-            
+
             if ($this->isWindows) {
                 $command = "cd /d {$basePathEsc} && tar -xzf {$backupArchiveEsc}";
             } else {
@@ -350,13 +360,13 @@ class PackageUpdate extends Command
             exec($command, $output, $returnVar);
 
             if ($returnVar !== 0) {
-                throw new \Exception("Gagal restore backup: " . implode("\n", $output));
+                throw new \Exception('Gagal restore backup: '.implode("\n", $output));
             }
 
             $this->info('✅ Rollback berhasil');
         } catch (\Exception $e) {
-            
-            $this->error("❌ Rollback gagal: " . $e->getMessage()); 
+
+            $this->error('❌ Rollback gagal: '.$e->getMessage());
             $this->error("Backup location: {$this->backupPath}");
         }
     }
@@ -366,7 +376,9 @@ class PackageUpdate extends Command
      */
     private function deleteDirectory($path)
     {
-        if (!file_exists($path)) return;
+        if (! file_exists($path)) {
+            return;
+        }
 
         $pathEsc = escapeshellarg($path);
         if ($this->isWindows) {
@@ -406,7 +418,9 @@ class PackageUpdate extends Command
      */
     private function fixPermissions($path)
     {
-        if ($this->isWindows) return;
+        if ($this->isWindows) {
+            return;
+        }
 
         $pathEsc = escapeshellarg($path);
         exec("find {$pathEsc} -type d -exec chmod 755 {} \\;");
