@@ -44,6 +44,34 @@ $registerFrontendRoutes = function () use ($excludedPattern) {
     Route::get('contact-us', [FrontendController::class, 'contact'])->name('frontend.contact');
     Route::post('contact-us/send', [FrontendController::class, 'sendcontact'])->name('frontend.contact.send');
 
+    Route::get('/manifest.json', function () {
+        $setting = setting();
+        $siteName = $setting->language === 'en'
+            ? $setting->sitename_translation
+            : $setting->sitename;
+
+        return response()->json([
+            'name' => $siteName,
+            'short_name' => $siteName,
+            'icons' => [
+                [
+                    'src' => asset('storage/favicons/android-chrome-192x192.png'),
+                    'sizes' => '192x192',
+                    'type' => 'image/png',
+                ],
+                [
+                    'src' => asset('storage/favicons/android-chrome-512x512.png'),
+                    'sizes' => '512x512',
+                    'type' => 'image/png',
+                ],
+            ],
+            'theme_color' => '#ffffff',
+            'background_color' => '#ffffff',
+            'display' => 'standalone',
+            'start_url' => '/',
+        ]);
+    })->name('manifest');
+
     // Wildcard page route - MUST BE LAST
     // Exclude: admin routes, API, debugbars, categories, media, dan language codes
     Route::get('{slug}', [FrontendController::class, 'pageshow'])

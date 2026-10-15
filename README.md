@@ -286,6 +286,7 @@ When multilingual mode is enabled, the default language uses unprefixed URLs and
 - `GET /suryacms/test` — simple activation check
 - `GET /suryacms/sw.js` — service worker response
 - `GET /suryacms/manifest.json` — PWA manifest response
+- `GET /manifest.json` — localized PWA manifest for the active site
 
 ## Artisan commands
 

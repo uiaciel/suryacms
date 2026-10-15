@@ -20,3 +20,19 @@
 <meta name="twitter:description" content="{{ $data['description'] }}">
 <meta name="twitter:image" content="{{ $data['image'] }}">
 <meta name="twitter:url" content="{{ $data['url'] }}">
+
+<link rel="canonical" href="{{ $data['url'] }}">
+
+@if (! empty($data['favicon']))
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $data['favicon'][16] }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $data['favicon'][32] }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ $data['favicon'][48] }}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{{ $data['favicon'][96] }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $data['favicon']['apple-touch-icon'] }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ $data['favicon'][192] }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ $data['favicon'][512] }}">
+    <link rel="shortcut icon" href="{{ $data['favicon'][32] }}">
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ $data['site_name'] }}">
+    <meta name="theme-color" content="#ffffff">
+@endif

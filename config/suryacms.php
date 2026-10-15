@@ -56,5 +56,5 @@ return [
     ],
 
     'monitor_token' => env('SURYACMS_MONITOR_TOKEN', null),
-    'version' => '2.0.25',
+    'version' => '2.0.26',
 ];

@@ -45,7 +45,20 @@
                 <p class="text-xs text-gray-400 mt-1">Welcome — {{ now()->format('l, j F Y') }}</p>
             </div>
         </div>
-
+        <button
+            type="button"
+            wire:click="clearCache"
+            wire:loading.attr="disabled"
+            wire:target="clearCache"
+            class="px-3 py-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold"
+        >
+            <span wire:loading.remove wire:target="clearCache">
+                <i class="fa-solid fa-rocket mr-1"></i> Optimize
+            </span>
+            <span wire:loading wire:target="clearCache">
+                <i class="fa-solid fa-spinner fa-spin mr-1"></i> Optimizing...
+            </span>
+        </button>
     </div>
 
     <x-suryacms::session-status />

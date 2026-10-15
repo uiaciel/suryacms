@@ -740,6 +740,18 @@ if (! function_exists('seo_meta')) {
             ? $setting->description_translation
             : $setting->description;
 
+        $description = preg_replace('/\s+/', ' ', trim($description));
+        if (mb_strlen($description) > 155) {
+            $description = mb_substr($description, 0, 152);
+            $lastSpace = mb_strrpos($description, ' ');
+            if ($lastSpace !== false) {
+                $description = mb_substr($description, 0, $lastSpace);
+            }
+            $description .= '...';
+        }
+
+        $faviconData = generateFaviconSizes($setting->favicon);
+
         $data = [
             'title' => $seo->title ?? $siteName,
             'keywords' => $seo->keyword ?? $keywords,
@@ -747,9 +759,49 @@ if (! function_exists('seo_meta')) {
             'image' => $seo->image ?? $setting->images,
             'url' => $seo->url ?? $setting->url,
             'site_name' => $siteName,
+            'favicon' => $faviconData,
         ];
 
         return view('suryacms::layouts.seo-meta', compact('data'))->render();
+    }
+}
+
+if (! function_exists('generateFaviconSizes')) {
+    function generateFaviconSizes($faviconPath)
+    {
+        if (empty($faviconPath)) {
+            return null;
+        }
+
+        $sourcePath = str_replace('storage/', '', $faviconPath);
+        $fullPath = storage_path('app/public/'.$sourcePath);
+
+        if (! file_exists($fullPath)) {
+            return null;
+        }
+
+        $sizes = [16, 32, 48, 96, 180, 192, 512];
+        $result = [];
+        $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver);
+
+        foreach ($sizes as $size) {
+            $targetName = "favicon-{$size}x{$size}.png";
+            $targetRelative = 'favicons/'.$targetName;
+            $targetFull = storage_path('app/public/'.$targetRelative);
+
+            if (! file_exists($targetFull) || filemtime($fullPath) > filemtime($targetFull)) {
+                \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($targetFull));
+                $image = $manager->read($fullPath);
+                $image->resize($size, $size);
+                file_put_contents($targetFull, (string) $image->encode());
+            }
+
+            $result[$size] = asset('storage/'.$targetRelative);
+        }
+
+        $result['apple-touch-icon'] = $result[180];
+
+        return $result;
     }
 }
 

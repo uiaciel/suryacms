@@ -464,6 +464,23 @@ class Admin extends Component
         $this->isLanguageEditMode = false;
     }
 
+    public function clearCache()
+    {
+        if (Artisan::call('optimize:clear') !== 0) {
+            $this->dispatch('notify', type: 'error', message: 'Cache gagal dibersihkan.');
+
+            return;
+        }
+
+        $this->dispatch('notify', type: 'success', message: 'Cache dibersihkan.');
+
+        $this->dispatch('swal', [
+            'icon' => 'success',
+            'title' => 'Success',
+            'text' => 'Optimize Cache Successfully',
+        ]);
+    }
+
     public function render()
     {
         return view('suryacms::livewire.admin')

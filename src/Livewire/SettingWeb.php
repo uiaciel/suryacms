@@ -4,6 +4,7 @@ namespace Uiaciel\SuryaCms\Livewire;
 
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -451,7 +452,7 @@ class SettingWeb extends Component
 
     public function exportTheme()
     {
-        $setting = Setting::where('id', 1)->first();
+        $setting = Setting::first();
         $date = Carbon::now()->format('d-m-Y');
 
         session()->flash('message', 'Theme Export is Downloading ...');
@@ -609,67 +610,108 @@ class SettingWeb extends Component
 
         // Handle logo upload
         if ($this->logo instanceof UploadedFile) {
-            $logoPath = $this->logo->storeAs(
-                '', // store directly in storage/app/public
-                'logo.png',
-                ['disk' => 'public']
-            );
-            $setting->logo = 'storage/'.$logoPath;
+            try {
+                $file = $this->logo;
+                $originalFilename = $file->getClientOriginalName();
+                $extension = strtolower($file->getClientOriginalExtension());
+                $time = time();
+                $slugName = Str::slug(pathinfo($originalFilename, PATHINFO_FILENAME));
 
-            $gallery = new Gallery;
-            $gallery->name = pathinfo($this->logo->getClientOriginalName(), PATHINFO_FILENAME);
-            $gallery->description = 'Logo';
-            $gallery->image_path = 'images/'.$setting->logo;
-            $gallery->category = 'Logo';
-            $gallery->status = 'Publish';
-            $gallery->is_tinymce_upload = true;
-            $gallery->save();
+                $logoFilename = "logo_{$time}.{$extension}";
+                $logoPath = $file->storeAs('logos', $logoFilename, 'public');
+
+                $setting->logo = 'storage/'.$logoPath;
+
+                $gallery = new Gallery;
+                $gallery->name = $slugName ?: 'logo';
+                $gallery->description = 'Logo';
+                $gallery->category = 'Logo';
+                $gallery->status = 'Publish';
+                $gallery->is_tinymce_upload = true;
+                $gallery->alt_text = $slugName ?: 'logo';
+                $gallery->image_path = $logoPath;
+                $gallery->cover_path = $logoPath;
+                $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
+                $gallery->mime_type = 'image';
+                $gallery->save();
+            } catch (\Exception $e) {
+                Log::error('Save Logo Error: '.$e->getMessage());
+                $this->dispatch('notify', type: 'error', message: 'Failed to save logo: '.$e->getMessage());
+
+                return;
+            }
         }
 
         // Handle favicon upload
         if ($this->favicon instanceof UploadedFile) {
-            $manager = new ImageManager(new Driver);
-            $image = $manager->read($this->favicon->getRealPath());
+            try {
+                $file = $this->favicon;
+                $originalFilename = $file->getClientOriginalName();
+                $time = time();
+                $slugName = Str::slug(pathinfo($originalFilename, PATHINFO_FILENAME));
 
-            // Resize image to 64x64 pixels
-            $image->resize(64, 64);
+                $manager = new ImageManager(new Driver);
+                $image = $manager->read($file->getRealPath());
+                $image->resize(64, 64);
 
-            // Define the path for the favicon
-            $faviconFileName = 'favicon.png';
-            $faviconPath = 'favicons/'.$faviconFileName;
+                $faviconFileName = "favicon_{$time}.png";
+                $faviconPath = 'favicons/'.$faviconFileName;
+                Storage::disk('public')->put($faviconPath, (string) $image->encode());
 
-            // Save the processed image to storage
-            Storage::disk('public')->put($faviconPath, $image->encode());
+                $setting->favicon = 'storage/'.$faviconPath;
 
-            $setting->favicon = 'storage/'.$faviconPath; // Update the setting with the new path
+                $gallery = new Gallery;
+                $gallery->name = $slugName ?: 'favicon';
+                $gallery->description = 'Favicon';
+                $gallery->category = 'Favicon';
+                $gallery->status = 'Publish';
+                $gallery->is_tinymce_upload = true;
+                $gallery->alt_text = $slugName ?: 'favicon';
+                $gallery->image_path = $faviconPath;
+                $gallery->cover_path = $faviconPath;
+                $gallery->file_size = round(strlen((string) $image->encode()) / 1024, 2).' KB';
+                $gallery->mime_type = 'image';
+                $gallery->save();
+            } catch (\Exception $e) {
+                Log::error('Save Favicon Error: '.$e->getMessage());
+                $this->dispatch('notify', type: 'error', message: 'Failed to save favicon: '.$e->getMessage());
 
-            $gallery = new Gallery;
-            $gallery->name = pathinfo($this->favicon->getClientOriginalName(), PATHINFO_FILENAME);
-            $gallery->description = 'Favicon';
-            $gallery->image_path = 'images/'.$setting->favicon;
-            $gallery->category = 'Favicon';
-            $gallery->status = 'Publish';
-            $gallery->is_tinymce_upload = true;
-            $gallery->save();
+                return;
+            }
         }
 
         // Handle images upload
         if ($this->images instanceof UploadedFile) {
-            $imagesPath = $this->images->storeAs(
-                '',
-                'images.png',
-                ['disk' => 'public']
-            );
-            $setting->images = 'storage/'.$imagesPath;
+            try {
+                $file = $this->images;
+                $originalFilename = $file->getClientOriginalName();
+                $extension = strtolower($file->getClientOriginalExtension());
+                $time = time();
+                $slugName = Str::slug(pathinfo($originalFilename, PATHINFO_FILENAME));
 
-            $gallery = new Gallery;
-            $gallery->name = pathinfo($this->images->getClientOriginalName(), PATHINFO_FILENAME);
-            $gallery->description = 'Images';
-            $gallery->image_path = 'images/'.$setting->images;
-            $gallery->category = 'Images';
-            $gallery->status = 'Publish';
-            $gallery->is_tinymce_upload = true;
-            $gallery->save();
+                $imagesFilename = "images_{$time}.{$extension}";
+                $imagesPath = $file->storeAs('images', $imagesFilename, 'public');
+
+                $setting->images = 'storage/'.$imagesPath;
+
+                $gallery = new Gallery;
+                $gallery->name = $slugName ?: 'images';
+                $gallery->description = 'Images';
+                $gallery->category = 'Images';
+                $gallery->status = 'Publish';
+                $gallery->is_tinymce_upload = true;
+                $gallery->alt_text = $slugName ?: 'images';
+                $gallery->image_path = $imagesPath;
+                $gallery->cover_path = $imagesPath;
+                $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
+                $gallery->mime_type = 'image';
+                $gallery->save();
+            } catch (\Exception $e) {
+                Log::error('Save Images Error: '.$e->getMessage());
+                $this->dispatch('notify', type: 'error', message: 'Failed to save images: '.$e->getMessage());
+
+                return;
+            }
         }
 
         $setting->save();
@@ -689,7 +731,7 @@ class SettingWeb extends Component
 
     public function compressAndDownloadTheme()
     {
-        $setting = Setting::find(1);
+        $setting = Setting::first();
         $date = now()->format('d-m-Y');
 
         $sanitizedUrl = preg_replace('/[^A-Za-z0-9\-]/', '_', $setting->url);

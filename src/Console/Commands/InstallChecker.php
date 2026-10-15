@@ -84,23 +84,14 @@ class InstallChecker extends Command
 
         $this->newLine();
 
-        // 2. Simpan Setting Aplikasi
+        // 2. Simpan Setting Aplikasi (single-row settings)
         $this->info('Creating application settings...');
 
-        Setting::updateOrCreate(
-            ['key' => 'sitename'],
-            ['value' => $siteName]
-        );
-
-        Setting::updateOrCreate(
-            ['key' => 'url'],
-            ['value' => $siteUrl]
-        );
-
-        Setting::updateOrCreate(
-            ['key' => 'email'],
-            ['value' => $adminEmail]
-        );
+        $setting = Setting::query()->first() ?? new Setting;
+        $setting->sitename = $siteName;
+        $setting->url = $siteUrl;
+        $setting->email = $adminEmail;
+        $setting->save();
 
         $this->line('  <fg=green;options=bold>✔</> Site information saved.');
         $this->newLine();
@@ -112,7 +103,6 @@ class InstallChecker extends Command
             ['email' => $adminEmail],
             [
                 'name' => $adminName,
-                'email' => $adminEmail,
                 'password' => Hash::make($adminPassword),
             ]
         );
