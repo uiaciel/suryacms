@@ -450,6 +450,12 @@
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fas fa-cog mr-3 w-4 text-center text-gray-400"></i> Settings
                             </a>
+                            @if (app(\Uiaciel\SuryaCms\Support\SiteManagementAccess::class)->allowsAccess())
+                                <a href="{{ route('admin.sites') }}" wire:navigate
+                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
+                                    <i class="fas fa-globe mr-3 w-4 text-center text-gray-400"></i> Kelola Sites
+                                </a>
+                            @endif
                             <a href="/{{ config('suryacms.admin_prefix') }}/system" wire:navigate
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fa-brands fa-php mr-3 w-4 text-center text-gray-400"></i> System Info

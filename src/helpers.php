@@ -338,25 +338,65 @@ if (! function_exists('text')) {
 if (! function_exists('get_active_theme')) {
     function get_active_theme(): string
     {
-        static $activeTheme = null;
-
-        if ($activeTheme !== null) {
-            return $activeTheme;
+        if (app()->bound('current.setting')) {
+            return (string) (app('current.setting')->active_theme ?: config('frontend.active', 'default'));
         }
 
-        try {
-            if (Schema::hasTable('settings')) {
-                // Mengambil dari model Setting atau DB
-                $activeTheme = \Uiaciel\SuryaCms\Models\Setting::value('active_theme')
-                    ?? config('frontend.active', 'default');
-            } else {
-                $activeTheme = config('frontend.active', 'default');
+        if (! config('suryacms.multisite.enabled', false)) {
+            try {
+                if (Schema::hasTable('settings')) {
+                    return (string) (Setting::value('active_theme') ?: config('frontend.active', 'default'));
+                }
+            } catch (Exception $e) {
+                Log::error('Error fetching active theme: '.$e->getMessage());
             }
-        } catch (\Exception $e) {
-            $activeTheme = config('frontend.active', 'default');
         }
 
-        return $activeTheme;
+        return (string) config('frontend.active', config('frontend.default_active', 'default'));
+    }
+}
+
+if (! function_exists('site_storage_relative_path')) {
+    function site_storage_relative_path(string $path): string
+    {
+        $path = str_replace('\\', '/', trim($path));
+        $segments = array_values(array_filter(explode('/', $path), fn ($segment) => $segment !== '' && $segment !== '.'));
+
+        if (in_array('..', $segments, true)) {
+            throw new InvalidArgumentException('Storage paths cannot traverse parent directories.');
+        }
+
+        $path = implode('/', $segments);
+        $siteId = app(\Uiaciel\SuryaCms\Support\SiteContext::class)->id();
+
+        if (! config('suryacms.multisite.enabled', false) || $siteId === null) {
+            return $path;
+        }
+
+        return 'sites/'.$siteId.($path !== '' ? '/'.$path : '');
+    }
+}
+
+if (! function_exists('site_storage_path')) {
+    function site_storage_path(string $path = ''): string
+    {
+        return \Illuminate\Support\Facades\Storage::disk('public')->path(site_storage_relative_path($path));
+    }
+}
+
+if (! function_exists('site_storage_url')) {
+    function site_storage_url(string $path): string
+    {
+        return asset('storage/'.site_storage_relative_path($path));
+    }
+}
+
+if (! function_exists('site_cache_key')) {
+    function site_cache_key(string $key): string
+    {
+        $siteId = app(\Uiaciel\SuryaCms\Support\SiteContext::class)->id();
+
+        return $siteId === null ? $key : 'suryacms.site.'.$siteId.'.'.$key;
     }
 }
 
@@ -753,13 +793,13 @@ if (! function_exists('seo_meta')) {
         $faviconData = generateFaviconSizes($setting->favicon);
 
         $data = [
-            'title' => $seo->title ?? $siteName,
-            'keywords' => $seo->keyword ?? $keywords,
+            'title'       => $seo->title ?? $siteName,
+            'keywords'    => $seo->keyword ?? $keywords,
             'description' => $seo->description ?? $description,
-            'image' => $seo->image ?? $setting->images,
-            'url' => $seo->url ?? $setting->url,
-            'site_name' => $siteName,
-            'favicon' => $faviconData,
+            'image'       => $seo->image ?? $setting->images,
+            'url'         => $seo->url ?? $setting->url,
+            'site_name'   => $siteName,
+            'favicon'     => $faviconData,
         ];
 
         return view('suryacms::layouts.seo-meta', compact('data'))->render();

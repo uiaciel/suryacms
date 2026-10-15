@@ -17,7 +17,7 @@ class FileCheck extends Component
 
     public function mount(): void
     {
-        $setting = Setting::find(1);
+        $setting = Setting::first();
         $this->active_theme = $setting->active_theme ?? 'default';
 
         $this->files = [

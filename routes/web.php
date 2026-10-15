@@ -27,6 +27,7 @@ use Uiaciel\SuryaCms\Livewire\Admin\Post\PostCreate;
 use Uiaciel\SuryaCms\Livewire\Admin\Post\PostEdit;
 use Uiaciel\SuryaCms\Livewire\Admin\Post\PostIndex;
 use Uiaciel\SuryaCms\Livewire\Admin\SearchResult;
+use Uiaciel\SuryaCms\Livewire\Admin\SiteManager;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\BuilderTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\ConvertTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\CreateTheme;
@@ -57,6 +58,9 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
         Route::get('guide/{package}', [GuideController::class, 'show'])->name('guide.show');
 
         Route::get('setting', SettingWeb::class)->name('setting');
+        Route::get('sites', SiteManager::class)
+            ->middleware('suryacms.manage-sites')
+            ->name('sites');
         Route::get('file-check', FileCheck::class)->name('file-check');
 
         Route::prefix('pages')
@@ -205,3 +209,4 @@ Route::get('suryacms/sw.js', function () {
 
 });
 Route::get('suryacms/manifest.json', [AdminController::class, 'manifest'])->name('admin.manifest');
+Route::get('suryacms/variable', [AdminController::class, 'globalvariable'])->name('admin.variable');

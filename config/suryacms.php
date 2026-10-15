@@ -56,5 +56,9 @@ return [
     ],
 
     'monitor_token' => env('SURYACMS_MONITOR_TOKEN', null),
-    'version' => '2.0.26',
+    'multisite' => [
+        'enabled' => env('SURYACMS_MULTISITE_ENABLED', false),
+        'management_site_id' => (int) env('SURYACMS_MULTISITE_MANAGEMENT_SITE_ID', 1),
+    ],
+    'version' => '2.1.0-beta.1',
 ];

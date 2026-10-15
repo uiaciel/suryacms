@@ -646,18 +646,53 @@ class BuilderTheme extends Component
                 'page/post.blade.php' => $generator->generatePagePost(),
                 'page/category.blade.php' => $generator->generatePageCategory(),
                 'page/contact.blade.php' => $generator->generatePageContact(),
-                'page/acc.blade.php' => $generator->generatePageReport('Accounting Reports'),
-                'page/financial.blade.php' => $generator->generatePageReport('Financial Reports'),
-                'page/share.blade.php' => $generator->generatePageReport('Share Reports'),
                 'page/maintenance.blade.php' => $generator->generatePageMaintenance(),
                 'theme.php' => "<?php\n\nreturn ".$generator->generateThemeConfig().';',
             ];
+
+            foreach (['blog', 'gallery', 'slider', 'youtube'] as $plugin) {
+                $pluginFile = "{$plugin}.blade.php";
+                $defaultPluginPath = resource_path("views/frontend/default/plugin/{$pluginFile}");
+                $kreasiPluginPath = resource_path("views/frontend/kreasi/plugin/{$pluginFile}");
+                $pluginContent = File::exists($defaultPluginPath)
+                    ? File::get($defaultPluginPath)
+                    : File::get($kreasiPluginPath);
+
+                $this->generatedFiles["plugin/{$pluginFile}"] = $pluginContent;
+            }
+
+            foreach ($this->generatedFiles as $filePath => $content) {
+                $this->generatedFiles[$filePath] = $this->addKreasiReference($filePath, $content);
+            }
 
         } catch (\Exception $e) {
             Log::error('Builder generate failed: '.$e->getMessage());
             $this->validationErrors = [$e->getMessage()];
             throw $e;
         }
+    }
+
+    private function addKreasiReference(string $filePath, string $content): string
+    {
+        $referencePath = resource_path("views/frontend/kreasi/{$filePath}");
+        if (! File::exists($referencePath)) {
+            throw new \RuntimeException("File referensi tema Kreasi tidak ditemukan: {$filePath}");
+        }
+
+        $reference = rtrim(File::get($referencePath));
+
+        if ($filePath === 'theme.php') {
+            $referenceComment = "// Referensi dari frontend/kreasi/theme.php:\n";
+            foreach (explode("\n", $reference) as $line) {
+                $referenceComment .= '// '.$line."\n";
+            }
+
+            $phpOpenTag = '<?php';
+
+            return $phpOpenTag."\n".$referenceComment."\n".ltrim(substr($content, strlen($phpOpenTag)), "\r\n");
+        }
+
+        return "{{-- Referensi dari frontend/kreasi/{$filePath}:\n{$reference}\n--}}\n\n{$content}";
     }
 
     /**
@@ -722,26 +757,6 @@ class BuilderTheme extends Component
                         file_put_contents($filePath, $content);
                     }
                     $zip->close();
-                }
-            }
-
-            // Copy default plugins from default theme views
-            $defaultThemePath = resource_path('views/frontend/default');
-            $simplePlugins = [
-                'announcement.blade.php',
-                'slider.blade.php',
-                'youtube.blade.php',
-                'report.blade.php',
-                'stock.blade.php',
-                'blog.blade.php',
-                'gallery.blade.php',
-            ];
-
-            foreach ($simplePlugins as $plugin) {
-                $sourcePath = "{$defaultThemePath}/plugin/{$plugin}";
-                if (File::exists($sourcePath)) {
-                    $content = File::get($sourcePath);
-                    File::put("{$viewPath}/plugin/{$plugin}", $content);
                 }
             }
 

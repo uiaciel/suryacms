@@ -48,7 +48,7 @@ class LanguageSwitcher extends Component
      */
     protected function getAvailableLanguages(): array
     {
-        return Cache::remember('available_languages_for_switcher', 3600, function () {
+        return Cache::remember(site_cache_key('available_languages_for_switcher'), 3600, function () {
             return Language::where('status', 'Publish')
                 ->select(['id', 'code', 'name'])
                 ->orderBy('name')

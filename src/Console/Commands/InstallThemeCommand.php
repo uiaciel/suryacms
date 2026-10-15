@@ -4,6 +4,7 @@ namespace Uiaciel\SuryaCms\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Uiaciel\SuryaCms\Models\Setting;
 use ZipArchive;
 
@@ -16,7 +17,11 @@ class InstallThemeCommand extends Command
     public function handle()
     {
         $zipFileName = $this->argument('zipfile');
-        $zipFilePath = storage_path('app/private/public/'.$zipFileName);
+        $zipFilePath = Storage::disk('public')->path(site_storage_relative_path('themes/'.$zipFileName));
+
+        if (! File::exists($zipFilePath)) {
+            $zipFilePath = storage_path('app/private/public/'.$zipFileName);
+        }
 
         if (! File::exists($zipFilePath)) {
             $this->error("❌ File not found: {$zipFilePath}");
@@ -68,13 +73,13 @@ class InstallThemeCommand extends Command
 
         // 3️⃣ Optional: Activate theme
         if ($this->option('activate')) {
-            $setting = Setting::find(1);
+            $setting = Setting::query()->first();
             if ($setting) {
                 $setting->active_theme = $themeName;
                 $setting->save();
                 $this->info("🎯 Theme '{$themeName}' activated successfully!");
             } else {
-                $this->warn('⚠️ Setting record with id=1 not found. Skipping activation.');
+                $this->warn('No site settings were found. Skipping theme activation.');
             }
         }
 

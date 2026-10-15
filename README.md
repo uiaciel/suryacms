@@ -176,6 +176,8 @@ After publishing, the package creates `config/suryacms.php` and `config/frontend
 | `excluded_slugs` | See the published file | Slugs excluded from the frontend wildcard page route. Add application-specific reserved paths here. |
 | `tables` | `categories`, `contacts`, `galleries`, `languages`, `menus`, `pages`, `posts`, `settings`, `youtube_videos`, `users`, `custom_blocks` | Tables considered SuryaCMS tables by the backup configuration. |
 | `monitor_token` | `env('SURYACMS_MONITOR_TOKEN', null)` | Bearer token used to protect monitoring API endpoints. |
+| `multisite.enabled` | `env('SURYACMS_MULTISITE_ENABLED', false)` | Enables host-based site resolution and site data isolation. |
+| `multisite.management_site_id` | `1` | Site ID whose primary domain can manage site mappings at `/{admin_prefix}/sites`. |
 | `version` | Package version | SuryaCMS version exposed by the monitoring API and system UI. |
 
 After changing configuration, clear the cached configuration in production:
@@ -191,7 +193,7 @@ The `excluded_slugs` list should contain every path that must not be captured by
 
 | Key | Default | Purpose |
 | --- | --- | --- |
-| `active` | `env('FRONTEND_THEME', 'default')` | Fallback active theme when the database does not define `active_theme`. |
+| `active` | `env('FRONTEND_THEME', 'default')` | Fallback active theme when the current site's database setting does not define `active_theme`. |
 | `url` | `env('APP_URL', null)` | Frontend URL value used by frontend configuration. |
 | `default_locale` | `id` | Default frontend locale value. The database setting may provide the active site language. |
 | `themes_path` | `frontend` | Directory below `resources/views` and `public` containing themes. |
@@ -209,7 +211,7 @@ public/frontend/default/
 public/frontend/builder-example/
 ```
 
-A published theme can be customized in the host application without editing the package. The database setting `settings.active_theme` takes precedence over `frontend.active` when the settings table is available.
+A published theme can be customized in the host application without editing the package. When multisite is enabled, the current site's `settings.active_theme` takes precedence over `frontend.active`.
 
 ### Site settings managed from the admin panel
 
@@ -233,6 +235,8 @@ The Settings screen stores values including:
 | `FRONTEND_THEME` | `default` | Fallback frontend theme. |
 | `FRONTEND_REGISTRATION_ENABLED` | `true` | Public registration switch. |
 | `SURYACMS_MONITOR_TOKEN` | `null` | Authentication for the monitoring API. Keep this secret and use HTTPS. |
+| `SURYACMS_MULTISITE_ENABLED` | `false` | Enables domain-based site resolution and data isolation. |
+| `SURYACMS_MULTISITE_MANAGEMENT_SITE_ID` | `1` | Site ID allowed to manage sites from its primary domain. |
 | `TINY_EDITOR_KEY` | Package fallback value | TinyMCE editor loading in page and post forms. Set your own TinyMCE key in production. |
 
 Do not commit secrets to source control. In particular, set `SURYACMS_MONITOR_TOKEN` and `TINY_EDITOR_KEY` through the host application's secret-management process.
@@ -253,6 +257,7 @@ With the default prefix, the package provides routes such as:
 | `/admin/youtube` | YouTube video management |
 | `/admin/contacts` | Contact inbox |
 | `/admin/themes` | Theme management |
+| `/admin/sites` | Multisite and domain management (available on the management site's primary domain) |
 | `/admin/page-builder` | Page builder |
 | `/admin/system` | System and file checks |
 | `/admin/system/backups` | Backup management |
@@ -304,6 +309,9 @@ Run `php artisan list` in the host application to confirm the commands registere
 | `php artisan suryacms:maintenance --off` | Disable maintenance mode. |
 | `php artisan app:generate-offline` | Generate `offline.html` from the frontend homepage. |
 | `php artisan app:generate-sitemap` | Generate the site sitemap. |
+| `php artisan suryacms:site:list` | List sites and their mapped domains. |
+| `php artisan suryacms:site:create {domain} {name}` | Create a site, map its primary domain, and create its initial settings row. |
+| `php artisan suryacms:site:domain {site} {domain}` | Map an additional domain to an existing site ID. |
 
 ### Backup and restore commands
 
@@ -371,6 +379,39 @@ The package ships migrations for the following core tables and features:
 - additional migrations for page builders, visitor dates, inbox fields, and gallery PDFs
 
 The package expects the host Laravel application to provide the normal `users` table and authentication stack. Review migration order and existing table names before installing into an application that already contains CMS tables.
+
+## Multisite and shared hosting
+
+Multisite resolves the incoming HTTP `Host` header to a site while every domain shares one Laravel installation and database. On cPanel, point each domain's document root or symlink at the same Laravel `public` directory; the incoming hostname is what selects the site.
+
+1. Set the primary domain in `APP_URL`, enable multisite, then run migrations:
+
+   ```dotenv
+   APP_URL=https://example.com
+   SURYACMS_MULTISITE_ENABLED=true
+   ```
+
+   ```bash
+   php artisan migrate
+   ```
+
+   The migration creates the initial site, maps the host from `APP_URL`, and assigns existing CMS rows to that site. Keep `APP_URL` set to the canonical primary domain before this first migration.
+
+2. Create each additional site and map optional aliases:
+
+   ```bash
+   php artisan suryacms:site:create second.example.com "Second Site"
+   php artisan suryacms:site:domain 2 www.second.example.com
+   php artisan suryacms:site:list
+   ```
+
+3. Configure each site's settings and active theme from its domain's `/{admin_prefix}` panel (`/admin` by default). CMS records are scoped by `site_id` in settings, posts, pages, categories, inbox/contacts, galleries, menus, languages, comments, videos, visitors, custom blocks, and `suryacms_settings`. Site IDs are assigned automatically on model inserts. Admin user accounts remain shared.
+
+The **Kelola Sites** page is available from the primary site's admin menu or at `https://example.com/{admin_prefix}/sites` (`/admin/sites` by default). Access is restricted to the primary domain of `multisite.management_site_id` (site ID `1` by default); set `SURYACMS_MULTISITE_MANAGEMENT_SITE_ID` if another site should own site management. On each additional domain, sign in with the shared admin account and visit `https://domain-anda/{admin_prefix}` to manage that domain's own content, settings, inbox, and theme.
+
+The `sites` and `site_domains` tables contain domain mappings. An unmapped hostname returns HTTP 404 when multisite is enabled, rather than falling back to another site's content. When multisite is disabled (the default), existing single-site installations keep their previous hostname behavior.
+
+New media and site-setting uploads made through SuryaCMS are stored under `storage/app/public/sites/{site_id}/` and served through the normal `public/storage` symlink. Existing uploads are left in place and remain available to the initial site. The selected theme is per-site; theme view and public asset files remain part of the shared application resources.
 
 ## Helpers
 

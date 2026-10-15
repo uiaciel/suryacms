@@ -617,11 +617,13 @@ class SettingWeb extends Component
                 $time = time();
                 $slugName = Str::slug(pathinfo($originalFilename, PATHINFO_FILENAME));
 
+                // Simpan logo dengan nama unik
                 $logoFilename = "logo_{$time}.{$extension}";
-                $logoPath = $file->storeAs('logos', $logoFilename, 'public');
+                $logoPath = $file->storeAs(site_storage_relative_path('logos'), $logoFilename, 'public');
 
                 $setting->logo = 'storage/'.$logoPath;
 
+                // Simpan ke gallery
                 $gallery = new Gallery;
                 $gallery->name = $slugName ?: 'logo';
                 $gallery->description = 'Logo';
@@ -655,7 +657,7 @@ class SettingWeb extends Component
                 $image->resize(64, 64);
 
                 $faviconFileName = "favicon_{$time}.png";
-                $faviconPath = 'favicons/'.$faviconFileName;
+                $faviconPath = site_storage_relative_path('favicons/'.$faviconFileName);
                 Storage::disk('public')->put($faviconPath, (string) $image->encode());
 
                 $setting->favicon = 'storage/'.$faviconPath;
@@ -689,11 +691,13 @@ class SettingWeb extends Component
                 $time = time();
                 $slugName = Str::slug(pathinfo($originalFilename, PATHINFO_FILENAME));
 
+                // Simpan images dengan nama unik
                 $imagesFilename = "images_{$time}.{$extension}";
-                $imagesPath = $file->storeAs('images', $imagesFilename, 'public');
+                $imagesPath = $file->storeAs(site_storage_relative_path('images'), $imagesFilename, 'public');
 
                 $setting->images = 'storage/'.$imagesPath;
 
+                // Simpan ke gallery
                 $gallery = new Gallery;
                 $gallery->name = $slugName ?: 'images';
                 $gallery->description = 'Images';
@@ -741,12 +745,10 @@ class SettingWeb extends Component
         $resourcesThemePath = base_path("resources/views/frontend/{$themeName}");
 
         $zipFileName = "compressed-Theme-{$themeName}-{$sanitizedUrl}-{$date}.zip";
-        $zipFilePath = storage_path("app/public/{$zipFileName}");
+        $zipFilePath = site_storage_path($zipFileName);
 
         // Pastikan folder ada
-        if (! File::exists(storage_path('app/public'))) {
-            File::makeDirectory(storage_path('app/public'), 0775, true);
-        }
+        File::ensureDirectoryExists(dirname($zipFilePath), 0775, true);
 
         $tempZipPath = tempnam(sys_get_temp_dir(), 'theme_zip_');
         $zip = new \ZipArchive;

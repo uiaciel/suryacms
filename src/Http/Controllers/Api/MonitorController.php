@@ -7,13 +7,15 @@ use App\Models\User;
 use Composer\InstalledVersions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Page;
 use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
+use Uiaciel\SuryaCms\Models\Comment;
+use Uiaciel\SuryaCms\Models\Contact;
 use Uiaciel\SuryaCMS\Models\Visitor;
 
 class MonitorController extends Controller
@@ -27,13 +29,11 @@ class MonitorController extends Controller
         }
 
         // 2. Hitung Core Metrics (Sesuaikan dengan nama tabel SuryaCMS Anda)
-        $inboxTable = Schema::hasTable('inboxes') ? 'inboxes' : (Schema::hasTable('contacts') ? 'contacts' : null);
-
         $coreMetrics = [
-            'posts' => DB::table('posts')->count(),
-            'pages' => DB::table('pages')->count(),
-            'comments' => DB::table('comments')->count(),
-            'inbox_unread' => $inboxTable ? DB::table($inboxTable)->where('is_read', false)->count() : 0,
+            'posts' => Post::query()->count(),
+            'pages' => Page::query()->count(),
+            'comments' => Comment::query()->count(),
+            'inbox_unread' => Schema::hasTable('contacts') ? Contact::query()->where('is_read', false)->count() : 0,
         ];
 
         // 3. Hook Custom Metrics (Dinamis berdasarkan package yang ada)

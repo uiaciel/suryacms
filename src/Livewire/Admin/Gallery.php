@@ -180,7 +180,7 @@ class Gallery extends Component
                     } else {
                         // Fallback: simpan file asli jika konversi gagal
                         $filename = "{$slugName}_{$time}.{$extension}";
-                        $path = $file->storeAs('galleries', $filename, 'public');
+                        $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
                         $gallery->image_path = $path;
                         $gallery->cover_path = $path;
                         $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -189,7 +189,7 @@ class Gallery extends Component
                 } elseif ($extension === 'svg') {
                     // SVG tidak dikonversi (vector-based)
                     $filename = "{$slugName}_{$time}.svg";
-                    $path = $file->storeAs('galleries', $filename, 'public');
+                    $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
                     $gallery->image_path = $path;
                     $gallery->cover_path = $path;
                     $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -197,7 +197,7 @@ class Gallery extends Component
                 } elseif ($extension === 'pdf') {
                     // PDF: simpan asli + generate cover (cover dikonversi ke webp)
                     $filename = "{$slugName}_{$time}.pdf";
-                    $path = $file->storeAs('galleries', $filename, 'public');
+                    $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
 
                     $gallery->image_path = $path;
                     $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -279,7 +279,7 @@ class Gallery extends Component
                     } else {
                         // Fallback: simpan asli
                         $filename = "{$slugName}_{$time}.{$extension}";
-                        $path = $file->storeAs('galleries', $filename, 'public');
+                        $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
                         $gallery->image_path = $path;
                         $gallery->cover_path = $path;
                         $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -287,14 +287,14 @@ class Gallery extends Component
                     }
                 } elseif ($extension === 'svg') {
                     $filename = "{$slugName}_{$time}.svg";
-                    $path = $file->storeAs('galleries', $filename, 'public');
+                    $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
                     $gallery->image_path = $path;
                     $gallery->cover_path = $path;
                     $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
                     $gallery->mime_type = 'image';
                 } elseif ($extension === 'pdf') {
                     $filename = "{$slugName}_{$time}.pdf";
-                    $path = $file->storeAs('galleries', $filename, 'public');
+                    $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
 
                     $gallery->image_path = $path;
                     $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -372,7 +372,7 @@ class Gallery extends Component
                         $gallery->mime_type = 'image';
                     } else {
                         $filename = "{$slugName}_{$time}.{$extension}";
-                        $path = $file->storeAs('galleries', $filename, 'public');
+                        $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
                         $gallery->image_path = $path;
                         $gallery->cover_path = $path;
                         $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -380,14 +380,14 @@ class Gallery extends Component
                     }
                 } elseif ($extension === 'svg') {
                     $filename = "{$slugName}_{$time}.svg";
-                    $path = $file->storeAs('galleries', $filename, 'public');
+                    $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
                     $gallery->image_path = $path;
                     $gallery->cover_path = $path;
                     $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
                     $gallery->mime_type = 'image';
                 } elseif ($extension === 'pdf') {
                     $filename = "{$slugName}_{$time}.pdf";
-                    $path = $file->storeAs('galleries', $filename, 'public');
+                    $path = $file->storeAs(site_storage_relative_path('galleries'), $filename, 'public');
 
                     $gallery->image_path = $path;
                     $gallery->file_size = round($file->getSize() / 1024, 2).' KB';
@@ -554,7 +554,7 @@ class Gallery extends Component
 
             // Tentukan path output
             $webpFilename = "{$slugName}_{$time}.webp";
-            $webpRelativePath = "galleries/{$webpFilename}";
+            $webpRelativePath = site_storage_relative_path("galleries/{$webpFilename}");
             $webpFullPath = Storage::disk('public')->path($webpRelativePath);
 
             // Pastikan direktori ada

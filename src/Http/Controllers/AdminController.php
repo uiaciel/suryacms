@@ -14,9 +14,15 @@ use Intervention\Image\Drivers\Gd\Encoders\WebpEncoder;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Laravel\Facades\Image;
 use Spatie\PdfToImage\Pdf;
+use Uiaciel\SuryaCms\Models\Category;
+use Uiaciel\SuryaCms\Models\Contact;
 use Uiaciel\SuryaCms\Models\Gallery;
+use Uiaciel\SuryaCms\Models\Language;
+use Uiaciel\SuryaCms\Models\Menu;
 use Uiaciel\SuryaCms\Models\Page;
+use Uiaciel\SuryaCms\Models\Post;
 use Uiaciel\SuryaCms\Models\Setting;
+use Uiaciel\SuryaCms\Models\YoutubeVideo;
 use ZipArchive;
 
 class AdminController extends Controller
@@ -80,17 +86,17 @@ class AdminController extends Controller
             if ($extension === 'pdf') {
                 // A. LOGIKA UPLOAD PDF
                 $pdfFileName = "{$timestamp}_{$slugName}.pdf";
-                Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
+                Storage::disk('public')->putFileAs(site_storage_relative_path('galleries'), $file, $pdfFileName);
 
-                $gallery->image_path = 'galleries/'.$pdfFileName;
+                $gallery->image_path = site_storage_relative_path('galleries/'.$pdfFileName);
                 $gallery->mime_type = 'pdf';
 
                 // Generate Cover Image dari Halaman 1 PDF
-                $pdfPath = storage_path('app/public/'.$gallery->image_path);
-                $tempCoverPath = storage_path('app/public/galleries/temp_'.$timestamp.'.jpg');
+                $pdfPath = Storage::disk('public')->path($gallery->image_path);
+                $tempCoverPath = site_storage_path('galleries/temp_'.$timestamp.'.jpg');
 
-                if (! file_exists(storage_path('app/public/galleries/covers'))) {
-                    mkdir(storage_path('app/public/galleries/covers'), 0755, true);
+                if (! file_exists(site_storage_path('galleries/covers'))) {
+                    mkdir(site_storage_path('galleries/covers'), 0755, true);
                 }
 
                 // Render halaman 1 ke temp image
@@ -102,8 +108,8 @@ class AdminController extends Controller
                 $coverFileName = "{$timestamp}_cover_{$slugName}.webp";
                 $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
 
-                Storage::disk('public')->put('galleries/covers/'.$coverFileName, $convertedCover->__toString());
-                $gallery->cover_path = 'galleries/covers/'.$coverFileName;
+                $gallery->cover_path = site_storage_relative_path('galleries/covers/'.$coverFileName);
+                Storage::disk('public')->put($gallery->cover_path, $convertedCover->__toString());
 
                 // Hapus temp image
                 if (file_exists($tempCoverPath)) {
@@ -117,10 +123,10 @@ class AdminController extends Controller
 
                 $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
+                $gallery->image_path = site_storage_relative_path('galleries/'.$fileName);
+                Storage::disk('public')->put($gallery->image_path, $convertedImage->__toString());
 
-                $gallery->image_path = 'galleries/'.$fileName;
-                $gallery->cover_path = 'galleries/'.$fileName;
+                $gallery->cover_path = $gallery->image_path;
                 $gallery->mime_type = 'image';
             }
 
@@ -236,17 +242,17 @@ class AdminController extends Controller
                 if ($extension === 'pdf') {
                     // 1. Simpan File PDF
                     $pdfFileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
-                    Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
-                    $gallery->image_path = 'galleries/'.$pdfFileName;
+                    Storage::disk('public')->putFileAs(site_storage_relative_path('galleries'), $file, $pdfFileName);
+                    $gallery->image_path = site_storage_relative_path('galleries/'.$pdfFileName);
                     $gallery->mime_type = 'pdf';
 
                     // 2. Generate Cover Image dari Halaman 1 PDF
-                    $pdfPath = storage_path('app/public/'.$gallery->image_path);
-                    $tempCoverPath = storage_path('app/public/galleries/temp_'.$timestamp.'.jpg');
+                    $pdfPath = Storage::disk('public')->path($gallery->image_path);
+                    $tempCoverPath = site_storage_path('galleries/temp_'.$timestamp.'.jpg');
 
                     // Pastikan folder target ada
-                    if (! file_exists(storage_path('app/public/galleries'))) {
-                        mkdir(storage_path('app/public/galleries'), 0755, true);
+                    if (! file_exists(site_storage_path('galleries'))) {
+                        mkdir(site_storage_path('galleries'), 0755, true);
                     }
 
                     // Render halaman 1 PDF ke temp image
@@ -258,8 +264,8 @@ class AdminController extends Controller
                     $coverFileName = "{$timestamp}_cover_{$slugTitle}.webp";
                     $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/covers/'.$coverFileName, $convertedCover->__toString());
-                    $gallery->cover_path = 'galleries/covers/'.$coverFileName;
+                    $gallery->cover_path = site_storage_relative_path('galleries/covers/'.$coverFileName);
+                    Storage::disk('public')->put($gallery->cover_path, $convertedCover->__toString());
 
                     // Hapus temp image
                     if (file_exists($tempCoverPath)) {
@@ -273,10 +279,10 @@ class AdminController extends Controller
 
                     $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
+                    $gallery->image_path = site_storage_relative_path('galleries/'.$fileName);
+                    Storage::disk('public')->put($gallery->image_path, $convertedImage->__toString());
 
-                    $gallery->image_path = 'galleries/'.$fileName;
-                    $gallery->cover_path = 'galleries/'.$fileName; // Gambar asli berfungsi juga sebagai cover
+                    $gallery->cover_path = $gallery->image_path;
                     $gallery->mime_type = 'image';
                 }
             }
@@ -334,13 +340,13 @@ class AdminController extends Controller
                 if ($extension === 'pdf') {
                     // Upload PDF Baru
                     $pdfFileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
-                    Storage::disk('public')->putFileAs('galleries', $file, $pdfFileName);
-                    $gallery->image_path = 'galleries/'.$pdfFileName;
+                    Storage::disk('public')->putFileAs(site_storage_relative_path('galleries'), $file, $pdfFileName);
+                    $gallery->image_path = site_storage_relative_path('galleries/'.$pdfFileName);
                     $gallery->mime_type = 'pdf';
 
                     // Generate Cover Baru
-                    $pdfPath = storage_path('app/public/'.$gallery->image_path);
-                    $tempCoverPath = storage_path('app/public/galleries/temp_'.$timestamp.'.jpg');
+                    $pdfPath = Storage::disk('public')->path($gallery->image_path);
+                    $tempCoverPath = site_storage_path('galleries/temp_'.$timestamp.'.jpg');
 
                     $pdf = new Pdf($pdfPath);
                     $pdf->selectPage(1)->saveExtraPageAsPage($tempCoverPath);
@@ -349,8 +355,8 @@ class AdminController extends Controller
                     $coverFileName = "{$timestamp}_cover_{$slugTitle}.webp";
                     $convertedCover = $manager->read($tempCoverPath)->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/covers/'.$coverFileName, $convertedCover->__toString());
-                    $gallery->cover_path = 'galleries/covers/'.$coverFileName;
+                    $gallery->cover_path = site_storage_relative_path('galleries/covers/'.$coverFileName);
+                    Storage::disk('public')->put($gallery->cover_path, $convertedCover->__toString());
 
                     if (file_exists($tempCoverPath)) {
                         unlink($tempCoverPath);
@@ -362,10 +368,10 @@ class AdminController extends Controller
 
                     $convertedImage = $manager->read($file->getRealPath())->encode(new WebpEncoder(quality: 70));
 
-                    Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
+                    $gallery->image_path = site_storage_relative_path('galleries/'.$fileName);
+                    Storage::disk('public')->put($gallery->image_path, $convertedImage->__toString());
 
-                    $gallery->image_path = 'galleries/'.$fileName;
-                    $gallery->cover_path = 'galleries/'.$fileName;
+                    $gallery->cover_path = $gallery->image_path;
                     $gallery->mime_type = 'image';
                 }
             }
@@ -386,5 +392,83 @@ class AdminController extends Controller
             'titlePage' => $titlePage,
             'pagesbuilder' => Page::whereNotNull('html')->get(),
         ]);
+    }
+
+    public function globalvariable()
+    {
+        $lang = Language::all();
+        $categories = Category::all();
+        $galleries = Gallery::where('status', 'Publish')
+            ->orderBy('created_at', 'desc')
+            ->where('category', 'gallery')
+            ->take(8)
+            ->get();
+
+        $contact = Contact::orderBy('created_at', 'desc')->get();
+        $posts = Post::with('category')->where('status', 'Publish')->get();
+        $menus = Menu::whereNull('parent_id')
+            ->with(['children' => function ($query) {
+                $query->orderBy('order');
+            }])
+            ->orderBy('order')
+            ->get();
+
+        $latestposts = Post::where('status', 'Publish')
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
+
+        $topposts = Post::where('status', 'Publish')
+            ->orderBy('view', 'desc')
+            ->take(5)
+            ->get();
+
+        $youtubes = YoutubeVideo::where('status', 'published')
+            ->orderBy('created_at', 'desc')
+            ->take(6)
+            ->get();
+
+        $sliders = Gallery::where('status', 'Publish')
+            ->orderBy('created_at', 'desc')
+            ->where('category', 'Slider')
+            ->take(8)
+            ->get();
+
+        $allTags = Post::where('status', 'Publish')
+            ->pluck('tags')
+            ->filter()
+            ->toArray();
+
+        $pages = Page::where('status', 'Publish')
+            ->get();
+
+        $tags = [];
+        foreach ($allTags as $tagString) {
+            $tags = array_merge($tags, array_map('trim', explode(',', $tagString)));
+        }
+
+        $tagCounts = array_count_values($tags);
+        arsort($tagCounts);
+        $tagcloud = collect($tagCounts)->take(20);
+
+        $variable = [
+            'activeTheme' => get_active_theme(),
+            'menus' => $menus,
+            'categories' => $categories,
+            'posts' => $posts,
+            'latestposts' => $latestposts,
+            'topposts' => $topposts,
+            'tagcloud' => $tagcloud,
+            'youtubes' => $youtubes,
+            'sliders' => $sliders,
+            'pages' => $pages,
+            'setting' => null,
+            'lang' => $lang,
+
+            'gallery' => $galleries,
+            'contacts' => $contact,
+        ];
+
+        return response()->json($variable);
     }
 }

@@ -59,7 +59,7 @@ class Backup extends Component
         $this->pages = Page::all();
         $this->pagesCount = Page::count();
         $this->menus = Menu::all();
-        $this->setting = Setting::where('id', 1)->first();
+        $this->setting = Setting::first();
         $this->loadBackupFiles();
         $this->loadPartialBackupFolders();
     }

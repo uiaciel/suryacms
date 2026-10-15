@@ -55,7 +55,7 @@ class PdfModal extends Component
             $sluggedName = Str::slug($originalName) ?: 'pdf-file';
 
             $fileName = $sluggedName.'.pdf';
-            $path = 'pdfs/'.$fileName;
+            $path = site_storage_relative_path('pdfs/'.$fileName);
 
             Storage::disk('public')->put($path, file_get_contents($this->pdfFile->getRealPath()));
 

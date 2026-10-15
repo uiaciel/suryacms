@@ -62,7 +62,7 @@ class ImageGalleryModal extends Component
 
             if ($extension === 'pdf') {
                 $fileName = "{$timestamp}_gallery_{$slugTitle}.pdf";
-                $path = $file->storeAs('galleries', $fileName, 'public');
+                $path = $file->storeAs(site_storage_relative_path('galleries'), $fileName, 'public');
                 $mimeType = 'pdf';
 
                 // Generate cover
@@ -74,8 +74,8 @@ class ImageGalleryModal extends Component
                 $convertedImage = $manager->read($file->getRealPath())
                     ->encode(new WebpEncoder(quality: 70));
 
-                Storage::disk('public')->put('galleries/'.$fileName, $convertedImage->__toString());
-                $path = 'galleries/'.$fileName;
+                $path = site_storage_relative_path('galleries/'.$fileName);
+                Storage::disk('public')->put($path, $convertedImage->__toString());
                 $coverPath = $path;
                 $mimeType = 'image';
             }
@@ -109,7 +109,7 @@ class ImageGalleryModal extends Component
         try {
             $pdfFullPath = Storage::disk('public')->path($pdfPath);
             $slugName = Str::slug($originalFilename);
-            $imageRelativePath = "galleries/covers/{$slugName}_{$timestamp}_cover.jpg";
+            $imageRelativePath = site_storage_relative_path("galleries/covers/{$slugName}_{$timestamp}_cover.jpg");
             $imageFullPath = Storage::disk('public')->path($imageRelativePath);
 
             if (! file_exists(dirname($imageFullPath))) {

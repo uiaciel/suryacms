@@ -7,14 +7,16 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
 use Uiaciel\SuryaCms\Http\Middleware\CheckMaintenance;
 use Uiaciel\SuryaCms\Http\Middleware\CheckRegistrationStatus;
+use Uiaciel\SuryaCms\Http\Middleware\ManageSites;
+use Uiaciel\SuryaCms\Http\Middleware\ResolveSite;
 use Uiaciel\SuryaCms\Http\Middleware\SetLocaleFromUrl;
 use Uiaciel\SuryaCms\Http\Middleware\TrackVisitor;
 use Uiaciel\SuryaCms\Livewire\Auth\Login;
@@ -35,7 +37,6 @@ class SuryaCmsServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         $router = $this->app->make(Router::class);
-        $router->pushMiddlewareToGroup('web', CheckRegistrationStatus::class);
 
         $helperPath = __DIR__.'/helpers.php';
         if (file_exists($helperPath)) {
@@ -69,6 +70,8 @@ class SuryaCmsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__.'/../config/suryacms.php', 'suryacms');
+        $this->mergeConfigFrom(__DIR__.'/../config/frontend.php', 'frontend');
+        $this->app['config']->set('frontend.default_active', config('frontend.active', 'default'));
     }
 
     private function registerLivewireComponents(): void
@@ -102,6 +105,11 @@ class SuryaCmsServiceProvider extends ServiceProvider
     {
         $router = $this->app->make(Router::class);
 
+        $router->aliasMiddleware('suryacms.site', ResolveSite::class);
+        $router->aliasMiddleware('suryacms.manage-sites', ManageSites::class);
+        $router->pushMiddlewareToGroup('web', ResolveSite::class);
+        $router->pushMiddlewareToGroup('web', CheckRegistrationStatus::class);
+
         // Register maintenance middleware
         $router->aliasMiddleware('suryacms.maintenance', CheckMaintenance::class);
 
@@ -112,19 +120,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
 
     private function bootTheme(): void
     {
-
         $activeTheme = config('frontend.active', 'default');
-
-        try {
-            if (Schema::hasTable('settings')) {
-                $dbTheme = Setting::value('active_theme');
-                if ($dbTheme) {
-                    $activeTheme = $dbTheme;
-                }
-            }
-        } catch (\Exception $e) {
-
-        }
 
         $themesPath = config('frontend.themes_path', 'frontend');
 

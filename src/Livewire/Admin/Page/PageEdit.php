@@ -110,7 +110,7 @@ class PageEdit extends Component
 
         try {
             $fileName = 'pdf_'.time().'_'.Str::slug($this->title ?: 'untitled').'.pdf';
-            $path = 'pdfs/'.$fileName;
+            $path = site_storage_relative_path('pdfs/'.$fileName);
 
             Storage::disk('public')->put($path, file_get_contents($this->pdfFile->getRealPath()));
 

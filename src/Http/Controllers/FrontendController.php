@@ -55,7 +55,7 @@ class FrontendController extends Controller
         $actualSlug = $slug ?: $lang;
 
         $locale = App::getLocale();
-        $post = Cache::remember("post.{$actualSlug}.{$locale}", $this->cacheTtl, function () use ($actualSlug) {
+        $post = Cache::remember(site_cache_key("post.{$actualSlug}.{$locale}"), $this->cacheTtl, function () use ($actualSlug) {
             return Post::where('slug', $actualSlug)
                 ->where('status', 'Publish')
                 ->with(['category', 'user'])
@@ -68,7 +68,7 @@ class FrontendController extends Controller
 
         $post->incrementViewCount($post);
 
-        $recentpost = Cache::remember("recent_posts.{$post->id}.{$locale}", 3600, function () use ($post) {
+        $recentpost = Cache::remember(site_cache_key("recent_posts.{$post->id}.{$locale}"), 3600, function () use ($post) {
             return Post::where('id', '!=', $post->id)
                 ->where('status', 'Publish')
                 ->where('language_id', $post->language_id) // Pastikan bahasa sama
@@ -92,7 +92,7 @@ class FrontendController extends Controller
         $locale = app()->getLocale();
 
         // Pastikan key cache menggunakan slug yang benar
-        $cacheKey = "page_content_{$actualSlug}_{$locale}";
+        $cacheKey = site_cache_key("page_content_{$actualSlug}_{$locale}");
 
         $page = Cache::remember($cacheKey, $this->cacheTtl, function () use ($actualSlug) {
             return Page::where('slug', $actualSlug)
@@ -155,7 +155,7 @@ class FrontendController extends Controller
         $locale = app()->getLocale();
 
         // Pastikan cache key unik per slug dan locale
-        $category = Cache::remember("cat_obj.{$actualSlug}.{$locale}", $this->cacheTtl, function () use ($actualSlug) {
+        $category = Cache::remember(site_cache_key("cat_obj.{$actualSlug}.{$locale}"), $this->cacheTtl, function () use ($actualSlug) {
             return Category::where('slug', $actualSlug)->firstOrFail();
         });
 
@@ -193,7 +193,7 @@ class FrontendController extends Controller
         // 2. Rate Limiting
         $ip = $request->ip();
         $rateLimit = $setting->contact_form_rate_limit ?? 3;
-        $cacheKey = "contact_rate_limit_{$ip}";
+        $cacheKey = site_cache_key("contact_rate_limit_{$ip}");
         $attempts = Cache::get($cacheKey, 0);
 
         if ($attempts >= $rateLimit) {
@@ -305,7 +305,7 @@ class FrontendController extends Controller
 
     private function getSetting(): ?Setting
     {
-        return Cache::rememberForever('cms_settings', function () {
+        return Cache::rememberForever(site_cache_key('cms_settings'), function () {
             return Schema::hasTable('settings') ? Setting::first() : null;
         });
     }
