@@ -374,6 +374,20 @@
                     xhr.send(formData);
                 });
 
+                function fallbackToStandardTextarea() {
+                    console.warn("TinyMCE gagal diisi / tidak terdaftar. Menggunakan textarea biasa.");
+                    if (window.tinymce) {
+                        tinymce.remove('#content');
+                    }
+                    const textarea = document.getElementById('content');
+                    if (textarea) {
+                        // Berikan listener standar agar sync dengan Livewire jika TinyMCE tidak aktif
+                        textarea.addEventListener('input', function(e) {
+                            @this.set('konten', e.target.value);
+                        });
+                    }
+                }
+
                 function initTinyMCE() {
                     console.log("initTinyMCE dipanggil");
                     tinymce.remove();

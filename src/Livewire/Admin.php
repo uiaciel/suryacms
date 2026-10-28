@@ -72,6 +72,13 @@ class Admin extends Component
         }
 
         $this->active_theme = $setting->active_theme ?? 'default';
+        $sitemapFilename = 'sitemap.xml';
+        if (config('suryacms.multisite.enabled', false)) {
+            $domain = app()->bound('suryacms.current_domain')
+                ? app('suryacms.current_domain')->domain
+                : request()->getHost();
+            $sitemapFilename = preg_replace('/[^a-z0-9.-]/i', '-', $domain).'.xml';
+        }
 
         $this->files = [
             [
@@ -83,8 +90,8 @@ class Admin extends Component
                 'path' => public_path('id.html'),
             ],
             [
-                'label' => 'Sitemap (sitemap.xml)',
-                'path' => public_path('sitemap.xml'),
+                'label' => 'Sitemap ('.$sitemapFilename.')',
+                'path' => public_path($sitemapFilename),
             ],
             [
                 'label' => 'Robots.txt',
@@ -218,6 +225,28 @@ class Admin extends Component
 
     public function generateSitemap()
     {
+        if (config('suryacms.multisite.enabled', false)) {
+            if (Artisan::call('app:generate-sitemap') !== 0) {
+                $output = trim(Artisan::output());
+                $this->dispatch('swal', [
+                    'icon' => 'error',
+                    'title' => 'Error',
+                    'text' => $output !== '' ? $output : 'Failed to generate multisite sitemaps.',
+                ]);
+
+                return;
+            }
+
+            $this->dispatch('swal', [
+                'icon' => 'success',
+                'title' => 'Success',
+                'text' => 'Generate Multisite Sitemaps Successfully.',
+            ]);
+
+            session()->flash('success', 'Generate Multisite Sitemaps Successfully.');
+
+            return;
+        }
 
         $urls = collect();
         $now = now()->toAtomString();

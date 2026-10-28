@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Uiaciel\SuryaCms\Models\Setting;
+use Uiaciel\SuryaCms\Models\SiteDomain;
+use Uiaciel\SuryaCms\Support\SiteContext;
 
 class FileCheck extends Component
 {
@@ -15,10 +17,27 @@ class FileCheck extends Component
 
     public string $active_theme = 'default';
 
+    public ?array $multisiteInfo = null;
+
     public function mount(): void
     {
         $setting = Setting::first();
         $this->active_theme = $setting->active_theme ?? 'default';
+
+        if (config('suryacms.multisite.enabled', false)) {
+            $site = app(SiteContext::class)->current();
+            $domain = app()->bound('suryacms.current_domain')
+                ? app('suryacms.current_domain')->domain
+                : SiteDomain::normalize(request()->getHost());
+            $sitemapFilename = preg_replace('/[^a-z0-9.-]/i', '-', $domain).'.xml';
+
+            $this->multisiteInfo = [
+                'site_id' => $site?->getKey(),
+                'site_name' => $site?->name ?? 'Unknown',
+                'domain' => $domain,
+                'sitemap_filename' => $sitemapFilename,
+            ];
+        }
 
         $this->files = [
             [
@@ -30,8 +49,8 @@ class FileCheck extends Component
                 'path' => public_path('id.html'),
             ],
             [
-                'label' => 'Sitemap (sitemap.xml)',
-                'path' => public_path('sitemap.xml'),
+                'label' => 'Sitemap ('.($this->multisiteInfo['sitemap_filename'] ?? 'sitemap.xml').')',
+                'path' => public_path($this->multisiteInfo['sitemap_filename'] ?? 'sitemap.xml'),
             ],
             [
                 'label' => 'Robots.txt',
@@ -72,7 +91,23 @@ class FileCheck extends Component
             'storage' => $this->getStorageInfo(),
             'database' => $this->getDatabaseInfo(),
             'laravel' => $this->getLaravelInfo(),
+            'multisite' => $this->getMultisiteInfo(),
             'extensions' => $this->getPhpExtensions(),
+        ];
+    }
+
+    private function getMultisiteInfo(): array
+    {
+        $site = app(SiteContext::class)->current();
+        $domain = app()->bound('suryacms.current_domain')
+            ? app('suryacms.current_domain')->domain
+            : request()->getHost();
+
+        return [
+            'enabled' => (bool) config('suryacms.multisite.enabled', false),
+            'site_id' => $site?->getKey() ?? 'N/A',
+            'site_name' => $site?->name ?? 'N/A',
+            'domain' => $domain,
         ];
     }
 

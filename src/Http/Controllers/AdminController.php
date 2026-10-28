@@ -462,7 +462,7 @@ class AdminController extends Controller
             'youtubes' => $youtubes,
             'sliders' => $sliders,
             'pages' => $pages,
-            'setting' => null,
+            'setting' => Setting::All(),
             'lang' => $lang,
 
             'gallery' => $galleries,

@@ -8,7 +8,7 @@
     <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <link href=" https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.min.css " rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.min.css" rel="stylesheet">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -112,13 +112,13 @@
     <link rel="manifest" href="{{ route('admin.manifest') }}">
     <meta name="theme-color" content="#0f172a">
 
-    <link href="/{{ $setting->favicon }}" rel="icon" />
+    <link href="{{ asset($setting?->favicon) }}" rel="icon" />
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/{{ $setting->logo }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="/{{ $setting->logo }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="/{{ $setting->logo }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset($setting?->logo) }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset($setting?->logo) }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset($setting?->logo) }}">
 
-    <link rel="mask-icon" href="{{ $setting->logo }}" color="#5bbad5">
+    <link rel="mask-icon" href="{{ asset($setting?->logo) }}" color="#5bbad5">
 
     @vite(['resources/js/app.js'])
     @livewireStyles
@@ -150,8 +150,8 @@
             <!-- Sidebar Header -->
             <div class="flex items-center justify-between px-6 py-5 border-b border-white/10" wire:ignore>
                 <div class="flex items-center gap-3">
-                    @if ($setting->logo)
-                        <img src="/{{ $setting->logo }}" class="w-8 h-8 rounded-lg" />
+                    @if ($setting?->logo)
+                        <img src="{{ asset($setting->logo) }}" class="w-8 h-8 rounded-lg" />
                     @else
                         <div
                             class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-black text-sm">
@@ -167,7 +167,7 @@
 
             <!-- Sidebar Menu -->
             <nav class="flex-1 px-3 py-4 overflow-y-auto sidebar-scroll space-y-2 gap-3">
-                @if ($menus->where('category', 'Admin')->count() > 0)
+                @if (isset($menus) && $menus->where('category', 'Admin')->count() > 0)
                     <div>
                         <p x-show="!sidebarMinimized"
                             class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-2">
@@ -234,7 +234,7 @@
                             <span x-show="!sidebarMinimized">Posts</span>
                         </span>
                         <span x-show="!sidebarMinimized"
-                            class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ $posts->count() }}</span>
+                            class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{{ isset($posts) ? $posts->count() : 0 }}</span>
                     </a>
 
                     <a href="/{{ config('suryacms.admin_prefix') }}/pages" wire:navigate
@@ -296,15 +296,15 @@
                         <i class="fas fa-code w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
                         <span x-show="!sidebarMinimized">Editor</span>
                     </a>
-                    <a href="/{{ config('suryacms.admin_prefix') }}/themes/builder" wire:navigate
+                    <a href="/{{ config('suryacms.admin_prefix') }}/themes/convert" wire:navigate
                         class="sidebar-menu-item w-full flex items-center px-3 py-2.5 rounded-xl transition-all text-sm font-semibold {{ Request::is('admin/themes/generate*') ? 'nav-active' : 'text-white/60 hover:bg-white/10 hover:text-white' }}"
                         :class="sidebarMinimized ? 'justify-center px-0' : ''">
-                        <i class="fas fa-magic w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
-                        <span x-show="!sidebarMinimized">Builder</span>
+                        <i class="fa-brands fa-html5 w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i>
+                        <span x-show="!sidebarMinimized">Generate</span>
                     </a>
                 </div>
 
-                @if (isset($setting) && $setting->homepage_type == 'homepage')
+                @if ($setting?->homepage_type == 'homepage')
                     <div>
                         <p x-show="!sidebarMinimized"
                             class="text-[10px] font-bold text-white/30 uppercase tracking-widest px-3 mb-2 mt-5">
@@ -321,12 +321,14 @@
                                     :class="open ? 'rotate-180' : ''"></i>
                             </button>
                             <div x-show="open && !sidebarMinimized" x-collapse x-cloak class="mt-1 space-y-1">
-                                @foreach (collect($pages)->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))->take(4) as $page)
-                                    <a href="/{{ config('suryacms.admin_prefix') }}/homepage-builder/{{ $page->slug }}"
-                                        class="flex items-center pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition-all {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'text-blue-400 bg-white/5' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
-                                        <i class="fas fa-circle text-[6px] mr-3"></i> {{ $page->title }}
-                                    </a>
-                                @endforeach
+                                @if (isset($pages))
+                                    @foreach (collect($pages)->filter(fn($page) => Str::startsWith($page->title, 'Homepage'))->take(4) as $page)
+                                        <a href="/{{ config('suryacms.admin_prefix') }}/homepage-builder/{{ $page->slug }}"
+                                            class="flex items-center pl-10 pr-3 py-2 rounded-xl text-xs font-medium transition-all {{ Request::is('admin/homepage-builder/' . $page->slug) ? 'text-blue-400 bg-white/5' : 'text-white/50 hover:text-white hover:bg-white/5' }}">
+                                            <i class="fas fa-circle text-[6px] mr-3"></i> {{ $page->title }}
+                                        </a>
+                                    @endforeach
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -348,10 +350,6 @@
                         <i class="fas fa-cog w-4 text-center" :class="sidebarMinimized ? '' : 'mr-3'"></i> <span
                             x-show="!sidebarMinimized">Settings</span>
                     </a>
-                </div>
-
-                <div>
-
                 </div>
 
             </nav>
@@ -450,7 +448,7 @@
                                 class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                 <i class="fas fa-cog mr-3 w-4 text-center text-gray-400"></i> Settings
                             </a>
-                            @if (app(\Uiaciel\SuryaCms\Support\SiteManagementAccess::class)->allowsAccess())
+                            @if (class_exists(\Uiaciel\SuryaCms\Support\SiteManagementAccess::class) && app(\Uiaciel\SuryaCms\Support\SiteManagementAccess::class)->allowsAccess())
                                 <a href="{{ route('admin.sites') }}" wire:navigate
                                     class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition border-b border-gray-50">
                                     <i class="fas fa-globe mr-3 w-4 text-center text-gray-400"></i> Kelola Sites
@@ -475,7 +473,6 @@
             <!-- PAGE CONTENT -->
             <main class="flex-1 overflow-y-auto main-scroll p-0 lg:p-6 bg-[#f0f3fb]">
 
-                {{-- <x-suryacms::alert-tester/> --}}
                 @hasSection('content')
                     @yield('content')
                 @else
@@ -486,8 +483,14 @@
 
             <!-- Footer -->
             <footer class="bg-white border-t border-gray-100 px-6 py-3 text-sm text-gray-500 text-center">
-                2025 © Surya CMS | <a href="{{ $setting->url ?? '#' }}"
-                    class="text-blue-600 hover:underline">{{ $setting->url ?? 'https://suryacms.local' }}</a>
+                @php
+                    $footerUrl = config('suryacms.multisite.enabled', false)
+                        && app()->bound('suryacms.current_domain')
+                        ? request()->getSchemeAndHttpHost()
+                        : ($setting?->url ?? '#');
+                @endphp
+                2025 © Surya CMS | <a href="{{ $footerUrl }}"
+                    class="text-blue-600 hover:underline">{{ $footerUrl === '#' ? 'https://suryacms.local' : $footerUrl }}</a>
             </footer>
         </div>
     </div>

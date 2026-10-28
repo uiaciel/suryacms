@@ -1,22 +1,56 @@
 <div class="space-y-6">
 
-    <div class="mb-6 flex items-center justify-between">
-            <div class="flex items-center gap-4">
-
-                <div>
-                    <h1 class="text-xl font-extrabold text-slate-800">Server Informations</h1>
-                    <nav aria-label="breadcrumb">
-                        <ol class="mt-0.5 flex items-center gap-1.5 text-xs text-gray-400">
-                            <li><a href="/{{ config('suryacms.admin_prefix') }}"
-                                    class="text-blue-500 hover:underline">Admin</a></li>
-                            <li><i class="fas fa-chevron-right text-[9px]"></i></li>
-                            <li class="font-medium text-gray-600">System</li>
-                        </ol>
-                    </nav>
-                </div>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div>
+                <h1 class="text-xl font-extrabold text-slate-800">Server Informations</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="mt-0.5 flex items-center gap-1.5 text-xs text-gray-400">
+                        <li><a href="/{{ config('suryacms.admin_prefix') }}"
+                                class="text-blue-500 hover:underline">Admin</a></li>
+                        <li><i class="fas fa-chevron-right text-[9px]"></i></li>
+                        <li class="font-medium text-gray-600">System</li>
+                    </ol>
+                </nav>
             </div>
-
         </div>
+
+        @if ($multisiteInfo)
+            <div class="rounded-xl border border-blue-200 bg-blue-50 px-5 py-3">
+                <p class="font-semibold text-blue-900">Site ini dikelola oleh Multisite</p>
+                <p class="mt-1 text-sm text-blue-800">
+                    {{ $multisiteInfo['site_name'] }} (ID {{ $multisiteInfo['site_id'] ?? 'N/A' }}) ·
+                    {{ $multisiteInfo['domain'] }}
+                </p>
+            </div>
+        @endif
+    </div>
+
+    @php $multisite = $serverInfo['multisite']; @endphp
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
+            <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                <i class="fa-solid fa-globe text-lg"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-gray-800">Multisite</h4>
+                <p class="text-xs text-gray-500">Site dan domain yang aktif pada request ini</p>
+            </div>
+        </div>
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            @foreach ([
+                'Status' => $multisite['enabled'] ? 'Enabled' : 'Disabled',
+                'Site Name' => $multisite['site_name'],
+                'Site ID' => $multisite['site_id'],
+                'Current Domain' => $multisite['domain'],
+            ] as $label => $value)
+                <div class="flex flex-col p-3 rounded-xl border border-gray-100 bg-gray-50/50">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{{ $label }}</span>
+                    <span class="text-sm font-semibold text-gray-800 truncate" title="{{ $value }}">{{ $value }}</span>
+                </div>
+            @endforeach
+        </div>
+    </div>
 
     {{-- ============================================================ --}}
     {{-- PHP INFORMATION --}}

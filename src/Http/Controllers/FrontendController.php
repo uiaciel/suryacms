@@ -46,7 +46,7 @@ class FrontendController extends Controller
         return view('frontend::index');
     }
 
-    public function postshow(Request $request, $lang, $slug = null): View
+    public function postshow(Request $request, $lang, $slug = null, bool $countView = true): View
     {
         /**
          * Logika Penentuan Slug:
@@ -62,11 +62,13 @@ class FrontendController extends Controller
                 ->firstOrFail();
         });
 
-        if (app()->environment('production') && rand(1, 10) === 1) {
-            $post->increment('view');
-        }
+        if ($countView) {
+            if (app()->environment('production') && rand(1, 10) === 1) {
+                $post->increment('view');
+            }
 
-        $post->incrementViewCount($post);
+            $post->incrementViewCount($post);
+        }
 
         $recentpost = Cache::remember(site_cache_key("recent_posts.{$post->id}.{$locale}"), 3600, function () use ($post) {
             return Post::where('id', '!=', $post->id)

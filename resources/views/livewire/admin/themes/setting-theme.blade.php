@@ -85,6 +85,11 @@
                             @endif
 
                             <div class="flex gap-2">
+                                <a href="{{ route('admin.themes.preview', ['theme' => $theme['path']]) }}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 text-xs font-medium rounded-xl transition-all duration-200">
+                                    <i class="fa-solid fa-eye"></i> Preview
+                                </a>
                                 @if ($theme['url'])
                                     <a href="{{ $theme['url'] }}" target="_blank"
                                        class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-xs font-medium rounded-xl transition-all duration-200">

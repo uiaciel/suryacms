@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use Symfony\Component\Finder\Finder;
 use Uiaciel\SuryaCms\Http\Middleware\CheckMaintenance;
@@ -251,6 +252,8 @@ class SuryaCmsServiceProvider extends ServiceProvider
                     $tags = array_merge($tags, array_map('trim', explode(',', $tagString)));
                 }
 
+                $globalsetting = Setting::all();
+
                 $tagCounts = array_count_values($tags);
                 arsort($tagCounts);
                 $tagcloud = collect($tagCounts)->take(20);
@@ -268,7 +271,7 @@ class SuryaCmsServiceProvider extends ServiceProvider
                     'pages' => $pages,
                     'setting' => null,
                     'lang' => $lang,
-
+                    'globalsetting' => $globalsetting,
                     'gallery' => $galleries,
                     'contacts' => $contact,
                 ];

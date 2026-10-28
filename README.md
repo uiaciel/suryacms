@@ -308,7 +308,7 @@ Run `php artisan list` in the host application to confirm the commands registere
 | `php artisan suryacms:maintenance --on` | Enable maintenance mode. |
 | `php artisan suryacms:maintenance --off` | Disable maintenance mode. |
 | `php artisan app:generate-offline` | Generate `offline.html` from the frontend homepage. |
-| `php artisan app:generate-sitemap` | Generate the site sitemap. |
+| `php artisan app:generate-sitemap` | Generate the site sitemap, or one `{domain}.xml` sitemap per mapped domain when multisite is enabled. |
 | `php artisan suryacms:site:list` | List sites and their mapped domains. |
 | `php artisan suryacms:site:create {domain} {name}` | Create a site, map its primary domain, and create its initial settings row. |
 | `php artisan suryacms:site:domain {site} {domain}` | Map an additional domain to an existing site ID. |
@@ -410,6 +410,8 @@ Multisite resolves the incoming HTTP `Host` header to a site while every domain 
 The **Kelola Sites** page is available from the primary site's admin menu or at `https://example.com/{admin_prefix}/sites` (`/admin/sites` by default). Access is restricted to the primary domain of `multisite.management_site_id` (site ID `1` by default); set `SURYACMS_MULTISITE_MANAGEMENT_SITE_ID` if another site should own site management. On each additional domain, sign in with the shared admin account and visit `https://domain-anda/{admin_prefix}` to manage that domain's own content, settings, inbox, and theme.
 
 The `sites` and `site_domains` tables contain domain mappings. An unmapped hostname returns HTTP 404 when multisite is enabled, rather than falling back to another site's content. When multisite is disabled (the default), existing single-site installations keep their previous hostname behavior.
+
+When multisite is enabled, run `php artisan app:generate-sitemap` (or use the admin's sitemap generator) to generate a separate `domain.xml` file for each mapped domain. Each file uses the content belonging to that domain's site. The File Check and system information screens show the active site and domain.
 
 New media and site-setting uploads made through SuryaCMS are stored under `storage/app/public/sites/{site_id}/` and served through the normal `public/storage` symlink. Existing uploads are left in place and remain available to the initial site. The selected theme is per-site; theme view and public asset files remain part of the shared application resources.
 

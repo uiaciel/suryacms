@@ -419,6 +419,32 @@
                                         class="text-blue-600 hover:underline">{{ $setting->url }}</a>
                                 </div>
                             </li>
+                            @if (config('suryacms.multisite.enabled', false))
+                                @php
+                                    $multisiteSite = app(\Uiaciel\SuryaCms\Support\SiteContext::class)->current();
+                                    $multisiteDomain = app()->bound('suryacms.current_domain')
+                                        ? app('suryacms.current_domain')->domain
+                                        : request()->getHost();
+                                @endphp
+                                <li>
+                                    <div class="flex justify-between items-center">
+                                        <strong>Multisite:</strong>
+                                        <span class="font-medium">Enabled</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="flex justify-between items-center">
+                                        <strong>Site ID:</strong>
+                                        <span class="font-medium">{{ $multisiteSite?->getKey() ?? 'N/A' }}</span>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="flex justify-between items-center">
+                                        <strong>Current Domain:</strong>
+                                        <span class="font-medium">{{ $multisiteDomain }}</span>
+                                    </div>
+                                </li>
+                            @endif
                             <li>
                                 <div class="flex justify-between items-center">
                                     <strong>Email:</strong>
