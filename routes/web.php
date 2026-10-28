@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Uiaciel\SuryaCms\Http\Controllers\AboutController;
 use Uiaciel\SuryaCms\Http\Controllers\AdminController;
+use Uiaciel\SuryaCms\Http\Controllers\PreviewThemeController;
 use Uiaciel\SuryaCms\Http\Controllers\AuthenticatedSessionController;
 use Uiaciel\SuryaCms\Http\Controllers\BackupController;
 use Uiaciel\SuryaCms\Http\Controllers\FrontendController;
@@ -30,6 +31,8 @@ use Uiaciel\SuryaCms\Livewire\Admin\SearchResult;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\BuilderTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\ConvertTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\CreateTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\MakeTheme;
+use Uiaciel\SuryaCms\Livewire\Admin\Themes\MakeEditorTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\DocsTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\EditorTheme;
 use Uiaciel\SuryaCms\Livewire\Admin\Themes\SettingTheme;
@@ -139,7 +142,16 @@ Route::prefix(config('suryacms.admin_prefix', 'admin'))
                 Route::get('/editor', EditorTheme::class)->name('admin.theme.editor');
                 Route::get('/builder', BuilderTheme::class)->name('builder');
                 Route::get('/docs', DocsTheme::class)->name('docs');
-                Route::get('/create/{theme?}', CreateTheme::class)->name('create');
+                Route::get('/convert', MakeTheme::class)->name('make');
+                Route::get('/{sessionId}/editor', MakeEditorTheme::class)->name('make.editor');
+                Route::get('/{sessionId}/preview', [PreviewThemeController::class, 'showPreviewSession'])
+                    ->name('preview.render');
+                Route::get('/{sessionId}/preview-source/{path?}', [PreviewThemeController::class, 'showSourceSession'])
+                    ->where('path', '.*')
+                    ->name('preview.source');
+                Route::get('/preview-site/{theme}/{path?}', [PreviewThemeController::class, 'show'])
+                    ->where('path', '.*')
+                    ->name('preview');
             });
 
         Route::get('/test-session/{type}', function ($type) {

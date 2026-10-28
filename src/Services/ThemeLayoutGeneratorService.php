@@ -760,10 +760,18 @@ BLADE;
     <!-- Main Content Area -->
     <main>
 
+         @hasSection('seo')
+            @yield('seo')
+        @endif
+
+        @hasSection('schema')
+            @yield('schema')
+        @endif
+
         @hasSection('content')
-        @yield('content')
+            @yield('content')
         @else
-        {{ $slot ?? '' }}
+            {{ $slot ?? '' }}
         @endif
 
     </main>
@@ -997,7 +1005,7 @@ BLADE;
      *
      * @return string PHP code untuk theme.php
      */
-    public function generateThemeConfig()
+    public function generateThemeConfig(string $styleType = 'tailwindcss')
     {
         try {
             $dom = new DOMDocument;
@@ -1016,7 +1024,7 @@ BLADE;
                     'name' => ucfirst($this->themeName),
                     'path' => strtolower($this->themeName),
                     'version' => '1.0.0',
-                    'style' => 'tailwindcss', // Default ke Bootstrap, bisa diubah ke tailwindcss
+                    'style' => $styleType,
                     'author' => 'Theme Generator',
                     'url' => 'https://uiaciel.com',
                     'license' => 'MIT',

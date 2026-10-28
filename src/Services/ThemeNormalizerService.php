@@ -61,10 +61,9 @@ class ThemeNormalizerService
             $this->normalizeFooter();
             $this->normalizeSections();
             if ($this->themeName) {
-                $this->normalizeAssets();
+                $this->normalizeAssets(); // <-- Diperluas cakupannya
             }
         } catch (\Exception $e) {
-            // Jika normalisasi gagal, return HTML original
             return $this->htmlContent;
         }
 
@@ -269,20 +268,16 @@ class ThemeNormalizerService
 
         // Fix 1: Kembalikan HTML Entities bawaan Blade ke karakter aslinya
         $html = preg_replace_callback('/\{\{(.*?)\}\}/s', function ($matches) {
-            // Ubah &gt; kembali menjadi > dan &lt; menjadi < di dalam {{ }}
-            $cleanContent = htmlspecialchars_decode($matches[1], ENT_QUOTES);
-
-            return '{{'.$cleanContent.'}}';
+            return '{{' . htmlspecialchars_decode($matches[1], ENT_QUOTES) . '}}';
         }, $html);
 
-        // Fix 2: Perbaiki double curly braces yang rusak akibat parsing (jika ada)
+        // Fix 2: Perbaiki double curly braces yang rusak
         $html = preg_replace('/\}\}\}\}/', '}}', $html);
 
-        // Fix 3: Ubah %20 kembali menjadi spasi untuk path asset internal
-        // Hanya mengubah %20 yang ada di dalam path /frontend/themeName/...
+        // Fix 3: Decode URL encoded characters (%20) HANYA di path tema kita
         if ($this->themeName) {
             $escapedTheme = preg_quote($this->themeName, '/');
-            $html = preg_replace_callback('/(\/frontend\/'.$escapedTheme.'\/[^"\'\s>]+)/', function ($matches) {
+            $html = preg_replace_callback('/(\/frontend\/' . $escapedTheme . '\/[^"\'\s>]+)/', function ($matches) {
                 return urldecode($matches[1]);
             }, $html);
         }
@@ -330,59 +325,91 @@ class ThemeNormalizerService
 
     private function normalizeAssets()
     {
-        if (! $this->themeName) {
-            return;
-        }
+        if (!$this->themeName) return;
 
-        // Normalize <img> src
-        $images = $this->xpath->query('//img[@src]');
-        if ($images instanceof \DOMNodeList) {
-            foreach ($images as $img) {
-                $src = $img->getAttribute('src');
-                $newSrc = $this->normalizeAssetPath($src);
-                if ($newSrc !== $src) {
-                    $img->setAttribute('src', $newSrc);
-                }
-            }
-        }
+        // 1. Normalize <img> src
+        $this->normalizeAttribute('//img[@src]', 'src');
 
-        // Normalize <source> srcset
-        $sources = $this->xpath->query('//source[@srcset]');
-        if ($sources instanceof \DOMNodeList) {
-            foreach ($sources as $source) {
-                $srcset = $source->getAttribute('srcset');
-                $newSrcset = $this->normalizeAssetPath($srcset);
-                if ($newSrcset !== $srcset) {
-                    $source->setAttribute('srcset', $newSrcset);
+        // 2. Normalize <source> srcset
+        $this->normalizeAttribute('//source[@srcset]', 'srcset');
+
+        // 3. Normalize <video> dan <audio> src
+        $this->normalizeAttribute('//video[@src]', 'src');
+        $this->normalizeAttribute('//audio[@src]', 'src');
+
+        // 4. Normalize <a> href (hanya jika link internal relatif, bukan # atau http)
+        $this->normalizeAttribute('//a[@href]', 'href', true);
+
+        // 5. Normalize Inline CSS background-image: url('...')
+        $this->normalizeInlineStyles();
+    }
+
+    private function normalizeAttribute($xpathQuery, $attributeName, $isLink = false)
+    {
+        $elements = $this->xpath->query($xpathQuery);
+        if ($elements instanceof \DOMNodeList) {
+            foreach ($elements as $element) {
+                $value = $element->getAttribute($attributeName);
+                $newValue = $this->normalizeAssetPath($value, $isLink);
+
+                if ($newValue !== $value) {
+                    $element->setAttribute($attributeName, $newValue);
                 }
             }
         }
     }
 
-    private function normalizeAssetPath($path)
+    private function normalizeInlineStyles()
+    {
+        // Cari semua elemen yang memiliki atribut style
+        $elements = $this->xpath->query('//*[@style]');
+        if ($elements instanceof \DOMNodeList) {
+            foreach ($elements as $element) {
+                $style = $element->getAttribute('style');
+
+                // Regex untuk menangkap url('...') atau url("...") di dalam CSS
+                $newStyle = preg_replace_callback(
+                    '/url\(\s*[\'"]?([^\'"\)]+)[\'"]?\s*\)/i',
+                    function ($matches) {
+                        $path = trim($matches[1]);
+                        $normalized = $this->normalizeAssetPath($path, false);
+                        return "url('{$normalized}')";
+                    },
+                    $style
+                );
+
+                if ($newStyle !== $style) {
+                    $element->setAttribute('style', $newStyle);
+                }
+            }
+        }
+    }
+
+    private function normalizeAssetPath($path, $isLink = false)
     {
         $path = trim($path);
 
-        // Skip empty, external, root-relative, data URIs, javascript, anchors, and Blade variables
+        // 1. Skip jika kosong, external, root-relative, data URI, js, anchor, atau sudah Blade
         if (
             empty($path) ||
             preg_match('/^(https?:)?\/\//i', $path) ||
-            strpos($path, '/') === 0 ||
+            strpos($path, '/') === 0 || // Root relative (biarkan Laravel handle atau asumsikan sudah benar)
             strpos($path, 'data:') === 0 ||
             strpos($path, 'javascript:') === 0 ||
             strpos($path, '#') === 0 ||
-            strpos($path, '{{') !== false
+            strpos($path, '{{') !== false ||
+            strpos($path, '[[plugin]]') !== false // Skip shortcode page builder
         ) {
             return $path;
         }
 
-        // Clean leading "./" or "../" if present
-        if (strpos($path, './') === 0) {
-            $path = substr($path, 2);
-        } elseif (strpos($path, '../') === 0) {
-            $path = substr($path, 3);
-        }
+        // 2. Bersihkan leading ./ atau ../
+        // Catatan: Jika template menggunakan ../images/ dari folder css/, kita harus hati-hati.
+        // Asumsi: ZIP sudah diekstrak ke root, sehingga ../ seharusnya tidak ada, atau kita normalisasi ke root tema.
+        $path = ltrim($path, './');
+        $path = preg_replace('/^\.\.\//', '', $path);
 
+        // 3. Tambahkan prefix tema
         return "/frontend/{$this->themeName}/{$path}";
     }
 }

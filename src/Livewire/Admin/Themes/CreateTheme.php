@@ -14,11 +14,34 @@ use Uiaciel\SuryaCms\Services\SettingMapperService;
 use Uiaciel\SuryaCms\Services\ThemeLayoutGeneratorService;
 use Uiaciel\SuryaCms\Services\ThemeNormalizerService;
 use Uiaciel\SuryaCms\Services\ThemeSnippetExtractorService;
+use Uiaciel\SuryaCms\Services\ThemeAssetReferenceService;
+use Uiaciel\SuryaCms\Services\ThemeFrameworkDetectorService;
+use Uiaciel\SuryaCms\Services\ThemeZipInspectorService;
 use ZipArchive;
 
 class CreateTheme extends Component
 {
     use WithFileUploads;
+
+    private const REQUIRED_THEME_FILES = [
+        'app.blade.php',
+        'editor.blade.php',
+        'homepage.blade.php',
+        'index.blade.php',
+        'navigation.blade.php',
+        'theme.php',
+
+        'page/category.blade.php',
+        'page/contact.blade.php',
+        'page/maintenance.blade.php',
+        'page/post.blade.php',
+        'page/show.blade.php',
+
+        'plugin/blog.blade.php',
+        'plugin/gallery.blade.php',
+        'plugin/slider.blade.php',
+        'plugin/youtube.blade.php',
+    ];
 
     public string $themeName = 'my-awesome-theme';
 
@@ -28,9 +51,25 @@ class CreateTheme extends Component
 
     public string $styleType = 'bootstrap';
 
+    public array $frameworkDetection = [
+        'framework' => 'unknown',
+        'confidence' => 'low',
+        'evidence' => [],
+    ];
+
+    public array $fileDirty = [];
+
+    public array $archiveWarnings = [];
+
+    public string $selectedIndexRelativePath = '';
+
     public $zipFile = null;
 
     public bool $zipExtracted = false;
+
+    public bool $themeGenerated = false;
+
+    public bool $sourcePreviewAvailable = false;
 
     public string $uploadStatus = '';
 
@@ -48,7 +87,9 @@ class CreateTheme extends Component
 
     public string $selectedGeneratedFile = 'app.blade.php';
 
-    public string $selectedVariableGroup = 'page';
+    public string $selectedVariableGroup = 'Global';
+
+    public string $previewMode = 'source';
 
     public string $activeBottomTab = 'app.blade.php';
 
@@ -152,6 +193,81 @@ class CreateTheme extends Component
         $this->selectedVariableGroup = $group;
     }
 
+    public function editorPalette(): array
+    {
+        return [
+            'Global' => [
+                ['label' => 'Tema aktif', 'snippet' => '{{ $activeTheme }}'],
+                ['label' => 'Nama website', 'snippet' => '{{ $setting?->sitename ?? "Nama Website" }}'],
+                ['label' => 'Logo website', 'snippet' => '@if($setting?->logo)<img src="{{ asset($setting->logo) }}" alt="{{ $setting->sitename ?? "Logo" }}">@endif'],
+                ['label' => 'Navigasi menu', 'snippet' => '@foreach($menus as $menu)<a href="{{ url($menu->link ?? "/") }}">{{ $menu->name }}</a>@endforeach'],
+                ['label' => 'Latest posts loop', 'snippet' => $this->latestPostsLoopSnippet()],
+                ['label' => 'Semua post', 'snippet' => '@foreach($posts as $post)<a href="{{ url("/".$post->slug) }}">{{ $post->title }}</a>@endforeach'],
+                ['label' => 'Top posts', 'snippet' => '@foreach($topposts as $post)<a href="{{ url("/".$post->slug) }}">{{ $post->title }}</a>@endforeach'],
+                ['label' => 'Kategori', 'snippet' => '@foreach($categories as $category)<a href="{{ url("/category/".$category->slug) }}">{{ $category->name }}</a>@endforeach'],
+                ['label' => 'Halaman website', 'snippet' => '@foreach($pages as $page)<a href="{{ url("/".$page->slug) }}">{{ $page->title }}</a>@endforeach'],
+                ['label' => 'Galeri', 'snippet' => '@foreach($gallery as $item)<img src="{{ asset("storage/".$item->cover_path) }}" alt="{{ $item->alt_text ?? "Gallery" }}">@endforeach'],
+                ['label' => 'Slider', 'snippet' => '@foreach($sliders as $slide)<img src="{{ asset("storage/".$slide->image_path) }}" alt="{{ $slide->alt_text }}">@endforeach'],
+                ['label' => 'Tag cloud', 'snippet' => '@foreach($tagcloud as $tag => $count)<a href="{{ url("/tag/".$tag) }}">{{ $tag }}</a>@endforeach'],
+                ['label' => 'Video YouTube', 'snippet' => '@foreach($youtubes as $youtube)<a href="{{ $youtube->url ?? "#" }}">{{ $youtube->title ?? "Video" }}</a>@endforeach'],
+                ['label' => 'Bahasa', 'snippet' => '@foreach($lang as $language)<a href="{{ url("/lang/".$language->code) }}">{{ $language->name }}</a>@endforeach'],
+                ['label' => 'Pesan kontak', 'snippet' => '@foreach($contacts as $contact)<p>{{ $contact->name }}</p>@endforeach'],
+            ],
+            'Page' => [
+                ['label' => 'Judul halaman', 'snippet' => '{{ $page->title ?? "Judul halaman" }}'],
+                ['label' => 'Konten halaman', 'snippet' => '{!! $page->content ?? "" !!}'],
+                ['label' => 'Gambar halaman', 'snippet' => '@if($page->image)<img src="{{ asset($page->image) }}" alt="{{ $page->title ?? "Halaman" }}">@endif'],
+                ['label' => 'Homepage builder HTML', 'snippet' => '{!! $html ?? "" !!}'],
+                ['label' => 'Homepage builder CSS', 'snippet' => '<style>{!! $css ?? "" !!}</style>'],
+                ['label' => 'Judul SEO', 'snippet' => '{{ $seo->title ?? $page->title ?? "Judul halaman" }}'],
+                ['label' => 'Judul post', 'snippet' => '{{ $post->title ?? "Judul artikel" }}'],
+                ['label' => 'Konten post', 'snippet' => '{!! $post->content ?? "" !!}'],
+                ['label' => 'Kategori post', 'snippet' => '{{ $category->name ?? $post->category->name ?? "Kategori" }}'],
+                ['label' => 'Post terbaru lainnya', 'snippet' => '@foreach($recentpost as $recent)<a href="{{ url("/".$recent->slug) }}">{{ $recent->title }}</a>@endforeach'],
+            ],
+            'Snippets Variable' => [
+                ['label' => 'Loop latest posts', 'snippet' => $this->latestPostsLoopSnippet()],
+                ['label' => 'Loop menu + submenu', 'snippet' => '@foreach($menus as $menu)<li><a href="{{ url($menu->link ?? "/") }}">{{ $menu->name }}</a>@if($menu->children?->isNotEmpty())<ul>@foreach($menu->children as $child)<li><a href="{{ url($child->link ?? "/") }}">{{ $child->name }}</a></li>@endforeach</ul>@endif</li>@endforeach'],
+                ['label' => 'Loop halaman', 'snippet' => '@foreach($pages as $page)<article><h2><a href="{{ url("/".$page->slug) }}">{{ $page->title }}</a></h2><div>{!! $page->content !!}</div></article>@endforeach'],
+            ],
+        ];
+    }
+
+    public function savePreview(): void
+    {
+        if (! $this->sessionId || ! File::exists(storage_path("app/temp/themes/{$this->sessionId}/builder-meta.json"))) {
+            $this->uploadStatus = 'error';
+            $this->uploadMessage = 'Sesi preview tidak ditemukan.';
+
+            return;
+        }
+
+        if (isset($this->fileContents[$this->selectedGeneratedFile])) {
+            $this->saveGeneratedFile();
+            if ($this->uploadStatus === 'error') {
+                return;
+            }
+        }
+
+        $this->dispatch('theme-preview-refresh');
+    }
+
+    private function latestPostsLoopSnippet(): string
+    {
+        return <<<'BLADE'
+@foreach($latestposts as $post)
+    <article class="post-card">
+        @foreach($post->gambar() as $postImage)
+            @if($loop->first)<img src="{{ $postImage }}" alt="{{ $post->title }}">@endif
+        @endforeach
+        <h2><a href="{{ url('/'.$post->slug) }}">{{ $post->title }}</a></h2>
+        <p>{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 140) }}</p>
+        <time>{{ $post->datepublish }}</time>
+    </article>
+@endforeach
+BLADE;
+    }
+
     public function fakeUpload(): void
     {
         $this->uploadZip();
@@ -175,9 +291,13 @@ class CreateTheme extends Component
 
             $extractPath = $this->tempPath.DIRECTORY_SEPARATOR.'source';
             $this->ensureDirectory($extractPath);
-            $indexPath = $this->extractZip($zipPath, $extractPath);
-            $sourceRoot = dirname($indexPath);
-            $this->copyDirectoryContents($sourceRoot, $this->tempPath, ['theme.zip', 'source']);
+            $archive = (new ThemeZipInspectorService)->extract($zipPath, $extractPath);
+            $indexPath = $archive['index_path'];
+            $sourceRoot = $extractPath;
+            $this->selectedIndexRelativePath = $archive['index_relative_path'];
+            $this->archiveWarnings = $archive['warnings'];
+            $this->sourcePreviewAvailable = true;
+            $this->themeGenerated = false;
 
             $indexTarget = $this->tempPath.DIRECTORY_SEPARATOR.'index.html';
             $originalTarget = $this->tempPath.DIRECTORY_SEPARATOR.'original-index.html';
@@ -186,11 +306,18 @@ class CreateTheme extends Component
 
             $this->htmlRaw = File::get($indexTarget);
             $this->htmlOriginal = File::get($originalTarget);
-            $this->zipInfo = $this->buildZipInfo($this->tempPath, $zipPath);
+            $this->frameworkDetection = (new ThemeFrameworkDetectorService)->detect($this->htmlOriginal, $sourceRoot);
+            $this->styleType = $this->frameworkDetection['framework'];
+            $this->zipInfo = $this->buildZipInfo($sourceRoot, $zipPath);
             $this->assetSnippets = $this->extractAssetSnippets($this->htmlRaw);
             $this->zipExtracted = true;
+            $this->themeGenerated = false;
+            $this->sourcePreviewAvailable = File::isDirectory($this->tempPath.DIRECTORY_SEPARATOR.'source');
             $this->uploadStatus = 'success';
-            $this->uploadMessage = 'ZIP berhasil diekstrak. index.html dan original-index.html sudah dibuat.';
+            $this->uploadMessage = 'ZIP berhasil diperiksa dan diekstrak. Framework terdeteksi: '.$this->frameworkDetection['framework'].'.';
+            if ($this->archiveWarnings !== []) {
+                $this->uploadMessage .= ' Periksa peringatan struktur ZIP sebelum melanjutkan.';
+            }
             $this->activeTab = 'upload';
 
             $this->saveSessionMeta(false);
@@ -247,7 +374,7 @@ class CreateTheme extends Component
             File::put($this->tempPath.DIRECTORY_SEPARATOR.'index.html', $normalized);
 
             $this->ensureDirectory($publicThemePath);
-            $this->copyAssetsToPublic($this->tempPath, $publicThemePath);
+            $this->copyAssetsToPublic($this->tempPath.DIRECTORY_SEPARATOR.'source', $publicThemePath);
 
             $this->ensureDirectory($viewThemePath);
             $generator = new ThemeLayoutGeneratorService($normalized, $theme);
@@ -256,15 +383,21 @@ class CreateTheme extends Component
             File::put("{$viewThemePath}/editor.blade.php", $this->formatGeneratedFileContent('editor.blade.php', $generator->generateEditor()));
             File::put("{$viewThemePath}/homepage.blade.php", $this->formatGeneratedFileContent('homepage.blade.php', $generator->generateHomepage()));
             File::put("{$viewThemePath}/index.blade.php", $this->formatGeneratedFileContent('index.blade.php', $generator->generateIndex()));
-            File::put("{$viewThemePath}/theme.php", $this->formatGeneratedFileContent('theme.php', "<?php\n\nreturn ".$generator->generateThemeConfig().';'));
+            File::put("{$viewThemePath}/theme.php", $this->formatGeneratedFileContent('theme.php', "<?php\n\nreturn ".$generator->generateThemeConfig($this->styleType).';'));
 
             $this->writeGeneratedSupportFiles($generator, $viewThemePath);
             $this->loadGeneratedFiles();
             $this->buildExportValidation();
+            $this->themeGenerated = true;
             $this->activeTab = 'generated';
             $this->uploadStatus = 'success';
             $this->uploadMessage = "Tema {$theme} berhasil digenerate.";
             $this->saveSessionMeta(true);
+
+            $this->dispatch('toast',
+                type: 'success',
+                message: 'sudah berhasil digenerate!'
+            );
         } catch (\Throwable $e) {
             $this->uploadStatus = 'error';
             $this->uploadMessage = 'Generate gagal: '.$e->getMessage();
@@ -285,6 +418,8 @@ class CreateTheme extends Component
         if (! in_array($filename, $this->openTabs, true)) {
             $this->openTabs[] = $filename;
         }
+
+        $this->dispatch('theme-file-selected', content: $this->editingFileContent);
     }
 
     public function selectBottomTab(string $filename): void
@@ -300,49 +435,88 @@ class CreateTheme extends Component
         }
     }
 
+    public function updatedEditingFileContent()
+    {
+        if ($this->selectedGeneratedFile) {
+            $original = $this->fileContents[$this->selectedGeneratedFile] ?? '';
+            $this->fileDirty[$this->selectedGeneratedFile] =
+                $this->editingFileContent !== $original;
+        }
+    }
+
     public function saveGeneratedFile(): void
     {
-        if (! $this->selectedGeneratedFile) {
-            return;
-        }
 
-        $path = $this->generatedFileAbsolutePath($this->selectedGeneratedFile);
-        if (! $path) {
+        try {
+            $this->fileContents[$this->selectedGeneratedFile] = $this->editingFileContent;
+
+            if (! $this->selectedGeneratedFile) {
+                return;
+            }
+
+            $path = $this->generatedFileAbsolutePath($this->selectedGeneratedFile);
+            if (! $path) {
+                $this->uploadStatus = 'error';
+                $this->uploadMessage = 'File generated tidak valid.';
+
+                return;
+            }
+
+            File::put($path, $this->editingFileContent);
+            $this->fileContents[$this->selectedGeneratedFile] = $this->editingFileContent;
+            $this->uploadStatus = 'success';
+            $this->uploadMessage = "{$this->selectedGeneratedFile} berhasil disimpan.";
+            $this->buildExportValidation();
+
+            $this->fileDirty[$this->selectedGeneratedFile] = false;
+
+            $this->dispatch('toast',
+                type: 'success',
+                message: basename($this->selectedGeneratedFile) . ' berhasil disimpan!'
+            );
+
+            $this->dispatch('theme-file-selected', content: $this->editingFileContent);
+
+        } catch (\Exception $e) {
             $this->uploadStatus = 'error';
-            $this->uploadMessage = 'File generated tidak valid.';
-
-            return;
+            $this->uploadMessage = 'Gagal menyimpan file: '.$e->getMessage();
+            $this->dispatch('toast', type: 'error', message: $this->uploadMessage);
         }
-
-        File::put($path, $this->editingFileContent);
-        $this->fileContents[$this->selectedGeneratedFile] = $this->editingFileContent;
-        $this->uploadStatus = 'success';
-        $this->uploadMessage = "{$this->selectedGeneratedFile} berhasil disimpan.";
-        $this->buildExportValidation();
     }
 
     public function resetUpload(): void
     {
         $this->zipFile = null;
         $this->zipExtracted = false;
+        $this->themeGenerated = false;
+        $this->sourcePreviewAvailable = false;
         $this->uploadStatus = '';
         $this->uploadMessage = '';
         $this->htmlRaw = '';
         $this->assetSnippets = [];
+        $this->archiveWarnings = [];
+        $this->selectedIndexRelativePath = '';
+        $this->frameworkDetection = ['framework' => 'unknown', 'confidence' => 'low', 'evidence' => []];
         $this->fileTree = [];
         $this->fileContents = [];
         $this->openTabs = [];
         $this->editingFileContent = '';
         $this->selectedGeneratedFile = 'app.blade.php';
         $this->activeBottomTab = 'app.blade.php';
+        $this->previewMode = 'source';
+
+        $this->dispatch('toast',
+                type: 'success',
+                message: 'berhasil direset!'
+            );
     }
 
     public function activateTheme(): void
     {
         $theme = $this->themeSlug();
-        if (! File::isDirectory(resource_path("views/frontend/{$theme}"))) {
+        if (! $this->hasValidThemeContract() || ! File::isDirectory(resource_path("views/frontend/{$theme}"))) {
             $this->uploadStatus = 'error';
-            $this->uploadMessage = 'Generate tema terlebih dahulu sebelum aktivasi.';
+            $this->uploadMessage = 'Generate tema dan lengkapi 15 file wajib sebelum aktivasi.';
 
             return;
         }
@@ -366,9 +540,9 @@ class CreateTheme extends Component
         $viewPath = resource_path("views/frontend/{$theme}");
         $publicPath = public_path("frontend/{$theme}");
 
-        if (! File::isDirectory($viewPath)) {
+        if (! File::isDirectory($viewPath) || ! $this->hasValidThemeContract()) {
             $this->uploadStatus = 'error';
-            $this->uploadMessage = 'Generate tema terlebih dahulu sebelum download.';
+            $this->uploadMessage = 'Generate tema dan lengkapi 15 file wajib sebelum download.';
 
             return null;
         }
@@ -420,10 +594,14 @@ class CreateTheme extends Component
         $this->author = $meta['author'] ?? $this->author;
         $this->themeVersion = $meta['themeVersion'] ?? $this->themeVersion;
         $this->styleType = $meta['styleType'] ?? $this->styleType;
+        $this->frameworkDetection = $meta['frameworkDetection'] ?? $this->frameworkDetection;
+        $this->selectedIndexRelativePath = $meta['indexRelativePath'] ?? $this->selectedIndexRelativePath;
         $this->htmlRaw = File::get($latest.DIRECTORY_SEPARATOR.'index.html');
         $originalPath = $latest.DIRECTORY_SEPARATOR.'original-index.html';
         $this->htmlOriginal = File::exists($originalPath) ? File::get($originalPath) : $this->htmlRaw;
         $this->zipExtracted = true;
+        $this->themeGenerated = ! empty($meta['generated']);
+        $this->sourcePreviewAvailable = File::isDirectory($latest.DIRECTORY_SEPARATOR.'source');
         $this->assetSnippets = $this->extractAssetSnippets($this->htmlRaw);
         $this->zipInfo = $this->buildZipInfo($latest, $latest.DIRECTORY_SEPARATOR.'theme.zip');
 
@@ -436,6 +614,10 @@ class CreateTheme extends Component
     private function resetBuilderOutput(): void
     {
         $this->zipExtracted = false;
+        $this->themeGenerated = false;
+        $this->sourcePreviewAvailable = false;
+        $this->archiveWarnings = [];
+        $this->selectedIndexRelativePath = '';
         $this->uploadStatus = '';
         $this->uploadMessage = '';
         $this->assetSnippets = [];
@@ -445,52 +627,18 @@ class CreateTheme extends Component
         $this->exportValidation = [];
     }
 
-    private function extractZip(string $zipPath, string $extractPath): string
-    {
-        $zip = new ZipArchive;
-        if ($zip->open($zipPath) !== true) {
-            throw new \RuntimeException('ZIP tidak dapat dibuka.');
-        }
-
-        $indexPath = '';
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $entry = $zip->getNameIndex($i);
-            $normalized = str_replace('\\', '/', $entry);
-            if (str_contains($normalized, '../') || str_starts_with($normalized, '/')) {
-                continue;
-            }
-
-            if (str_ends_with($normalized, '/')) {
-                $this->ensureDirectory($extractPath.DIRECTORY_SEPARATOR.$normalized);
-
-                continue;
-            }
-
-            $target = $extractPath.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $normalized);
-            $this->ensureDirectory(dirname($target));
-            File::put($target, $zip->getFromIndex($i));
-
-            if (preg_match('/(^|\/)index\.html$/i', $normalized)) {
-                $indexPath = $target;
-            }
-        }
-        $zip->close();
-
-        if (! $indexPath || ! File::exists($indexPath)) {
-            throw new \RuntimeException('index.html tidak ditemukan di dalam ZIP.');
-        }
-
-        return $indexPath;
-    }
-
     private function normalizeHtml(string $html, string $theme): string
     {
+        $assetReferences = new ThemeAssetReferenceService;
+        $html = $assetReferences->rebaseToArchiveRoot($html, $this->selectedIndexRelativePath);
         $mapper = new SettingMapperService($html, $this->dataMap);
         $html = $mapper->map();
         $html = (new ThemeNormalizerService($html, $theme))->normalize();
         $html = (new FooterNormalizerService($html, $theme))->normalize();
 
-        return (new HeadNormalizerService($html, $theme))->normalize();
+        $html = (new HeadNormalizerService($html, $theme))->normalize();
+
+        return $assetReferences->prefixThemeAssets($html, $theme);
     }
 
     private function extractAssetSnippets(string $html): array
@@ -568,18 +716,20 @@ class CreateTheme extends Component
 
     private function copyAssetsToPublic(string $sourcePath, string $destinationPath): void
     {
-        foreach (File::directories($sourcePath) as $directory) {
-            if (basename($directory) === 'source') {
+        $assetReferences = new ThemeAssetReferenceService;
+        foreach (File::allFiles($sourcePath) as $file) {
+            $relative = str_replace('\\', '/', $file->getRelativePathname());
+            if ($relative === 'index.html') {
                 continue;
             }
-            File::copyDirectory($directory, $destinationPath.DIRECTORY_SEPARATOR.basename($directory));
-        }
 
-        foreach (File::files($sourcePath) as $file) {
-            if (in_array($file->getFilename(), ['index.html', 'original-index.html', 'theme.zip', 'builder-meta.json'], true)) {
-                continue;
+            $destination = $destinationPath.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relative);
+            $this->ensureDirectory(dirname($destination));
+            $content = File::get($file->getPathname());
+            if (strtolower($file->getExtension()) === 'css') {
+                $content = $assetReferences->prefixRootRelativeCssAssets($content, $this->themeSlug());
             }
-            File::copy($file->getPathname(), $destinationPath.DIRECTORY_SEPARATOR.$file->getFilename());
+            File::put($destination, $content);
         }
     }
 
@@ -598,10 +748,19 @@ class CreateTheme extends Component
         File::put("{$viewThemePath}/page/share.blade.php", $this->formatGeneratedFileContent('page/share.blade.php', $generator->generatePageReport('Share Reports')));
         File::put("{$viewThemePath}/page/maintenance.blade.php", $this->formatGeneratedFileContent('page/maintenance.blade.php', $generator->generatePageMaintenance()));
 
-        $defaultPlugin = resource_path('views/frontend/default/plugin');
-        if (File::isDirectory($defaultPlugin)) {
+        $defaultPluginPaths = [
+            resource_path('views/frontend/default/plugin'),
+            dirname(__DIR__, 4).DIRECTORY_SEPARATOR.'resources'.DIRECTORY_SEPARATOR.'views'.DIRECTORY_SEPARATOR.'frontend'.DIRECTORY_SEPARATOR.'default'.DIRECTORY_SEPARATOR.'plugin',
+        ];
+        foreach ($defaultPluginPaths as $defaultPlugin) {
+            if (! File::isDirectory($defaultPlugin)) {
+                continue;
+            }
             foreach (File::files($defaultPlugin) as $file) {
-                File::copy($file->getPathname(), "{$viewThemePath}/plugin/".$file->getFilename());
+                $destination = "{$viewThemePath}/plugin/".$file->getFilename();
+                if (! File::exists($destination)) {
+                    File::copy($file->getPathname(), $destination);
+                }
             }
         }
 
@@ -640,30 +799,36 @@ class CreateTheme extends Component
 
     public function loadGeneratedFiles(): void
     {
-        $themePath = resource_path('views/frontend/'.$this->themeSlug());
-        if (! File::isDirectory($themePath)) {
-            return;
-        }
-
-        $this->fileTree = [];
-        $this->fileContents = [];
-        foreach (File::allFiles($themePath) as $file) {
-            $relative = str_replace('\\', '/', $file->getRelativePathname());
-            $this->fileTree[] = [
-                'name' => $relative,
-                'type' => 'file',
-                'icon' => $this->iconForFile($relative),
-            ];
-            if ($file->getSize() <= 262144) {
-                $this->fileContents[$relative] = File::get($file->getPathname());
+        try {
+            $themePath = resource_path('views/frontend/'.$this->themeSlug());
+            if (! File::isDirectory($themePath)) {
+                return;
             }
+
+            $this->fileTree = [];
+            $this->fileContents = [];
+            foreach (File::allFiles($themePath) as $file) {
+                $relative = str_replace('\\', '/', $file->getRelativePathname());
+                $this->fileTree[] = [
+                    'name' => $relative,
+                    'type' => 'file',
+                    'icon' => $this->iconForFile($relative),
+                ];
+                if ($file->getSize() <= 262144) {
+                    $this->fileContents[$relative] = File::get($file->getPathname());
+                }
+            }
+
+            $this->openTabs = array_slice(array_keys($this->fileContents), 0, 4);
+            if (! empty($this->fileContents)) {
+                $first = array_key_first($this->fileContents);
+                $this->selectGeneratedFile($this->fileContents['app.blade.php'] ?? null ? 'app.blade.php' : $first);
+            }
+            $this->dispatch('toast', type: 'success', message: 'File berhasil direload!');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', type: 'error', message: 'Gagal menyimpan file');
         }
 
-        $this->openTabs = array_slice(array_keys($this->fileContents), 0, 4);
-        if (! empty($this->fileContents)) {
-            $first = array_key_first($this->fileContents);
-            $this->selectGeneratedFile($this->fileContents['app.blade.php'] ?? null ? 'app.blade.php' : $first);
-        }
     }
 
     public function loadExistingTheme(string $theme): void
@@ -682,6 +847,8 @@ class CreateTheme extends Component
         $this->tempPath = storage_path("app/temp/themes/{$this->sessionId}");
         $this->ensureDirectory($this->tempPath);
         $this->zipExtracted = true;
+        $this->themeGenerated = true;
+        $this->sourcePreviewAvailable = false;
         $this->activeTab = 'generated';
         $this->htmlRaw = File::exists("{$themePath}/app.blade.php") ? File::get("{$themePath}/app.blade.php") : '';
         $this->htmlOriginal = $this->htmlRaw;
@@ -694,10 +861,10 @@ class CreateTheme extends Component
 
     private function buildExportValidation(): void
     {
-        $required = ['app.blade.php', 'editor.blade.php', 'homepage.blade.php', 'navigation.blade.php', 'index.blade.php', 'theme.php'];
         $this->exportValidation = [];
-        foreach ($required as $file) {
-            $exists = isset($this->fileContents[$file]);
+        foreach (self::REQUIRED_THEME_FILES as $file) {
+            $path = $this->generatedFileAbsolutePath($file);
+            $exists = $path !== null && File::isFile($path);
             $this->exportValidation[] = [
                 'file' => $file,
                 'status' => $exists ? 'ok' : 'error',
@@ -713,16 +880,41 @@ class CreateTheme extends Component
         }
     }
 
+    private function hasValidThemeContract(): bool
+    {
+        foreach (self::REQUIRED_THEME_FILES as $file) {
+            $path = $this->generatedFileAbsolutePath($file);
+            if ($path === null || ! File::isFile($path)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private function generatedFileAbsolutePath(string $relative): ?string
     {
         $base = realpath(resource_path('views/frontend/'.$this->themeSlug()));
-        if (! $base) {
+        $relative = str_replace('\\', '/', $relative);
+        if (
+            ! $base ||
+            $relative === '' ||
+            str_starts_with($relative, '/') ||
+            str_contains($relative, "\0") ||
+            preg_match('/^[a-z]:/i', $relative) ||
+            in_array('..', explode('/', $relative), true)
+        ) {
             return null;
         }
 
         $path = $base.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relative);
-        $directory = dirname($path);
-        if (! str_starts_with(realpath($directory) ?: $directory, $base)) {
+        $directory = realpath(dirname($path));
+        $basePrefix = rtrim($base, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+        if (
+            ! $directory ||
+            ($directory !== $base && ! str_starts_with($directory, $basePrefix)) ||
+            is_link($path)
+        ) {
             return null;
         }
 
@@ -734,23 +926,6 @@ class CreateTheme extends Component
         foreach (File::allFiles($directory) as $file) {
             $relative = str_replace('\\', '/', $file->getRelativePathname());
             $zip->addFile($file->getPathname(), trim($zipPrefix, '/').'/'.$relative);
-        }
-    }
-
-    private function copyDirectoryContents(string $from, string $to, array $skip = []): void
-    {
-        foreach (File::directories($from) as $directory) {
-            if (in_array(basename($directory), $skip, true)) {
-                continue;
-            }
-            File::copyDirectory($directory, $to.DIRECTORY_SEPARATOR.basename($directory));
-        }
-
-        foreach (File::files($from) as $file) {
-            if (in_array($file->getFilename(), $skip, true)) {
-                continue;
-            }
-            File::copy($file->getPathname(), $to.DIRECTORY_SEPARATOR.$file->getFilename());
         }
     }
 
@@ -796,6 +971,8 @@ class CreateTheme extends Component
             'author' => $this->author,
             'themeVersion' => $this->themeVersion,
             'styleType' => $this->styleType,
+            'frameworkDetection' => $this->frameworkDetection,
+            'indexRelativePath' => $this->selectedIndexRelativePath,
             'generated' => $generated,
             'updated_at' => now()->toDateTimeString(),
         ], JSON_PRETTY_PRINT));
